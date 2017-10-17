@@ -36,6 +36,7 @@ role has. (For example, the player who receives Merlin will also see the
 usernames of the Spies [Assassin, Morgana, Oberon, etc.].)
 
 ## Changes in the works (Feature requests)
+- Mobile first! (App is desktop...)
 - Ability for lobby owner to kick a player. 
     * (Ability for player to explicitly leave a lobby, without logging out or joining another.)
 - Give players some way to reveal their information, i.e. "flip their card".
