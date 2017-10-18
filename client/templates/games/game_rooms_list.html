@@ -5,16 +5,23 @@
         {{> accountForm}}
     {{/if}}
 
+    <div class="divider"></div>
+
     {{#if gameRooms.count}}
         <div class="container">
+            <div class="row">
+                <div class="col s12 flow-text">
+                    <h5>Open game rooms</h5>
+                </div>
+            </div>
             {{#each gameRooms}}
                 {{> gameRoom}}
             {{/each}}
         </div>
     {{else}}
-        <div class="row">
+        <div class="row section">
             <div class="col s12 flow-text">
-                There aren't any open games at the moment.
+                There aren't any open games at the moment. Be the first to make one! ;)
             </div>
         </div>
     {{/if}}

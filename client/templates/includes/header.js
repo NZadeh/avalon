@@ -6,6 +6,8 @@ Template.header.events({
                 'profile.leftAt': false
             }
         });
-        Meteor.logout();
+        Meteor.logout(function() {
+        	Router.go('home');
+        });
     }
 });
