@@ -1,4 +1,8 @@
 Template.gameTemplate.helpers({
+    isRoomOwner: function() {
+        return isRoomOwner(this);
+    },
+
     gameData: function() {
         var rawData = GameRooms.findOne(this._id, {
             fields: {
@@ -24,9 +28,10 @@ Template.gameTemplate.helpers({
     },
 
     playersList: function() {
+        // TODO(neemazad): limit info from this query
         var rawData = GameRooms.findOne(this._id, {
             fields: {
-                players: 1, //array of {ids,usernames}
+                players: 1, //array of {ids,usernames,role}
             }
         });
 

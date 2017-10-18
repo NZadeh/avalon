@@ -6,14 +6,14 @@
     {{/if}}
 
     {{#if gameRooms.count}}
-        <div class="game-rooms-container">
+        <div class="container">
             {{#each gameRooms}}
                 {{> gameRoom}}
             {{/each}}
         </div>
     {{else}}
         <div class="row">
-            <div class="col-xs-12">
+            <div class="col s12 flow-text">
                 There aren't any open games at the moment.
             </div>
         </div>

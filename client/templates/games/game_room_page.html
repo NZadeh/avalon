@@ -1,12 +1,12 @@
 <template name="gameRoomPage">
-    <div class="game-room-page page shard">
+    <div class="container">
         {{#if open}}
             <div class="row">
-                <div class="col-xs-6" style="height: 100%">
+                <div class="col s12">
                     <h3>{{title}}</h3>
 
-                    <div>
-                        <strong>Room password: </strong>
+                    <div class="flow-text">
+                        Room password:
                         {{#if password}}
                             {{password}}
                         {{else}}
@@ -14,12 +14,11 @@
                         {{/if}}
                     </div>
 
-                    <div>
-                        <strong>Max # players: </strong>
-                        {{maxPlayers}}
+                    <div class="flow-text">
+                        Max # players: {{maxPlayers}}
                     </div>
                 </div>
-                <div class="right-col col-xs-6">
+                <div class="col s12 flow-text">
                     <h3>Players</h3>
                     <ul class="list-group">
                         <li class="list-group-item">
@@ -35,14 +34,17 @@
                 </div>
             </div>
             {{#if isRoomOwner}}
-                <div class="row" style="margin-top: 10px">
-                    <div class="col-xs-8">
+                <div class="row">
+                    <div class="col s12">
                         <a href="#" style="width: 100%" class="start btn btn-primary">
                             Start game
                         </a>
                     </div>
-                    <div class="col-xs-4">
-                        <a href="#" style="width: 100%" class="delete btn btn-primary">
+                </div>
+                <div class="row">
+                    <div class="col s12">
+                        <a href="#" style="width: 100%"
+                        class="delete btn btn-primary red accent-2">
                             Delete room
                         </a>
                     </div>
