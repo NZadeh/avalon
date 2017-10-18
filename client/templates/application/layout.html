@@ -1,26 +1,30 @@
 <template name="layout">
-    <div class="container wrapper">
+    <div class="container">
         {{> header}}
         {{> meteorErrors}}
-        <div id="main">
+
+        <div class="row center-align" id="main">
             {{> yield}}
         </div>
 
-        <div class="push"></div>
-    </div>
+        <div class="row push"></div>
 
-    <footer>
-        <div class="footer-div">
-            <div class="container">
-                <div class="row">
-                    <div class="col-xs-6 credit">
-                        modified (by Neema Ebrahim-Zadeh) from a 
-                        <a href="https://github.com/turbomaze/petra/">project</a>
-                        written by 
-                        <a href="https://igliu.com" target="_blank">Anthony Liu</a>
+        <footer>
+            <div class="page-footer grey lighten-4">
+                <div class="container">
+                    <div class="row grey-text darken-2">
+                        <div class="col s7">
+                            based on a
+                            <a href="https://github.com/turbomaze/petra/">project</a>
+                            written by 
+                            <a href="https://igliu.com" target="_blank">Anthony Liu</a>
+                        </div>
+                        <div class="col s5">
+                            by Neema Ebrahim-Zadeh
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </footer>
+        </footer>
+    </div>
 </template>

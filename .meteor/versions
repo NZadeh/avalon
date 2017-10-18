@@ -29,6 +29,7 @@ ecmascript-runtime-client@0.4.3
 ecmascript-runtime-server@0.4.1
 ejson@1.0.14
 email@1.2.3
+fourseven:scss@4.5.4
 geojson-utils@1.0.10
 hot-code-push@1.0.4
 html-tools@1.0.11
@@ -48,6 +49,7 @@ launch-screen@1.1.1
 livedata@1.0.18
 localstorage@1.1.1
 logging@1.1.19
+materialize:materialize@0.100.2
 meteor@1.7.2
 meteor-base@1.1.0
 minifier-css@1.2.16

@@ -1,35 +1,42 @@
 <template name="gameRoomForm">
-    <div class="shard">
+    <div class="container">
         <form class="main form">
             <div class="row">
-                <h4 class="col-xs-12">Create game room</h4>
-                <div class="form-group col-xs-12 {{errorClass 'title'}}">
-                    <div class="controls">
-                        <input name="title" id="title"
-                               type="text" value=""
-                               placeholder="Game room title"
-                               class="form-control">
-                        <span class="help-block">{{errorMessage 'title'}}</span>
-                    </div>
+                <div class="col s12">
+                    <span class="flow-text center-align">
+                        Create game room
+                    </span>
                 </div>
             </div>
+
             <div class="row">
-                <div class="form-group col-xs-5 {{errorClass 'password'}}">
-                    <div class="controls">
-                        <input name="password" id="password"
-                               type="password" value=""
-                               placeholder="(optional) Room password"
-                               class="form-control">
-                        <span class="help-block">{{errorMessage 'password'}}</span>
-                    </div>
+                <div class="col s12 {{errorClass 'title'}}">
+                    <input name="title" id="title"
+                           type="text" value=""
+                           placeholder="Game room title"
+                           class="input'field" />
+                    <span class="help-block">{{errorMessage 'title'}}</span>
                 </div>
-                <div class="form-group col-xs-3">
-                    <div class="controls">
-                        <input type="submit" value="Submit" name="submit"
-                               class="btn btn-primary"
-                                style="width: 100%">
-                    </div>
+            </div>
+
+            <div class="row">
+                <div class="col s12 {{errorClass 'password'}}">
+                    <input name="password" id="password"
+                           type="password" value=""
+                           placeholder="Room password (optional)"
+                           class="input-field" />
+                    <span class="help-block">{{errorMessage 'password'}}</span>
                 </div>
+            </div>
+
+            <div class="row">
+                <div class="col s1"></div>
+                <div class="col s10">
+                    <input type="submit" value="Create room"
+                           class="waves-effect waves-light btn"
+                           style="width: 100%"/>
+                </div>
+                <div class="col s1"></div>
             </div>
         </form>
     </div>

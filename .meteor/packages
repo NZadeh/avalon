@@ -30,3 +30,4 @@ standard-minifier-js
 shell-server
 dynamic-import
 ecmascript
+materialize:materialize
