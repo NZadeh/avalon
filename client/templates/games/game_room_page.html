@@ -25,11 +25,16 @@
                             {{author}}
                             <span style="float: right" class="glyphicon glyphicon-king" aria-hidden="true"></span>
                         </li>
-                        {{#each normalPlayers}}
-                            <li class="list-group-item">
-                                {{username}}
-                            </li>
-                        {{/each}}
+                        <!-- TODO(neemazad): Hacky... how to fix? -->
+                        {{#if isRoomOwner}}
+                            {{#each normalPlayers}}
+                                {{> usernameTemplateWithKick}}
+                            {{/each}}
+                        {{else}}
+                            {{#each normalPlayers}}
+                                {{> usernameTemplate}}
+                            {{/each}}
+                        {{/if}}
                     </ul>
                 </div>
             </div>
@@ -68,4 +73,20 @@
         Meteor.call('leaveRoom');
     });
     </script>
+</template>
+
+<template name="usernameTemplate">
+    <li class="list-group-item">
+        {{username}}
+    </li>
+</template>
+
+<template name="usernameTemplateWithKick">
+    <li class="list-group-item">
+        <span>{{username}}</span> 
+        <a href="#" class="kick right">
+            <span class="hide">{{_id}}</span> <!-- Allows child[0].innerText to be id -->
+            <i class="material-icons">clear</i>
+        </a>
+    </li>
 </template>

@@ -2,6 +2,7 @@ Template.gameRoomPage.helpers({
     isRoomOwner: function() {
         return isRoomOwner(this);
     },
+
     normalPlayers: function() {
         var ownerId = this.userId;
         var nonOwners = this.players.filter(function(player) {
@@ -49,6 +50,20 @@ Template.gameRoomPage.events({
 
                 Router.go('home');
             }
+        });
+    },
+    'click .kick': function(e, tmpl) {
+        e.preventDefault();
+
+        // TODO(neemazad): More principled way of getting this id?
+        var id = e.currentTarget.children[0].innerText;
+        if (!id || id.length == 0) {
+            console.log("Failed to kick player -- bad id.")
+            return;
+        }
+
+        Meteor.call('kickPlayer', id, function (err, result) {
+            if (err) return Errors.throw(err.reason);
         });
     }
 });
