@@ -65,5 +65,28 @@ Template.gameRoomPage.events({
         Meteor.call('kickPlayer', id, function (err, result) {
             if (err) return Errors.throw(err.reason);
         });
+    },
+    'click .leave': function(e, tmpl) {
+        // TODO(neemazad): Unify with game_template.js.
+        e.preventDefault();
+
+        Meteor.call('removeJoinAuth', function (err, result) {
+            if (err) return Errors.throw(err.reason);
+
+            if (result.notLoggedOn) {
+                return Errors.throw(
+                    'You\'re not logged in.'
+                );
+            } else if (result.notInRoom) {
+                return Errors.throw(
+                    'You need to be in a room to leave.'
+                );
+            } else if (result.success) {
+                //ga
+                ga('send', 'event', 'game', 'leave');
+
+                Router.go('home');
+            }
+        });
     }
 });

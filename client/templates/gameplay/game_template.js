@@ -80,7 +80,7 @@ Template.gameTemplate.events({
     'click #leave-btn': function(e, tmpl) {
         e.preventDefault();
 
-        if (confirm('Are you sure you want to leave?')) {
+        if (confirm('Are you sure you want to leave? This may (indirectly) reveal your role. You cannot rejoin the same game.')) {
             Meteor.call('removeJoinAuth', function (err, result) {
                 if (err) return Errors.throw(err.reason);
 
