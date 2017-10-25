@@ -39,6 +39,8 @@ usernames of the Spies [Assassin, Morgana, Oberon, etc.].)
 ## Changes in the works (Feature requests)
 - Give players some way to reveal their information, i.e. "flip their card".
 - Give game owner an "end game" functionality that reveals all players' roles.
+- Show error messages at the top of the screen rather than top of the page.
+- Log out players automatically after X hours.
 - Unify all styling/classes to Materialize
 - Remove unnecessary dependencies (how?)
 - Move some computation server side...? (Limit the scope of client<-->database requests)
@@ -51,6 +53,9 @@ I separately set up a MongoDB database using mLab's free tier quota.
 
 There are decent instructions [online](http://galaxy-guide.meteor.com/deploy-quickstart.html),
 but the gist of it is:
+
+Run `meteor` in the project directory so that the app is built and you can tell whether
+you need any other dependencies.
 
 Add a tuple in `settings.json` so that Meteor can connect to MongoDB using the URL
 that mLab shows, filling in the necessary fields, e.g.:
