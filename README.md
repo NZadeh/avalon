@@ -65,7 +65,7 @@ that mLab shows, filling in the necessary fields, e.g.:
 
 Then...
 
-####(On windows)
+#### (On windows)
 From the project directory (e.g. `<your path>/GitHub/avalon`)
 ```bash
 SET DEPLOY_HOSTNAME=galaxy.meteor.com
