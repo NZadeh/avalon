@@ -1,6 +1,6 @@
 <template name="gameRoomPage">
-    <div class="container">
-        {{#if open}}
+    {{#if open}}
+        <div class="container">
             <div class="row">
                 <div class="col s12">
                     <h3>{{title}}</h3>
@@ -71,10 +71,10 @@
                     </a>
                 </div>
             </div>
-        {{else}}
-            {{> gameTemplate}}
-        {{/if}}
-    </div>
+        </div>
+    {{else}}
+        {{> gameTemplate}}
+    {{/if}}
 
     <script>
     window.addEventListener('beforeunload', function() {
