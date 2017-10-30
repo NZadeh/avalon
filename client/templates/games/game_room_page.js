@@ -18,12 +18,17 @@ Template.gameRoomPage.events({
         e.preventDefault();
 
         Meteor.call('startGame', this._id, function(err, result) {
-            if (err) { Materialize.toast(err.reason, 3000); return; }
+            if (err) {
+                Materialize.toast(err.reason, 3000, 'error-toast');
+                return;
+            }
 
             if (result.notEnoughPlayers) {
-                Materialize.toast('You need more players to start (probably >=5).', 3000); return;
+                Materialize.toast('You need more players to start (probably >=5).', 3000, 'error-toast');
+                return;
             } else if (result.tooManyPlayers) {
-                Materialize.toast('You have too many players to start (probably >10).', 3000); return;
+                Materialize.toast('You have too many players to start (probably >10).', 3000, 'error-toast');
+                return;
             } else if (result.success) {
                 //ga
                 ga('send', 'event', 'game', 'start');
@@ -34,10 +39,14 @@ Template.gameRoomPage.events({
         e.preventDefault();
 
         Meteor.call('deleteGameRoom', this._id, function(err, result) {
-            if (err) { Materialize.toast(err.reason, 3000); return; }
+            if (err) {
+                Materialize.toast(err.reason, 3000, 'error-toast');
+                return;
+            }
 
             if (result.notRoomOwner) {
-                Materialize.toast('Only the room owner can delete this room.', 3000); return;
+                Materialize.toast('Only the room owner can delete this room.', 3000, 'error-toast');
+                return;
             } else if (result.success) {
                 //ga
                 ga('send', 'event', 'game', 'delete');
@@ -57,7 +66,10 @@ Template.gameRoomPage.events({
         }
 
         Meteor.call('kickPlayer', id, function (err, result) {
-            if (err) { Materialize.toast(err.reason, 3000); return; }
+            if (err) { 
+                Materialize.toast(err.reason, 3000, 'error-toast');
+                return;
+            }
         });
     },
     'click .leave': function(e, tmpl) {
@@ -65,12 +77,17 @@ Template.gameRoomPage.events({
         e.preventDefault();
 
         Meteor.call('removeJoinAuth', function (err, result) {
-            if (err) { Materialize.toast(err.reason, 3000); return; }
+            if (err) {
+                Materialize.toast(err.reason, 3000, 'error-toast');
+                return;
+            }
 
             if (result.notLoggedOn) {
-                Materialize.toast('You\'re not logged in.', 3000); return;
+                Materialize.toast('You\'re not logged in.', 3000, 'error-toast');
+                return;
             } else if (result.notInRoom) {
-                Materialize.toast('You need to be in a room to leave.', 3000); return;
+                Materialize.toast('You need to be in a room to leave.', 3000, 'error-toast');
+                return;
             } else if (result.success) {
                 //ga
                 ga('send', 'event', 'game', 'leave');

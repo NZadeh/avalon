@@ -10,7 +10,6 @@ sacha:spin
 accounts-password@1.4.0
 audit-argument-checks@1.0.7
 underscore@1.0.10
-turbomaze:errors
 reywood:iron-router-ga
 meteor-base
 mobile-experience

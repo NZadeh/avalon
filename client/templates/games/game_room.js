@@ -26,16 +26,19 @@ Template.gameRoom.events({
             Meteor.call(
                 'joinGameRoom', roomId, password,
                 function (err, result) {
-                    if (err) { Materialize.toast(err.reason, 3000); return; }
+                    if (err) {
+                        Materialize.toast(err.reason, 3000, 'error-toast');
+                        return;
+                    }
 
                     if (result.alreadyInRoom) {
-                        Materialize.toast('You\'re already in a room.', 3000);
+                        Materialize.toast('You\'re already in a room.', 3000, 'error-toast');
                     } else if (result.alreadyStarted) {
-                        Materialize.toast('This game has already started.', 3000);
+                        Materialize.toast('This game has already started.', 3000, 'error-toast');
                     } else if (result.isAtCapacity) {
-                        Materialize.toast('Sorry, the room you\'re trying to join is full.', 3000);
+                        Materialize.toast('Sorry, the room you\'re trying to join is full.', 3000, 'error-toast');
                     } else if (result.wrongPassword) {
-                        Materialize.toast('Incorrect password.', 3000);
+                        Materialize.toast('Incorrect password.', 3000, 'error-toast');
                     } else if (result.success) {
                         //ga
                         ga('send', 'event', 'game', 'join');
@@ -44,7 +47,7 @@ Template.gameRoom.events({
                             _id: roomId
                         });
                     } else {
-                        Materialize.toast('An unknown error prevented you from joining this room.', 3000);
+                        Materialize.toast('An unknown error prevented you from joining this room.', 3000, 'error-toast');
                     }
                 }
             );
