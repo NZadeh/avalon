@@ -18,16 +18,12 @@ Template.gameRoomPage.events({
         e.preventDefault();
 
         Meteor.call('startGame', this._id, function(err, result) {
-            if (err) return Errors.throw(err.reason);
+            if (err) { Materialize.toast(err.reason, 3000); return; }
 
             if (result.notEnoughPlayers) {
-                return Errors.throw(
-                    'You need more players to start (probably >=5).'
-                );
+                Materialize.toast('You need more players to start (probably >=5).', 3000); return;
             } else if (result.tooManyPlayers) {
-                return Errors.throw(
-                    'You have too many players to start (probably >10).'
-                );
+                Materialize.toast('You have too many players to start (probably >10).', 3000); return;
             } else if (result.success) {
                 //ga
                 ga('send', 'event', 'game', 'start');
@@ -38,12 +34,10 @@ Template.gameRoomPage.events({
         e.preventDefault();
 
         Meteor.call('deleteGameRoom', this._id, function(err, result) {
-            if (err) return Errors.throw(err.reason);
+            if (err) { Materialize.toast(err.reason, 3000); return; }
 
             if (result.notRoomOwner) {
-                return Errors.throw(
-                    'Only the room owner can delete this room.'
-                );
+                Materialize.toast('Only the room owner can delete this room.', 3000); return;
             } else if (result.success) {
                 //ga
                 ga('send', 'event', 'game', 'delete');
@@ -63,7 +57,7 @@ Template.gameRoomPage.events({
         }
 
         Meteor.call('kickPlayer', id, function (err, result) {
-            if (err) return Errors.throw(err.reason);
+            if (err) { Materialize.toast(err.reason, 3000); return; }
         });
     },
     'click .leave': function(e, tmpl) {
@@ -71,16 +65,12 @@ Template.gameRoomPage.events({
         e.preventDefault();
 
         Meteor.call('removeJoinAuth', function (err, result) {
-            if (err) return Errors.throw(err.reason);
+            if (err) { Materialize.toast(err.reason, 3000); return; }
 
             if (result.notLoggedOn) {
-                return Errors.throw(
-                    'You\'re not logged in.'
-                );
+                Materialize.toast('You\'re not logged in.', 3000); return;
             } else if (result.notInRoom) {
-                return Errors.throw(
-                    'You need to be in a room to leave.'
-                );
+                Materialize.toast('You need to be in a room to leave.', 3000); return;
             } else if (result.success) {
                 //ga
                 ga('send', 'event', 'game', 'leave');

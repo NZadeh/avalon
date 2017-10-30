@@ -25,9 +25,7 @@ Template.gameRoomForm.events({
             if (err) return console.log(err);
 
             if (result.alreadyInRoom) {
-                return Errors.throw(
-                    'You\'re already in a game room.'
-                );
+                Materialize.toast('You\'re already in a game room.', 3000); return;
             }
 
             Router.go('gameRoomPage', result);

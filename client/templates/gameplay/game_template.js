@@ -82,16 +82,12 @@ Template.gameTemplate.events({
 
         if (confirm('Are you sure you want to leave? This may (indirectly) reveal your role. You cannot rejoin the same game.')) {
             Meteor.call('removeJoinAuth', function (err, result) {
-                if (err) return Errors.throw(err.reason);
+                if (err) { Materialize.toast(err.reason, 3000); return; }
 
                 if (result.notLoggedOn) {
-                    return Errors.throw(
-                        'You\'re not logged in.'
-                    );
+                    Materialize.toast('You\'re not logged in.', 3000); return;
                 } else if (result.notInRoom) {
-                    return Errors.throw(
-                        'You need to be in a room to leave.'
-                    );
+                    Materialize.toast('You need to be in a room to leave.', 3000); return;
                 } else if (result.success) {
                     //ga
                     ga('send', 'event', 'game', 'leave');
@@ -108,19 +104,15 @@ Template.gameTemplate.events({
         if (confirm('This will put everyone back into the lobby. (Role assignments will be lost.) Are you sure you want to leave?')) {
             var roomId = this._id;
             Meteor.call('backToLobby', roomId, function (err, result) {
-                if (err) return Errors.throw(err.reason);
+                if (err) { Materialize.toast(err.reason, 3000); return; }
 
                 if (result.notRoomOwner) {
-                    return Errors.throw(
-                        'You must be the room owner.'
-                    );
+                    Materialize.toast('You must be the room owner.', 3000); return;
                 } else if (result.success) {
                     //ga
                     ga('send', 'event', 'game', 'backtolobby');
                 } else {
-                    return Errors.throw(
-                        'Unknown error. (Nothing happened... Log off and log back on?)'
-                    );
+                    Materialize.toast('Unknown error. (Nothing happened... Log off and log back on?)', 3000); return;
                 }
             });
         }
