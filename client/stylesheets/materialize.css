@@ -1,0 +1,9 @@
+/* additional styling for the error-toasts. */
+#toast-container {
+	width:100%;
+}
+.toast.error-toast {
+	width:100%;
+	/* Match same color as warning buttons... */
+	background-color: rgba(255, 82, 82, 0.8); /* #FF5252, 80% opaque */
+}
