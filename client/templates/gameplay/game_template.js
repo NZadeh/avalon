@@ -117,10 +117,6 @@ Template.gameTemplate.events({
                 } else if (result.success) {
                     //ga
                     ga('send', 'event', 'game', 'backtolobby');
-
-                    Router.go('gameRoomPage', {
-                        _id: roomId,
-                    });
                 } else {
                     return Errors.throw(
                         'Unknown error. (Nothing happened... Log off and log back on?)'
