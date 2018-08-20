@@ -39,22 +39,14 @@
 
         <div class="row">
             <div class="col s12">
-                <a href="#" style="width: 100%"
-                   class="btn btn-danger red accent-2"
-                   id="leave-btn">
-                    Leave game
-                </a>
+                {{> wideDangerButton additionalClasses="leave-btn" buttonText="Leave game"}}
             </div>
         </div>
 
         {{#if isRoomOwner}}
         <div class="row">
             <div class="col s12">
-                <a href="#" style="width: 100%"
-                   class="btn btn-danger red accent-2"
-                   id="back-to-lobby-btn">
-                    Back to lobby
-                </a>
+                {{> wideDangerButton additionalClasses="back-to-lobby-btn" buttonText="Back to lobby"}}
             </div>
         </div>
         {{/if}}

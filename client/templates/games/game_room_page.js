@@ -16,9 +16,13 @@ Template.gameRoomPage.helpers({
 Template.gameRoomPage.events({
     'click .start': function(e, tmpl) {
         e.preventDefault();
-        console.log(this);  // TODO(neemazad): Issue here with template...
 
-        Meteor.call('startGame', this._id, function(err, result) {
+        // Because of some reason I don't exactly understand, using `this._id`
+        // did not work. Because we're using {{> button args1 args2 }} syntax,
+        // it looks like the data context (`this`) becomes args1 and args2,
+        // but somehow, the information appears to be passed in to the second
+        // argument, where we can access what used to be this via `tmpl.data`(?).
+        Meteor.call('startGame', tmpl.data._id, function(err, result) {
             if (err) {
                 Materialize.toast(err.reason, 3000, 'error-toast');
                 return;
@@ -39,7 +43,8 @@ Template.gameRoomPage.events({
     'click .delete': function(e, tmpl) {
         e.preventDefault();
 
-        Meteor.call('deleteGameRoom', this._id, function(err, result) {
+        // See note above for using `tmpl.data._id` here
+        Meteor.call('deleteGameRoom', tmpl.data._id, function(err, result) {
             if (err) {
                 Materialize.toast(err.reason, 3000, 'error-toast');
                 return;

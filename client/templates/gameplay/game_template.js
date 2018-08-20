@@ -77,7 +77,7 @@ Template.gameTemplate.helpers({
 });
 
 Template.gameTemplate.events({
-    'click #leave-btn': function(e, tmpl) {
+    'click .leave-btn': function(e, tmpl) {
         e.preventDefault();
 
         if (confirm('Are you sure you want to leave? This may (indirectly) reveal your role. You cannot rejoin the same game.')) {
@@ -103,11 +103,11 @@ Template.gameTemplate.events({
         }
     },
 
-    'click #back-to-lobby-btn': function(e, tmpl) {
+    'click .back-to-lobby-btn': function(e, tmpl) {
         e.preventDefault();
 
         if (confirm('This will put everyone back into the lobby. (Role assignments will be lost.) Are you sure you want to leave?')) {
-            var roomId = this._id;
+            var roomId = tmpl.data._id;  // See game_room_page.js template event functions for info on this.
             Meteor.call('backToLobby', roomId, function (err, result) {
                 if (err) {
                     Materialize.toast(err.reason, 3000, 'error-toast');
