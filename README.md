@@ -47,6 +47,23 @@ usernames of the Spies [Assassin, Morgana, Oberon, etc.].)
 
 ---
 
+## How to get started developing on this project
+
+### Clone the project
+I like the GitHub desktop client... :D as that makes it pretty easy to manage everything.
+
+### Install meteor
+[https://www.meteor.com/install](https://www.meteor.com/install)
+
+### Run things
+- Run `meteor` in the project directory (probably called `.../avalon/`).
+  + It will do a bunch of stuff / installations.
+- It may complain that you need to run other commands like `meteor npm install --save babel-runtime`. If so, do that, and re-run `meteor`. 
+
+You should be good to go, now...
+
+---
+
 ## Release process
 I've been using Galaxy to deploy the Meteor app with minimal configuration.
 I separately set up a MongoDB database using mLab's free tier quota.
