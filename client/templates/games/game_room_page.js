@@ -16,6 +16,7 @@ Template.gameRoomPage.helpers({
 Template.gameRoomPage.events({
     'click .start': function(e, tmpl) {
         e.preventDefault();
+        console.log(this);  // TODO(neemazad): Issue here with template...
 
         Meteor.call('startGame', this._id, function(err, result) {
             if (err) {
@@ -24,10 +25,10 @@ Template.gameRoomPage.events({
             }
 
             if (result.notEnoughPlayers) {
-                Materialize.toast('You need more players to start (probably >=5).', 3000, 'error-toast');
+                Materialize.toast('You need more players to start.', 3000, 'error-toast');
                 return;
             } else if (result.tooManyPlayers) {
-                Materialize.toast('You have too many players to start (probably >10).', 3000, 'error-toast');
+                Materialize.toast('You have too many players to start.', 3000, 'error-toast');
                 return;
             } else if (result.success) {
                 //ga

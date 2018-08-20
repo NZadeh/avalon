@@ -41,17 +41,12 @@
             {{#if isRoomOwner}}
                 <div class="row">
                     <div class="col s12">
-                        <a href="#" style="width: 100%" class="start btn btn-primary">
-                            Start game
-                        </a>
+                        {{> wideButton additionalClasses="start" buttonText="Start game"}}
                     </div>
                 </div>
                 <div class="row">
                     <div class="col s12">
-                        <a href="#" style="width: 100%"
-                        class="delete btn btn-primary red accent-2">
-                            Delete room
-                        </a>
+                        {{> wideDangerButton additionalClasses="delete" buttonText="Delete room"}}
                     </div>
                 </div>
             {{else}}
@@ -65,10 +60,7 @@
             {{/if}}
             <div class="row">
                 <div class="col s12">
-                    <a href="#" style="width: 100%"
-                       class="leave btn btn-danger red accent-2">
-                        Leave lobby
-                    </a>
+                    {{> wideDangerButton additionalClasses="leave" buttonText="Leave lobby"}}
                 </div>
             </div>
         </div>

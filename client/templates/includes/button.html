@@ -1,0 +1,12 @@
+<template name="wideButton">
+	<a href="#" style="width: 100%"
+       class="btn {{additionalClasses}}">
+        {{buttonText}}
+    </a>
+</template>
+
+<template name="wideDangerButton">
+	{{> wideButton 
+		additionalClasses=(makeDangerous additionalClasses)
+		buttonText=buttonText}}
+</template>
