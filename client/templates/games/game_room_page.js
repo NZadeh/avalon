@@ -10,6 +10,10 @@ Template.gameRoomPage.helpers({
             return player._id !== ownerId;
         });
         return nonOwners;
+    },
+
+    currNumPlayers: function() {
+        return this.players.length;
     }
 });
 
