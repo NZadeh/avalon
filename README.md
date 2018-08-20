@@ -37,9 +37,9 @@ role has. (For example, the player who receives Merlin will also see the
 usernames of the Spies [Assassin, Morgana, Oberon, etc.].)
 
 ## Changes in the works (Feature requests)
+- Add a way for room owner to pass ownership to a different person in the lobby.
 - Give players some way to reveal their information, i.e. "flip their card".
 - Give game owner an "end game" functionality that reveals all players' roles.
-- Show error messages at the top of the screen rather than top of the page.
 - Log out players automatically after X hours.
 - Unify all styling/classes to Materialize
 - Remove unnecessary dependencies (how?)
