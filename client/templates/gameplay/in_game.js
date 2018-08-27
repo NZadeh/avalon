@@ -1,4 +1,4 @@
-Template.gameTemplate.helpers({
+Template.inGame.helpers({
     isRoomOwner: function() {
         return isRoomOwner(this);
     },
@@ -76,7 +76,7 @@ Template.gameTemplate.helpers({
     }
 });
 
-Template.gameTemplate.events({
+Template.inGame.events({
     'click .leave-btn': function(e, tmpl) {
         e.preventDefault();
 
