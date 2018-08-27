@@ -1,3 +1,3 @@
-/* Petra v1.0 */
+/* Avalon v... something-rather */
 
 Meteor.subscribe('userData');

@@ -63,9 +63,20 @@
             </div>
         </div>
     {{else}}
+        <!--
+        TODO(neemazad): Here, we are rendering the template given the full information about
+        the game room. This means that, technically, each client is getting all of the
+        player information. Likely, the fix will include creating a new route that renders this
+        template, where the `data` for the route only includes the information the player is
+        privy to (in `router.js`). In order to do that, we probably need a new datastore keyed
+        by room-player in which to store the data.
+
+        http://meteortips.com/second-meteor-tutorial/iron-router-part-2/  see Retrieving Data
+        -->
         {{> gameTemplate}}
     {{/if}}
 
+    <!-- TODO(neemazad): Figure out what the purpose of this is. -->
     <script>
     window.addEventListener('beforeunload', function() {
         Meteor.call('leaveRoom');

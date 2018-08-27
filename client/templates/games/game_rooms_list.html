@@ -16,7 +16,6 @@
                 {{> gameRoom}}
             {{/each}}
         </div>
-        <div class="divider"></div>
     {{else}}
         <div class="row section">
             <div class="col s12 flow-text">
@@ -25,9 +24,10 @@
         </div>
     {{/if}}
 
-    <div class="container">
-        {{#if currentUser}}
+    {{#if currentUser}}
+        <div class="container">
+            <div class="divider"></div>
             {{> gameRoomForm}}
-        {{/if}}
-    </div>
+        </div>
+    {{/if}}
 </template>
