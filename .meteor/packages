@@ -12,7 +12,6 @@ audit-argument-checks@1.0.7
 underscore@1.0.10
 reywood:iron-router-ga
 meteor-base
-mobile-experience
 mongo
 blaze-html-templates
 session

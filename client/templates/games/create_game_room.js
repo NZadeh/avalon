@@ -1,8 +1,8 @@
-Template.gameRoomForm.onCreated(function() {
+Template.createGameRoom.onCreated(function() {
     Session.set('gameErrors', {});
 });
 
-Template.gameRoomForm.helpers({
+Template.createGameRoom.helpers({
     errorMessage: function(field) {
         return Session.get('gameErrors')[field];
     },
@@ -11,7 +11,7 @@ Template.gameRoomForm.helpers({
     }
 });
 
-Template.gameRoomForm.events({
+Template.createGameRoom.events({
     'submit form': function(e, tmpl) {
         e.preventDefault();
 
@@ -25,11 +25,11 @@ Template.gameRoomForm.events({
             if (err) return console.log(err);
 
             if (result.alreadyInRoom) {
-                Materialize.toast('You\'re already in a game room.', 3000, 'error-toast');
+                Materialize.toast('You\'re already in a different game or lobby.', 3000, 'error-toast');
                 return;
             }
 
-            Router.go('gameRoomPage', result);
+            Router.go('gameLobby', result);
         });
     }
 });

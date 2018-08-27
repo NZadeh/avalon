@@ -1,4 +1,4 @@
-Template.gameRoomPage.helpers({
+Template.gameLobby.helpers({
     isRoomOwner: function() {
         return isRoomOwner(this);
     },
@@ -17,7 +17,7 @@ Template.gameRoomPage.helpers({
     }
 });
 
-Template.gameRoomPage.events({
+Template.gameLobby.events({
     'click .start': function(e, tmpl) {
         e.preventDefault();
 

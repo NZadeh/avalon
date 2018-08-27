@@ -1,17 +1,17 @@
-Template.gameRoom.helpers({
+Template.gameTile.helpers({
     currentNumPlayers: function() {
         return this.players.length;
     }
 });
 
-Template.gameRoom.events({
+Template.gameTile.events({
     'click .join': function(e, tmpl) {
         e.preventDefault();
 
         var roomId = this._id;
 
         if (isInGameRoom(roomId)) {
-            Router.go('gameRoomPage', {
+            Router.go('gameLobby', {
                 _id: roomId
             });
         } else {
@@ -43,7 +43,7 @@ Template.gameRoom.events({
                         //ga
                         ga('send', 'event', 'game', 'join');
 
-                        Router.go('gameRoomPage', {
+                        Router.go('gameLobby', {
                             _id: roomId
                         });
                     } else {
