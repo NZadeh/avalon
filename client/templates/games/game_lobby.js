@@ -1,7 +1,8 @@
 import {
   deleteGameRoom,
   startGame,
-  removePlayer
+  removePlayer,
+  removeSelf,
 } from '/lib/collections/game_rooms';
 
 Template.gameLobby.helpers({
@@ -84,16 +85,13 @@ Template.gameLobby.events({
                 Materialize.toast(err.reason, 3000, 'error-toast');
                 return;
             }
-            // TODO(neemazad): Consider implementing some "error checking" so that
-            // only the owner can kick people id's inside the room, etc.
         });
     },
     'click .leave': function(e, tmpl) {
-        // TODO(neemazad): Unify with game_template.js.
+        // TODO(neemazad): Unify with in_game.js.
         e.preventDefault();
 
-        var removedId = Meteor.userId();
-        removePlayer.call({ removedId }, (err, result) => {
+        removeSelf.call((err, result) => {
             if (err) {
                 Materialize.toast(err.reason, 3000, 'error-toast');
                 return;

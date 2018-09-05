@@ -1,5 +1,5 @@
 import {
-  removePlayer,
+  removeSelf,
   backToLobby,
 } from '/lib/collections/game_rooms';
 
@@ -86,8 +86,7 @@ Template.inGame.events({
         e.preventDefault();
 
         if (confirm('Are you sure you want to leave? This may (indirectly) reveal your role. You cannot rejoin the same game.')) {
-            var removedId = Meteor.userId();
-            removePlayer.call({ removedId }, (err, result) => {
+            removeSelf.call((err, result) => {
                 if (err) {
                     Materialize.toast(err.reason, 3000, 'error-toast');
                     return;
