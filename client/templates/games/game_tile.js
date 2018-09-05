@@ -14,7 +14,7 @@ Template.gameTile.events({
 
         var roomId = this._id;
 
-        if (isInGameRoom(roomId)) {
+        if (activeUserIsInGameRoom(roomId)) {
             Router.go('gameLobby', {
                 _id: roomId
             });
