@@ -1,3 +1,8 @@
+import {
+  removePlayer,
+  backToLobby,
+} from '/lib/collections/game_rooms';
+
 Template.inGame.helpers({
     isRoomOwner: function() {
         return isRoomOwner(this);
@@ -81,7 +86,8 @@ Template.inGame.events({
         e.preventDefault();
 
         if (confirm('Are you sure you want to leave? This may (indirectly) reveal your role. You cannot rejoin the same game.')) {
-            Meteor.call('removeJoinAuth', function (err, result) {
+            var removedId = Meteor.userId();
+            removePlayer.call({ removedId }, (err, result) => {
                 if (err) {
                     Materialize.toast(err.reason, 3000, 'error-toast');
                     return;
@@ -94,9 +100,6 @@ Template.inGame.events({
                     Materialize.toast('You need to be in a room to leave.', 3000, 'error-toast');
                     return;
                 } else if (result.success) {
-                    //ga
-                    ga('send', 'event', 'game', 'leave');
-
                     Router.go('home');
                 }
             });
@@ -108,7 +111,7 @@ Template.inGame.events({
 
         if (confirm('This will put everyone back into the lobby. (Role assignments will be lost.) Are you sure you want to leave?')) {
             var roomId = tmpl.data._id;  // See game_room_page.js template event functions for info on this.
-            Meteor.call('backToLobby', roomId, function (err, result) {
+            backToLobby.call({ roomId }, (err, result) => {
                 if (err) {
                     Materialize.toast(err.reason, 3000, 'error-toast');
                     return;
@@ -118,8 +121,7 @@ Template.inGame.events({
                     Materialize.toast('You must be the room owner.', 3000, 'error-toast');
                     return;
                 } else if (result.success) {
-                    //ga
-                    ga('send', 'event', 'game', 'backtolobby');
+                    // TODO(neemazad): May need to route somewhere once the game is different from the lobby.
                 } else {
                     Materialize.toast('Unknown error. (Nothing happened... Log off and log back on?)', 3000, 'error-toast');
                     return;

@@ -76,13 +76,6 @@
         -->
         {{> inGame}}
     {{/if}}
-
-    <!-- TODO(neemazad): Figure out what the purpose of this is. -->
-    <script>
-    window.addEventListener('beforeunload', function() {
-        Meteor.call('leaveRoom');
-    });
-    </script>
 </template>
 
 <template name="usernameTemplate">

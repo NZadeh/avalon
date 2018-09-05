@@ -29,3 +29,5 @@ shell-server
 dynamic-import
 ecmascript
 materialize:materialize
+mdg:validated-method
+aldeed:simple-schema

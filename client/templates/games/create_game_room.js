@@ -1,3 +1,7 @@
+import {
+  addGameRoom,
+} from '/lib/collections/game_rooms';
+
 Template.createGameRoom.onCreated(function() {
     Session.set('gameErrors', {});
 });
@@ -15,14 +19,15 @@ Template.createGameRoom.events({
     'submit form': function(e, tmpl) {
         e.preventDefault();
 
-        var gameRoom = {
+        addGameRoom.call({
             title: e.target.title.value,
-            password: e.target.password.value
-        };
-        gameRoom.passwordProtected = !!gameRoom.password;
-
-        Meteor.call('addGameRoom', gameRoom, function(err, result) {
-            if (err) return console.log(err);
+            password: e.target.password.value,
+            passwordProtected: !!e.target.password.value
+        }, (err, result) => {
+            if (err) {
+                Materialize.toast(err.reason, 3000, 'error-toast');
+                return;
+            }
 
             if (result.alreadyInRoom) {
                 Materialize.toast('You\'re already in a different game or lobby.', 3000, 'error-toast');
