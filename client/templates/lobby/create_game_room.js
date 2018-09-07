@@ -2,17 +2,21 @@ import {
   addGameRoom,
 } from '/lib/collections/game_rooms/methods';
 
-Template.createGameRoom.onCreated(function() {
-    Session.set('gameErrors', {});
-});
-
 Template.createGameRoom.helpers({
-    errorMessage: function(field) {
-        return Session.get('gameErrors')[field];
+    formArgs: function() {
+        return {
+            formTitle: "Create game room",
+            namePlaceholder: "Game room title",
+            passwordPlaceholder: "Room password (optional)",
+            submitButtonText: "Create room",
+
+            // These fields are currently unused, as I'm not sure we need to
+            // propagate errors in html, given that we have the Materialize.toasts.
+            errorClassNameField: "",
+            errorMessage: function(field) { return ''; },
+            errorClass: function(field) { return ''; },
+        };
     },
-    errorClass: function(field) {
-        return !!Session.get('gameErrors')[field] ? 'has-error' : '';
-    }
 });
 
 Template.createGameRoom.events({
@@ -20,7 +24,7 @@ Template.createGameRoom.events({
         e.preventDefault();
 
         addGameRoom.call({
-            title: e.target.title.value,
+            title: e.target.nameField.value,
             password: e.target.password.value,
             passwordProtected: !!e.target.password.value
         }, (err, result) => {

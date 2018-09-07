@@ -1,20 +1,31 @@
-<template name="createGameRoom">
-    <!-- TODO(neemazad): Merge this with the account_form template...? -->
+<!-- 
+A reusable component form parametrized by:
+- formTitle (String)
+- namePlaceholder (String)
+- passwordPlaceholder (String)
+- submitButtonText (String)
+
+and finally
+- errorClass / errorMessage (formatting functions)
+- errorClassNameField (String)
+ -->
+
+<template name="createForm">
     <div class="container">
         <form class="main form">
             <div class="row">
                 <div class="col s12 flow-text">
-                    <h5> Create game room</h5>
+                    <h5>{{formTitle}}</h5>
                 </div>
             </div>
 
             <div class="row">
-                <div class="col s12 {{errorClass 'title'}}">
-                    <input name="title" id="title"
+                <div class="col s12 {{errorClass errorClassNameField}}">
+                    <input name="nameField" id="nameField"
                            type="text" value=""
-                           placeholder="Game room title"
+                           placeholder="{{namePlaceholder}}"
                            class="input-field" />
-                    <span class="help-block">{{errorMessage 'title'}}</span>
+                    <span class="help-block">{{errorMessage errorClassNameField}}</span>
                 </div>
             </div>
 
@@ -22,7 +33,7 @@
                 <div class="col s12 {{errorClass 'password'}}">
                     <input name="password" id="password"
                            type="password" value=""
-                           placeholder="Room password (optional)"
+                           placeholder="{{passwordPlaceholder}}"
                            class="input-field" />
                     <span class="help-block">{{errorMessage 'password'}}</span>
                 </div>
@@ -30,7 +41,7 @@
 
             <div class="row">
                 <div class="col s12">
-                    <input type="submit" value="Create room"
+                    <input type="submit" value="{{submitButtonText}}"
                            class="waves-effect waves-light btn"
                            style="width: 100%"/>
                 </div>

@@ -1,5 +1,6 @@
 import { joinRoom } from '/lib/collections/game_rooms/methods';
 import { HelperConstants } from '/lib/collections/game_rooms/constants';
+import { Permissions } from '/lib/utils/permissions';
 
 Template.gameTile.helpers({
     currentNumPlayers: function() {
@@ -17,7 +18,7 @@ Template.gameTile.events({
 
         var roomId = this._id;
 
-        if (activeUserIsInGameRoom(roomId)) {
+        if (Permissions.activeUserIsInGameRoom(roomId)) {
             Router.go('gameLobby', {
                 _id: roomId
             });

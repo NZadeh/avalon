@@ -3,19 +3,34 @@ Template.accountForm.onCreated(function() {
 });
 
 Template.accountForm.helpers({
-    errorMessage: function(field) {
-        return Session.get('accountErrors')[field];
+    // Establishes the data context for the child "createForm" template.
+    formArgs: function() {
+        return {
+            formTitle: "Use this form to claim a username.",
+            namePlaceholder: "Your (preferred) name",
+            passwordPlaceholder: "Password (optional)",
+            submitButtonText: "Login with name",
+
+            // This string is passed in to Session.get('accountErrors').
+            // That specifically populates a "username" and "password" error field.
+            // "password" is already specified directly in the child template.
+            errorClassNameField: "username",
+
+            errorMessage: function(field) {
+                return Session.get('accountErrors')[field];
+            },
+            errorClass: function(field) {
+                return !!Session.get('accountErrors')[field] ? 'has-error' : '';
+            }
+        };
     },
-    errorClass: function(field) {
-        return !!Session.get('accountErrors')[field] ? 'has-error' : '';
-    }
 });
 
 Template.accountForm.events({
     'submit form': function(e, tmpl) {
         e.preventDefault();
 
-        var username = e.target.username.value;
+        var username = e.target.nameField.value;
         var password = 'v'+e.target.password.value;
 
         if (!username) {

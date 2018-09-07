@@ -1,5 +1,7 @@
 import { GameRooms } from '/lib/collections/game_rooms/game_rooms';
 import { HelperConstants } from '/lib/collections/game_rooms/constants';
+import { Callbacks } from '/lib/utils/callbacks';
+import { Permissions } from '/lib/utils/permissions';
 
 import {
   removeSelf,
@@ -8,7 +10,7 @@ import {
 
 Template.inGame.helpers({
     isRoomOwner: function() {
-        return isRoomOwner(this);
+        return Permissions.isRoomOwner(this);
     },
 
     gameData: function() {
@@ -89,22 +91,7 @@ Template.inGame.events({
         e.preventDefault();
 
         if (confirm('Are you sure you want to leave? This may (indirectly) reveal your role. You cannot rejoin the same game.')) {
-            removeSelf.call((err, result) => {
-                if (err) {
-                    Materialize.toast(err.reason, 3000, 'error-toast');
-                    return;
-                }
-
-                if (result.notLoggedOn) {
-                    Materialize.toast('You\'re not logged in.', 3000, 'error-toast');
-                    return;
-                } else if (result.notInRoom) {
-                    Materialize.toast('You need to be in a room to leave.', 3000, 'error-toast');
-                    return;
-                } else if (result.success) {
-                    Router.go('home');
-                }
-            });
+            removeSelf.call(Callbacks.leftGame);
         }
     },
 

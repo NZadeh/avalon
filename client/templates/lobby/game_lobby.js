@@ -5,9 +5,12 @@ import {
   removeSelf,
 } from '/lib/collections/game_rooms/methods';
 
+import { Callbacks } from '/lib/utils/callbacks';
+import { Permissions } from '/lib/utils/permissions';
+
 Template.gameLobby.helpers({
     isRoomOwner: function() {
-        return isRoomOwner(this);
+        return Permissions.isRoomOwner(this);
     },
 
     normalPlayers: function() {
@@ -73,7 +76,6 @@ Template.gameLobby.events({
     'click .kick': function(e, tmpl) {
         e.preventDefault();
 
-        // TODO(neemazad): More principled way of getting this id?
         var removedId = e.currentTarget.children[0].innerText;
         if (!removedId || removedId.length == 0) {
             console.log("Failed to kick player -- bad id.")
@@ -88,24 +90,7 @@ Template.gameLobby.events({
         });
     },
     'click .leave': function(e, tmpl) {
-        // TODO(neemazad): Unify with in_game.js.
         e.preventDefault();
-
-        removeSelf.call((err, result) => {
-            if (err) {
-                Materialize.toast(err.reason, 3000, 'error-toast');
-                return;
-            }
-
-            if (result.notLoggedOn) {
-                Materialize.toast('You\'re not logged in.', 3000, 'error-toast');
-                return;
-            } else if (result.notInRoom) {
-                Materialize.toast('You need to be in a room to leave.', 3000, 'error-toast');
-                return;
-            } else if (result.success) {
-                Router.go('home');
-            }
-        });
+        removeSelf.call(Callbacks.leftGame);
     }
 });
