@@ -40,7 +40,7 @@ usernames of the Spies [Assassin, Morgana, Oberon, etc.].)
 - Add a way for room owner to pass ownership to a different person in the lobby.
 - Give players some way to reveal their information, i.e. "flip their card".
 - Give game owner an "end game" functionality that reveals all players' roles.
-- Log out players automatically after X hours.
+- Log out players automatically after X hours / delete rooms after Y hours.
 - Unify all styling/classes to Materialize
 - Remove unnecessary dependencies (how?)
 - Move some computation server side...? (Limit the scope of client<-->database requests)

@@ -1,6 +1,6 @@
 import {
   addGameRoom,
-} from '/lib/collections/game_rooms';
+} from '/lib/collections/game_rooms/methods';
 
 Template.createGameRoom.onCreated(function() {
     Session.set('gameErrors', {});

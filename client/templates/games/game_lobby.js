@@ -3,7 +3,7 @@ import {
   startGame,
   removePlayer,
   removeSelf,
-} from '/lib/collections/game_rooms';
+} from '/lib/collections/game_rooms/methods';
 
 Template.gameLobby.helpers({
     isRoomOwner: function() {
@@ -11,7 +11,7 @@ Template.gameLobby.helpers({
     },
 
     normalPlayers: function() {
-        var ownerId = this.userId;
+        var ownerId = this.ownerId;
         var nonOwners = this.players.filter(function(player) {
             //as long as they're not the author
             return player._id !== ownerId;

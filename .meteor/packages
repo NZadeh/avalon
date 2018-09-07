@@ -30,4 +30,4 @@ dynamic-import
 ecmascript
 materialize:materialize
 mdg:validated-method
-aldeed:simple-schema
+aldeed:collection2@3.0.0

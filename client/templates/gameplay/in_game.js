@@ -1,7 +1,10 @@
+import { GameRooms } from '/lib/collections/game_rooms/game_rooms';
+import { HelperConstants } from '/lib/collections/game_rooms/constants';
+
 import {
   removeSelf,
   backToLobby,
-} from '/lib/collections/game_rooms';
+} from '/lib/collections/game_rooms/methods';
 
 Template.inGame.helpers({
     isRoomOwner: function() {
@@ -23,11 +26,11 @@ Template.inGame.helpers({
         if (!player) return {title: 'You appear not to be in the game... Try going back and rejoining.'}
 
         return {
-            title: rawData.title || 'Unnamed game of Avalon',
+            title: rawData.title,
             known: {
                 name: player.username,
-                role: player.role.roleName,
-                info: player.role.knownInfo,
+                role: player[HelperConstants.kRoleField][HelperConstants.kRoleNameField],
+                info: player[HelperConstants.kRoleField][HelperConstants.kRoleKnownInfo],
             },
         };
     },
@@ -36,7 +39,7 @@ Template.inGame.helpers({
         // TODO(neemazad): limit info from this query
         var rawData = GameRooms.findOne(this._id, {
             fields: {
-                players: 1, //array of {ids,usernames,role}
+                players: 1,  // Array of {ids,usernames,role}
             }
         });
 
@@ -56,7 +59,7 @@ Template.inGame.helpers({
     roleList: function() {
         var rawData = GameRooms.findOne(this._id, {
             fields: {
-                players: 1, //array of {id,username,role}
+                players: 1,  // Array of {id,username,role}
             }
         });
 

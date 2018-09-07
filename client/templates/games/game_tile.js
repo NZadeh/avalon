@@ -1,11 +1,14 @@
-import {
-  joinRoom,
-} from '/lib/collections/game_rooms';
+import { joinRoom } from '/lib/collections/game_rooms/methods';
+import { HelperConstants } from '/lib/collections/game_rooms/constants';
 
 Template.gameTile.helpers({
     currentNumPlayers: function() {
         return this.players.length;
-    }
+    },
+
+    maxNumPlayers: function() {
+        return HelperConstants.kMaxPlayers;
+    },
 });
 
 Template.gameTile.events({

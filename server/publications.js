@@ -1,3 +1,6 @@
+import { GameRooms } from '/lib/collections/game_rooms/game_rooms';
+
+// TODO(neemazad): What is this for?
 Meteor.publish('userData', function() {
     return Meteor.users.find({_id: this.userId}, {
         fields: {'currentGameRoom': 1}
