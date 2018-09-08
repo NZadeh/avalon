@@ -7,7 +7,7 @@ Template.header.events({
             }
         });
         Meteor.logout(function() {
-        	Router.go('home');
+        	FlowRouter.go('home');
         });
     }
 });

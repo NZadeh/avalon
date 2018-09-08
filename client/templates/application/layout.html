@@ -3,8 +3,8 @@
 
     <div class="container">
         <div class="row center-align" id="main">
-            <!-- `Router` automatically injects the content of whichever template it is rendering here. -->
-            {{> yield}}
+            <!-- We use BlazeLayout and FlowRouter to inject content here. -->
+            {{> Template.dynamic template=main}}
         </div>
     </div>
     

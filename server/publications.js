@@ -1,4 +1,5 @@
 import { GameRooms } from '/lib/collections/game_rooms/game_rooms';
+import SimpleSchema from 'simpl-schema';
 
 // TODO(neemazad): What is this for?
 Meteor.publish('userData', function() {
@@ -12,6 +13,9 @@ Meteor.publish('gameRooms', function() {
 });
 
 Meteor.publish('singleGameRoom', function(roomId) {
-    check(roomId, String);
+    new SimpleSchema({
+      roomId: {type: String}
+    }).validate({ roomId });
+
     return GameRooms.find({_id: roomId});
 });

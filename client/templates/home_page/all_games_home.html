@@ -1,9 +1,8 @@
 <template name="allGamesHome">
-    {{#if currentUser}}
-    {{else}}
+    {{#unless currentUser}}
         {{> accountForm}}
         <div class="divider"></div>
-    {{/if}}
+    {{/unless}}
 
     {{#if gameRooms.count}}
         <div class="container">

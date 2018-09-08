@@ -70,7 +70,7 @@ Template.gameLobby.events({
                 return;
             }
 
-            Router.go('home');
+            FlowRouter.go('home');
         });
     },
     'click .kick': function(e, tmpl) {
