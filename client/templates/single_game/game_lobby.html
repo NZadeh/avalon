@@ -1,82 +1,66 @@
-<!-- TODO(neemazad): Remove in-game (non-lobby) code from here. -->
 <template name="gameLobby">
-    {{#if open}}
-        <div class="container">
-            <div class="row">
-                <div class="col s12">
-                    <h3>{{title}}</h3>
+    <div class="container">
+        <div class="row">
+            <div class="col s12">
+                <h3>{{title}}</h3>
 
-                    <div class="flow-text">
-                        Room password:
-                        {{#if password}}
-                            {{password}}
-                        {{else}}
-                            <i>no password set</i>
-                        {{/if}}
-                    </div>
-
-                    <div class="flow-text">
-                        Number of players: {{currNumPlayers}}
-                    </div>
+                <div class="flow-text">
+                    Room password:
+                    {{#if password}}
+                        {{password}}
+                    {{else}}
+                        <i>no password set</i>
+                    {{/if}}
                 </div>
-                <div class="col s12 flow-text">
-                    <h3>Players</h3>
-                    <ul class="list-group">
-                        <li class="list-group-item">
-                            {{author}}
-                            <span style="float: right" class="glyphicon glyphicon-king" aria-hidden="true"></span>
-                        </li>
-                        <!-- TODO(neemazad): Hacky... how to fix? -->
-                        {{#if isRoomOwner}}
-                            {{#each normalPlayers}}
-                                {{> usernameTemplateWithKick}}
-                            {{/each}}
-                        {{else}}
-                            {{#each normalPlayers}}
-                                {{> usernameTemplate}}
-                            {{/each}}
-                        {{/if}}
-                    </ul>
+
+                <div class="flow-text">
+                    Number of players: {{currNumPlayers}}
                 </div>
             </div>
-            {{#if isRoomOwner}}
-                <div class="row">
-                    <div class="col s12">
-                        {{> wideButton additionalClasses="start" buttonText="Start game"}}
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col s12">
-                        {{> wideDangerButton additionalClasses="delete" buttonText="Delete room"}}
-                    </div>
-                </div>
-            {{else}}
-                <div class="row">
-                    <div class="col s12">
-                        {{> wideButton additionalClasses="start disabled" buttonText="Waiting for owner"}}
-                    </div>
-                </div>
-            {{/if}}
-            <div class="row">
-                <div class="col s12">
-                    {{> wideDangerButton additionalClasses="leave" buttonText="Leave lobby"}}
-                </div>
+            <div class="col s12 flow-text">
+                <h3>Players</h3>
+                <ul class="list-group">
+                    <li class="list-group-item">
+                        {{author}}
+                        <span style="float: right" class="glyphicon glyphicon-king" aria-hidden="true"></span>
+                    </li>
+                    <!-- TODO(neemazad): Hacky... how to fix? -->
+                    {{#if isRoomOwner}}
+                        {{#each normalPlayers}}
+                            {{> usernameTemplateWithKick}}
+                        {{/each}}
+                    {{else}}
+                        {{#each normalPlayers}}
+                            {{> usernameTemplate}}
+                        {{/each}}
+                    {{/if}}
+                </ul>
             </div>
         </div>
-    {{else}}
-        <!--
-        TODO(neemazad): Here, we are rendering the template given the full information about
-        the game room. This means that, technically, each client is getting all of the
-        player information. Likely, the fix will include creating a new route that renders this
-        template, where the `data` for the route only includes the information the player is
-        privy to (in `router.js`). In order to do that, we probably need a new datastore keyed
-        by room-player in which to store the data.
-
-        http://meteortips.com/second-meteor-tutorial/iron-router-part-2/  see Retrieving Data
-        -->
-        <!-- TODO(neemazad): Or just use https://guide.meteor.com/ui-ux.html#smart-components -->
-        {{> inGame}}
-    {{/if}}
+        {{#if isRoomOwner}}
+            <div class="row">
+                <div class="col s12">
+                    {{> wideButton additionalClasses="start" buttonText="Start game"}}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col s12">
+                    {{> wideDangerButton additionalClasses="delete" buttonText="Delete room"}}
+                </div>
+            </div>
+        {{else}}
+            <div class="row">
+                <div class="col s12">
+                    {{> wideButton additionalClasses="start disabled" buttonText="Waiting for owner"}}
+                </div>
+            </div>
+        {{/if}}
+        <div class="row">
+            <div class="col s12">
+                {{> wideDangerButton additionalClasses="leave" buttonText="Leave lobby"}}
+            </div>
+        </div>
+    </div>
 </template>
 
 <template name="usernameTemplate">

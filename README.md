@@ -44,6 +44,7 @@ usernames of the Spies [Assassin, Morgana, Oberon, etc.].)
 - Unify all styling/classes to Materialize
 - Remove unnecessary dependencies (how?)
 - Move some computation server side...? (Limit the scope of client<-->database requests)
+- "Re-enter" button for the lobby the user is in, instead of "Join"
 
 ---
 

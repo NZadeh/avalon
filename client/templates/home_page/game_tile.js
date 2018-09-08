@@ -19,7 +19,7 @@ Template.gameTile.events({
         var roomId = this._id;
 
         if (Permissions.activeUserIsInGameRoom(roomId)) {
-            FlowRouter.go('gameLobby', {
+            FlowRouter.go('singleGame', {
                 _id: roomId
             });
             return;
@@ -48,7 +48,7 @@ Template.gameTile.events({
             } else if (result.wrongPassword) {
                 Materialize.toast('Incorrect password.', 3000, 'error-toast');
             } else if (result.success) {
-                FlowRouter.go('gameLobby', {
+                FlowRouter.go('singleGame', {
                     _id: roomId
                 });
             } else {

@@ -50,7 +50,9 @@ Template.gameLobby.events({
                 Materialize.toast('You have too many players to start.', 3000, 'error-toast');
                 return;
             } else if (result.success) {
-                // TODO(neemazad): Probably do something here. Can we route players to a new route?
+                // Updates in the collection should reactively change what renders
+                // in `template_single_game`. In particular, we do not need to re-route.
+                Materialize.toast('Success!', 3000, 'success-toast');
             }
         });
     },

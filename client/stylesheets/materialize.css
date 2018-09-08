@@ -7,3 +7,9 @@
 	/* Match same color as warning buttons... */
 	background-color: rgba(255, 82, 82, 0.8); /* #FF5252, 80% opaque */
 }
+
+.toast.success-toast {
+  width:100%;
+  /* Match same color as login/success buttons... */
+  background-color: rgba(38, 166, 154, 0.8); /* #26A69A, 80% opaque */
+}

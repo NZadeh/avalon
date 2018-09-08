@@ -1,0 +1,7 @@
+<template name="Template_singleGame">
+  {{#if gameStarted}}
+    {{> inGame (inGameContext)}}
+  {{else}}
+    {{> gameLobby (lobbyContext)}}
+  {{/if}}
+</template>

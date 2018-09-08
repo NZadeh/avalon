@@ -38,7 +38,7 @@ Template.createGameRoom.events({
                 return;
             }
 
-            FlowRouter.go('gameLobby', result);
+            FlowRouter.go('singleGame', result);
         });
     }
 });
