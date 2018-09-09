@@ -1,42 +1,57 @@
+<!-- 
+This template requires the following data:
+
+- a GameRoom object, direct from the GameRooms collection
+- gameRoomReady (boolean), whether that object is available yet
+ -->
 <template name="gameLobby">
     <div class="container">
-        <div class="row">
-            <div class="col s12">
-                <h3>{{title}}</h3>
+        {{#if gameRoomReady}}
+            <div class="row">
+                <div class="col s12">
+                    <h3>{{title}}</h3>
 
-                <div class="flow-text">
-                    Room password:
-                    {{#if password}}
-                        {{password}}
-                    {{else}}
-                        <i>no password set</i>
-                    {{/if}}
+                    <div class="flow-text">
+                        Room password:
+                        {{#if password}}
+                            {{password}}
+                        {{else}}
+                            <i>no password set</i>
+                        {{/if}}
+                    </div>
+
+                    <div class="flow-text">
+                        Number of players: {{currNumPlayers}}
+                    </div>
                 </div>
-
-                <div class="flow-text">
-                    Number of players: {{currNumPlayers}}
+                <div class="col s12 flow-text">
+                    <h3>Players</h3>
+                    <ul class="list-group">
+                        <li class="list-group-item">
+                            {{author}}
+                            <span style="float: right" class="glyphicon glyphicon-king" aria-hidden="true"></span>
+                        </li>
+                        <!-- TODO(neemazad): Hacky... how to fix? -->
+                        {{#if isRoomOwner}}
+                            {{#each normalPlayers}}
+                                {{> usernameTemplateWithKick}}
+                            {{/each}}
+                        {{else}}
+                            {{#each normalPlayers}}
+                                {{> usernameTemplate}}
+                            {{/each}}
+                        {{/if}}
+                    </ul>
                 </div>
             </div>
-            <div class="col s12 flow-text">
-                <h3>Players</h3>
-                <ul class="list-group">
-                    <li class="list-group-item">
-                        {{author}}
-                        <span style="float: right" class="glyphicon glyphicon-king" aria-hidden="true"></span>
-                    </li>
-                    <!-- TODO(neemazad): Hacky... how to fix? -->
-                    {{#if isRoomOwner}}
-                        {{#each normalPlayers}}
-                            {{> usernameTemplateWithKick}}
-                        {{/each}}
-                    {{else}}
-                        {{#each normalPlayers}}
-                            {{> usernameTemplate}}
-                        {{/each}}
-                    {{/if}}
-                </ul>
+        {{else}}
+            <!-- TODO(neemazad): Consider having a dummy template the size of the data above...? How? -->
+            <div class="row">
+                <div class="col s12">
+                    <h3>Game loading...</h3>
+                </div>
             </div>
-        </div>
+        {{/if}}
         {{#if isRoomOwner}}
             <div class="row">
                 <div class="col s12">

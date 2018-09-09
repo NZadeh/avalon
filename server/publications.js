@@ -1,4 +1,5 @@
 import { GameRooms } from '/lib/collections/game_rooms/game_rooms';
+import { SecretInfo } from '/lib/collections/game_rooms/secret_info';
 import SimpleSchema from 'simpl-schema';
 
 // TODO(neemazad): What is this for?
@@ -9,7 +10,6 @@ Meteor.publish('userData', function() {
 });
 
 Meteor.publish('gameRooms', function() {
-    // TODO(neemazad): Limit data to exclude player secret info.
     return GameRooms.find({});
 });
 
@@ -18,16 +18,12 @@ Meteor.publish('singleGameRoom', function(roomId) {
       roomId: {type: String}
     }).validate({ roomId });
 
-    // TODO(neemazad): Limit data to exclude player secret info
     return GameRooms.find({_id: roomId});
 });
 
-Meteor.publish('playerSpecificInGameInfo', function(roomId) {
-    new SimpleSchema({
-      roomId: {type: String}
-    }).validate({ roomId });
-
-    // TODO(neemazad): Refine the query to get just the player's info...
-    // and refine the query above not to return it?
-    return GameRooms.find({_id: roomId});
+Meteor.publish('playerSecretInfo', function() {
+    // Note that by using `this.userId`, we ensure that this information is only
+    // accessible to the logged in user. No other players' role information is
+    // ever sent from the server to this user.
+    return SecretInfo.find({ playerId: this.userId });
 });

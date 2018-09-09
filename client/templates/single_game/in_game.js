@@ -15,13 +15,12 @@ Template.inGame.helpers({
 
     playersList: function() {
         // Sorted to remove any order information.
-        return this.players.map(player => player.username).sort();
+        return this.playerNames.map(player => player).sort();
     },
 
     roleList: function() {
         // Sorted to remove any order information.
-        return this.players.map(player =>
-            player[HelperConstants.kRoleField][HelperConstants.kRoleNameField]).sort();
+        return this.roleNames.map(role => role).sort();
     }
 });
 

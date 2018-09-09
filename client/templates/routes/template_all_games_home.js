@@ -10,14 +10,6 @@ Template.Template_allGamesHome.onCreated(function allGamesHomeOnCreated() {
   });
 });
 
-// Template.Lists_show_page.onRendered(function listsShowPageOnRendered() {
-//   this.autorun(() => {
-//     if (this.subscriptionsReady()) {
-//       listRenderHold.release();  // https://atmospherejs.com/meteor/launch-screen
-//     }
-//   });
-// });
-
 Template.Template_allGamesHome.helpers({
   gamesContext() {
     const instance = Template.instance();
@@ -26,11 +18,9 @@ Template.Template_allGamesHome.helpers({
         passwordProtected: 1,
         createdAt: -1
       }
-    }) || [];
+    }) || [];  // If the data is not ready yet, we're happy to provide an empty array. 
 
-    // TODO(neemazad): Figure out how to use gamesReady and loggedIn in `all_games_home`...
-    // https://atmospherejs.com/kadira/flow-router#flowrouter-reload ?
-    // https://guide.meteor.com/data-loading.html#changing-arguments ?
+    // TODO(neemazad): Figure out how to use loggedIn in `all_games_home`... it's not appearing to be reactive...?
     return {
       gamesReady: instance.subscriptionsReady(),  // for the `subscribe` call above
       loggedIn: !!Meteor.user(),

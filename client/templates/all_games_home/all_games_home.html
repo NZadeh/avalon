@@ -4,21 +4,29 @@
         <div class="divider"></div>
     {{/unless}}
 
-    {{#if gameRooms.count}}
-        <div class="container">
-            <div class="row">
+    {{#if gamesReady}}
+        {{#if gameRooms.count}}
+            <div class="container">
+                <div class="row">
+                    <div class="col s12 flow-text">
+                        <h5>Open game rooms</h5>
+                    </div>
+                </div>
+                {{#each gameRooms}}
+                    {{> gameTile}}
+                {{/each}}
+            </div>
+        {{else}}
+            <div class="row section">
                 <div class="col s12 flow-text">
-                    <h5>Open game rooms</h5>
+                    There aren't any open games at the moment. Be the first to make one! ;)
                 </div>
             </div>
-            {{#each gameRooms}}
-                {{> gameTile}}
-            {{/each}}
-        </div>
+        {{/if}}
     {{else}}
         <div class="row section">
             <div class="col s12 flow-text">
-                There aren't any open games at the moment. Be the first to make one! ;)
+                Loading games...
             </div>
         </div>
     {{/if}}
