@@ -1,11 +1,6 @@
 Template.header.events({
     'click .logout': function() {
-        Meteor.users.update({_id: Meteor.userId()}, {
-            $set: {
-                'profile.currentGameRoom': false,
-                'profile.leftAt': false
-            }
-        });
+        // TODO(neemazad): Consider removing a player from everything during logout...?
         Meteor.logout(function() {
         	FlowRouter.go('home');
         });
