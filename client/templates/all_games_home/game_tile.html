@@ -12,12 +12,20 @@
                 </div>
                 {{#if currentUser}}
                     <div class="card-action">
-                        <a href="#" class="join btn btn-primary" style="width: 100%">
-                            Join
-                        </a><br>
+                        {{> joinButton (joinContext)}}
                     </div>
                 {{/if}}
             </div>
         </div>
     </div>
+</template>
+
+<template name="joinButton">
+    {{#if playerAlreadyInside}}
+        {{> wideButton additionalClasses="join" buttonText="Return to game"}}
+    {{else if playerInsideAnotherGame}}
+        {{> wideButton additionalClasses="join disabled" buttonText="Already in another game"}}
+    {{else}}
+        {{> wideButton additionalClasses="join" buttonText="Join"}}
+    {{/if}}
 </template>

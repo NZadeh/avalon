@@ -9,6 +9,7 @@ import {
 } from '/lib/collections/game_rooms/methods';
 
 Template.inGame.helpers({
+    // TODO(neemazad): Take this information in from the template, instead of computing it.
     isRoomOwner: function() {
         return Permissions.isRoomOwner(this);
     },

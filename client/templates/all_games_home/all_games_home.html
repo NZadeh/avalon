@@ -1,5 +1,5 @@
 <template name="allGamesHome">
-    {{#unless currentUser}}
+    {{#unless loggedIn}}
         {{> accountForm}}
         <div class="divider"></div>
     {{/unless}}
@@ -12,8 +12,8 @@
                         <h5>Open game rooms</h5>
                     </div>
                 </div>
-                {{#each gameRooms}}
-                    {{> gameTile}}
+                {{#each gameRoom in gameRooms}}
+                    {{> gameTile (addExternalContextForTile gameRoom)}}
                 {{/each}}
             </div>
         {{else}}
@@ -31,7 +31,7 @@
         </div>
     {{/if}}
 
-    {{#if currentUser}}
+    {{#if loggedIn}}
         <div class="divider"></div>
         <div class="container">
             {{> createGameRoom}}

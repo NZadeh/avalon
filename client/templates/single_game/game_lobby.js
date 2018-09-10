@@ -9,6 +9,7 @@ import { Callbacks } from '/lib/utils/callbacks';
 import { Permissions } from '/lib/utils/permissions';
 
 Template.gameLobby.helpers({
+    // TODO(neemazad): Take this information in from the template, instead of computing it.
     isRoomOwner: function() {
         return Permissions.isRoomOwner(this);
     },

@@ -1,6 +1,5 @@
 import { joinRoom } from '/lib/collections/game_rooms/methods';
 import { HelperConstants } from '/lib/collections/game_rooms/constants';
-import { Permissions } from '/lib/utils/permissions';
 
 Template.gameTile.helpers({
     currentNumPlayers: function() {
@@ -10,15 +9,24 @@ Template.gameTile.helpers({
     maxNumPlayers: function() {
         return HelperConstants.kMaxPlayers;
     },
+
+    joinContext: function() {
+        const instance = Template.instance();
+
+        return {
+            playerAlreadyInside: instance.data.playerAlreadyInside,
+            playerInsideAnotherGame: instance.data.playerInsideAnotherGame,
+            roomId: instance.data._id,
+        };
+    }
 });
 
-Template.gameTile.events({
+Template.joinButton.events({
     'click .join': function(e, tmpl) {
         e.preventDefault();
 
-        var roomId = this._id;
-
-        if (Permissions.activeUserIsInGameRoom(roomId)) {
+        const roomId = tmpl.data.roomId;
+        if (tmpl.data.playerAlreadyInside) {
             FlowRouter.go('singleGame', {
                 _id: roomId
             });
