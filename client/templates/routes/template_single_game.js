@@ -35,16 +35,14 @@ Template.Template_singleGame.helpers({
                          !gameRoom.containsUserId(Meteor.userId());
     const playerNoLongerInGame = roomDeleted || playerKicked;
     if (playerNoLongerInGame) {
-      // If this occurs, the room was deleted while the user was inside (which caused
-      // this helper to run reactively as a result of singleGameRoom changing...)
-      // That means it is safe/ideal to route the user back home.
+      // For the reasons above, we should route the user back home.
       FlowRouter.go('home');
       if (roomDeleted) { Materialize.toast("Owner deleted the room.", 3000, 'error-toast'); }
       if (playerKicked) { Materialize.toast("Owner kicked you from room.", 3000, 'error-toast'); }
       // Meanwhile, return a not-ready so that in the split second between when the user
       // is actually routed home and while this code is still running (and
       // the template rendering), the template does not try to access fields
-      // from the recently-deleted room.
+      // from the recently-deleted or inaccessible room.
       return { gameRoomReady: false };
     }
 
