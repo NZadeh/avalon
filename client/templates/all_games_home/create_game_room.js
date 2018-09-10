@@ -9,12 +9,6 @@ Template.createGameRoom.helpers({
             namePlaceholder: "Game room title",
             passwordPlaceholder: "Room password (optional)",
             submitButtonText: "Create room",
-
-            // These fields are currently unused, as I'm not sure we need to
-            // propagate errors in html, given that we have the Materialize.toasts.
-            errorClassNameField: "",
-            errorMessage: function(field) { return ''; },
-            errorClass: function(field) { return ''; },
         };
     },
 });

@@ -4,10 +4,6 @@ A reusable component form parametrized by:
 - namePlaceholder (String)
 - passwordPlaceholder (String)
 - submitButtonText (String)
-
-and finally
-- errorClass / errorMessage (formatting functions)
-- errorClassNameField (String)
  -->
 
 <template name="createForm">
@@ -20,22 +16,20 @@ and finally
             </div>
 
             <div class="row">
-                <div class="col s12 {{errorClass errorClassNameField}}">
+                <div class="col s12">
                     <input name="nameField" id="nameField"
                            type="text" value=""
                            placeholder="{{namePlaceholder}}"
                            class="input-field" />
-                    <span class="help-block">{{errorMessage errorClassNameField}}</span>
                 </div>
             </div>
 
             <div class="row">
-                <div class="col s12 {{errorClass 'password'}}">
+                <div class="col s12">
                     <input name="password" id="password"
                            type="password" value=""
                            placeholder="{{passwordPlaceholder}}"
                            class="input-field" />
-                    <span class="help-block">{{errorMessage 'password'}}</span>
                 </div>
             </div>
 
