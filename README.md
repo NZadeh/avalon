@@ -2,23 +2,21 @@ Avalon role-dealer
 ====================================================================
 A Meteor.js app that handles the Avalon night-phase.
 
-A lot of this README, and indeed the project (especially the lobby
-system), is adapted from [turbomaze's Petra](https://github.com/turbomaze/petra).
-Of course, there have been additional changes on top of that project...
-but never forget your roots :)
+This project (and even the README) started out by cannibalizing
+[turbomaze's Petra](https://github.com/turbomaze/petra) (#neverforgetyourroots),
+but has since developed way beyond what it started out as, as I
+learned more and more about Meteor and how it works -- clearing out
+technical debt, etc.
 
 ## Usage
 When users navigate to the app homepage,
 they're faced with a login form and list of game rooms. Once they've
 joined a room, they're presented with a waiting page until the game
-starts. It's worth calling out again that this lobby functionality
-was adapted from [turbomaze's Petra](https://github.com/turbomaze/petra),
-where there was expressed-interest in making it a generic library... :)
+starts.
 
 ### Accounts
-No one likes registering for new websites, so "Avalon role-dealer" has a very
-loose registration system. Users can just type a username to log in; passwords
-are optional.
+"Avalon role-dealer" currently has a very loose registration system.
+Users can just type a username to log in; passwords are optional.
 
 ### Game Rooms
 Game rooms are either password protected or they're not. In order to
@@ -43,8 +41,7 @@ usernames of the Spies [Assassin, Morgana, Oberon, etc.].)
 - Log out players automatically after X hours / delete rooms after Y hours.
 - Unify all styling/classes to Materialize
 - Remove unnecessary dependencies (how?)
-- Move some computation server side...? (Limit the scope of client<-->database requests)
-- "Re-enter" button for the lobby the user is in, instead of "Join"
+- Just look at all the TODOs in the code :)
 
 ---
 
