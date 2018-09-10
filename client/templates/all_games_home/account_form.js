@@ -19,10 +19,14 @@ Template.accountForm.events({
         e.preventDefault();
 
         var username = e.target.nameField.value;
-        var password = 'v'+e.target.password.value;
+        var password = e.target.password.value;
 
         if (!username) {
             Materialize.toast("Usernames are required.", 3000, 'error-toast');
+            return;
+        }
+        if (!password) {
+            Materialize.toast("Passwords are required now, for your own good.", 3000, 'error-toast');
             return;
         }
 

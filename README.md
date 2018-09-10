@@ -15,8 +15,8 @@ joined a room, they're presented with a waiting page until the game
 starts.
 
 ### Accounts
-"Avalon role-dealer" currently has a very loose registration system.
-Users can just type a username to log in; passwords are optional.
+"Avalon role-dealer" has a simple registration system. Users type in
+a unique username and (hopefully unique :) password to log in.
 
 ### Game Rooms
 Game rooms are either password protected or they're not. In order to
