@@ -32,11 +32,6 @@ Template.gameLobby.events({
     'click .start': function(e, tmpl) {
         e.preventDefault();
 
-        // Because of some reason I don't exactly understand, using `this._id`
-        // did not work. Because we're using {{> button args1 args2 }} syntax,
-        // it looks like the data context (`this`) becomes args1 and args2,
-        // but somehow, the information appears to be passed in to the second
-        // argument, where we can access what used to be this via `tmpl.data`(?).
         var roomId = tmpl.data._id;
         startGame.call({ roomId }, (err, result) => {
             if (err) {
@@ -59,7 +54,6 @@ Template.gameLobby.events({
     'click .delete': function(e, tmpl) {
         e.preventDefault();
 
-        // See note above for using `tmpl.data._id` here
         var roomId = tmpl.data._id;
         deleteGameRoom.call({ roomId }, (err, result) => {
             if (err) {
