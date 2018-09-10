@@ -50,11 +50,10 @@ Template.gameLobby.events({
             } else if (result.tooManyPlayers) {
                 Materialize.toast('You have too many players to start.', 3000, 'error-toast');
                 return;
-            } else if (result.success) {
+            } /* else if (result.success) {
                 // Updates in the collection should reactively change what renders
                 // in `template_single_game`. In particular, we do not need to re-route.
-                Materialize.toast('Success!', 3000, 'success-toast');
-            }
+            } */
         });
     },
     'click .delete': function(e, tmpl) {

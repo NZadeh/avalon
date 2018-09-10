@@ -48,14 +48,10 @@ Template.inGame.events({
                 if (result.notRoomOwner) {
                     Materialize.toast('You must be the room owner.', 3000, 'error-toast');
                     return;
-                } else if (result.success) {
+                } /* else if (result.success) {
                     // Updates in the collection should reactively change what renders
                     // in `template_single_game`. In particular, we do not need to re-route.
-                    Materialize.toast('Success!', 3000, 'success-toast');
-                } else {
-                    Materialize.toast('Unknown error. (Nothing happened... Log off and log back on?)', 3000, 'error-toast');
-                    return;
-                }
+                } */
             });
         }
     }
