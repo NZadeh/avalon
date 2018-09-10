@@ -1,5 +1,10 @@
-import { joinRoom } from '/lib/collections/game_rooms/methods';
+import {
+    joinRoom,
+    removeSelf,
+} from '/lib/collections/game_rooms/methods';
+
 import { HelperConstants } from '/lib/collections/game_rooms/constants';
+import { Callbacks } from '/lib/utils/callbacks';
 
 Template.gameTile.helpers({
     currentNumPlayers: function() {
@@ -14,9 +19,11 @@ Template.gameTile.helpers({
         const instance = Template.instance();
 
         return {
+            playerNotLoggedIn: !instance.data.playerLoggedIn,
             playerAlreadyInside: instance.data.playerAlreadyInside,
             playerInsideAnotherGame: instance.data.playerInsideAnotherGame,
             roomId: instance.data._id,
+            passwordProtected: instance.data.passwordProtected,
         };
     }
 });
@@ -34,10 +41,10 @@ Template.joinButton.events({
         }
 
         var password = '';
-        if (this.passwordProtected) {
+        if (tmpl.data.passwordProtected) {
             password = prompt('Enter the room\'s password:');
             if (password === null && typeof password === 'object') {
-                return; //they canceled
+                return;  // Dismissed the prompt -- no password available.
             }
         }
 
@@ -63,5 +70,10 @@ Template.joinButton.events({
                 Materialize.toast('An unknown error prevented you from joining this room.', 3000, 'error-toast');
             }
         });
-    }
+    },
+
+    'click .leave': function(e, tmpl) {
+        e.preventDefault();
+        removeSelf.call(Callbacks.leftGame);
+    },
 });

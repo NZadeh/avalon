@@ -8,6 +8,7 @@ Template.allGamesHome.helpers({
         .filter(contains => contains)
         .length > 0;
 
+    room.playerLoggedIn = instance.data.loggedIn;
     room.playerAlreadyInside = playerAlreadyInside;
     room.playerInsideAnotherGame = !playerAlreadyInside && playerInsideAnyGame;
 

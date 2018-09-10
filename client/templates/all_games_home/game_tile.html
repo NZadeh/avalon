@@ -10,19 +10,20 @@
                     <p>by {{author}}</p>
                     <p>Players: {{currentNumPlayers}}/{{maxNumPlayers}}</p>
                 </div>
-                {{#if currentUser}}
-                    <div class="card-action">
-                        {{> joinButton (joinContext)}}
-                    </div>
-                {{/if}}
+                <div class="card-action">
+                    {{> joinButton (joinContext)}}
+                </div>
             </div>
         </div>
     </div>
 </template>
 
 <template name="joinButton">
-    {{#if playerAlreadyInside}}
+    {{#if playerNotLoggedIn}}
+        {{> wideButton additionalClasses="join disabled" buttonText="Login to join"}}
+    {{else if playerAlreadyInside}}
         {{> wideButton additionalClasses="join" buttonText="Return to game"}}
+        {{> wideDangerButton additionalClasses="leave" buttonText="Leave game"}}
     {{else if playerInsideAnotherGame}}
         {{> wideButton additionalClasses="join disabled" buttonText="Already in another game"}}
     {{else}}
