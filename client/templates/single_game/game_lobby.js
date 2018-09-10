@@ -25,7 +25,12 @@ Template.gameLobby.helpers({
 
     currNumPlayers: function() {
         return this.players.length;
-    }
+    },
+
+    extendContext: function(player) {
+        player.renderingForOwner = Permissions.isRoomOwner(this);
+        return player;
+    },
 });
 
 Template.gameLobby.events({

@@ -26,11 +26,21 @@ Template.Template_singleGame.helpers({
     const instance = Template.instance();
     var gameRoom = GameRooms.findOne(instance.getRoomId());
 
-    if (instance.subscriptionsReady() && !gameRoom) {
+    // Reasons we may need to route the user away:
+    // (note, this runs reactively if gameRoom changes)
+    // - The room was deleted while the user was inside
+    // - The user was kicked from the room...
+    const roomDeleted = instance.subscriptionsReady() && !gameRoom;
+    const playerKicked = instance.subscriptionsReady() && gameRoom && 
+                         !gameRoom.containsUserId(Meteor.userId());
+    const playerNoLongerInGame = roomDeleted || playerKicked;
+    if (playerNoLongerInGame) {
       // If this occurs, the room was deleted while the user was inside (which caused
       // this helper to run reactively as a result of singleGameRoom changing...)
       // That means it is safe/ideal to route the user back home.
       FlowRouter.go('home');
+      if (roomDeleted) { Materialize.toast("Owner deleted the room.", 3000, 'error-toast'); }
+      if (playerKicked) { Materialize.toast("Owner kicked you from room.", 3000, 'error-toast'); }
       // Meanwhile, return a not-ready so that in the split second between when the user
       // is actually routed home and while this code is still running (and
       // the template rendering), the template does not try to access fields
