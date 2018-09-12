@@ -1,8 +1,10 @@
 import { Template } from 'meteor/templating';
 import { FlowRouter } from 'meteor/kadira:flow-router';
+
 import { GameRooms } from '/lib/collections/game_rooms/game_rooms';
 import { SecretInfo } from '/lib/collections/game_rooms/secret_info';
 import { HelperMethods } from '/lib/collections/game_rooms/methods_helper';
+import { Permissions } from '/lib/utils/permissions';
 
 import './template_single_game.html';
 
@@ -46,11 +48,11 @@ Template.Template_singleGame.helpers({
       return { gameRoomReady: false };
     }
 
-    // TODO(neemazad): Consider reworking the template to ask for fields, not just
-    // the game room directly?
-    if (!gameRoom) gameRoom = {};  // If the gameRoom is not ready, we still need an object...
-    gameRoom.gameRoomReady = instance.subscriptionsReady();
-    return gameRoom;
+    return {
+      gameRoomReady: instance.subscriptionsReady(),
+      gameRoom: gameRoom,
+      isRoomOwner: Permissions.isRoomOwner(gameRoom),
+    };
   },
 
   inGameContext() {
@@ -95,6 +97,7 @@ Template.Template_singleGame.helpers({
       },
       playerNames: gameRoom.players.map(player => player.username),
       roleNames: HelperMethods.roleNamesForNPlayerGame(gameRoom.players.length),
+      isRoomOwner: Permissions.isRoomOwner(gameRoom),
     };
   },
 });

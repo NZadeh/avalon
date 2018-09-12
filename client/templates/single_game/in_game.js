@@ -1,7 +1,6 @@
 import { GameRooms } from '/lib/collections/game_rooms/game_rooms';
 import { HelperConstants } from '/lib/collections/game_rooms/constants';
 import { Callbacks } from '/lib/utils/callbacks';
-import { Permissions } from '/lib/utils/permissions';
 
 import {
   removeSelf,
@@ -9,11 +8,6 @@ import {
 } from '/lib/collections/game_rooms/methods';
 
 Template.inGame.helpers({
-    // TODO(neemazad): Take this information in from the template, instead of computing it.
-    isRoomOwner: function() {
-        return Permissions.isRoomOwner(this);
-    },
-
     playersList: function() {
         // Sorted to remove any order information.
         return this.playerNames.map(player => player).sort();

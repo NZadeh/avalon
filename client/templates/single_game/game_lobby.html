@@ -1,12 +1,14 @@
 <!-- 
 This template requires the following data:
 
-- a GameRoom object, direct from the GameRooms collection
+- gameRoom (Object), direct from the GameRooms collection
 - gameRoomReady (boolean), whether that object is available yet
+- isRoomOwner (boolean), whether the player we're rendering for is the room owner
  -->
 <template name="gameLobby">
     <div class="container">
         {{#if gameRoomReady}}
+            {{#with gameRoom}}  <!-- Establishes new context -->
             <div class="row">
                 <div class="col s12">
                     <h3>{{title}}</h3>
@@ -37,6 +39,7 @@ This template requires the following data:
                     </ul>
                 </div>
             </div>
+            {{/with}}
         {{else}}
             <!-- TODO(neemazad): Consider having a dummy template the size of the data above...? How? -->
             <div class="row">

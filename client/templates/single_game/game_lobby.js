@@ -6,14 +6,8 @@ import {
 } from '/lib/collections/game_rooms/methods';
 
 import { Callbacks } from '/lib/utils/callbacks';
-import { Permissions } from '/lib/utils/permissions';
 
 Template.gameLobby.helpers({
-    // TODO(neemazad): Take this information in from the template, instead of computing it.
-    isRoomOwner: function() {
-        return Permissions.isRoomOwner(this);
-    },
-
     normalPlayers: function() {
         var ownerId = this.ownerId;
         var nonOwners = this.players.filter(function(player) {
@@ -28,7 +22,7 @@ Template.gameLobby.helpers({
     },
 
     extendContext: function(player) {
-        player.renderingForOwner = Permissions.isRoomOwner(this);
+        player.renderingForOwner = Template.instance().data.isRoomOwner;
         return player;
     },
 });
@@ -37,7 +31,7 @@ Template.gameLobby.events({
     'click .start': function(e, tmpl) {
         e.preventDefault();
 
-        var roomId = tmpl.data._id;
+        var roomId = tmpl.data.gameRoom._id;
         startGame.call({ roomId }, (err, result) => {
             if (err) {
                 Materialize.toast(err.reason, 3000, 'error-toast');
@@ -59,7 +53,7 @@ Template.gameLobby.events({
     'click .delete': function(e, tmpl) {
         e.preventDefault();
 
-        var roomId = tmpl.data._id;
+        var roomId = tmpl.data.gameRoom._id;
         deleteGameRoom.call({ roomId }, (err, result) => {
             if (err) {
                 Materialize.toast(err.reason, 3000, 'error-toast');
