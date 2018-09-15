@@ -32,14 +32,14 @@ Template.Template_singleGame.helpers({
     // (note, this runs reactively if gameRoom changes)
     // - The room was deleted while the user was inside
     // - The user was kicked from the room...
-    const roomDeleted = instance.subscriptionsReady() && !gameRoom;
+    const playerLeftOrRoomDeleted = instance.subscriptionsReady() && !gameRoom;
     const playerKicked = instance.subscriptionsReady() && gameRoom && 
                          !gameRoom.containsUserId(Meteor.userId());
-    const playerNoLongerInGame = roomDeleted || playerKicked;
+    const playerNoLongerInGame = playerLeftOrRoomDeleted || playerKicked;
     if (playerNoLongerInGame) {
       // For the reasons above, we should route the user back home.
       FlowRouter.go('home');
-      if (roomDeleted) { M.toast({html: "Owner deleted the room.", displayLength: 3000, classes: 'error-toast'}); }
+      if (playerLeftOrRoomDeleted) { M.toast({html: "You left (or owner deleted the room).", displayLength: 3000, classes: 'error-toast'}); }
       if (playerKicked) { M.toast({html: "Owner kicked you from room.", displayLength: 3000, classes: 'error-toast'}); }
       // Meanwhile, return a not-ready so that in the split second between when the user
       // is actually routed home and while this code is still running (and

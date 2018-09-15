@@ -25,9 +25,9 @@
         {{> wideButton additionalClasses="join" buttonText="Return to game"}}
         {{> wideDangerButton additionalClasses="leave" buttonText="Leave game"}}
     {{else if gameInProgress}}
-        {{> wideButton additionalClasses="join disabled" buttonText="Game in progress"}}
+        {{> wideButton additionalClasses="join disabled" buttonText="In progress"}}
     {{else if playerInsideAnotherGame}}
-        {{> wideButton additionalClasses="join disabled" buttonText="Already in another game"}}
+        {{> wideButton additionalClasses="join disabled" buttonText="In other game"}}
     {{else}}
         {{> wideButton additionalClasses="join" buttonText="Join"}}
     {{/if}}

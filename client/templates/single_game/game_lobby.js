@@ -35,21 +35,17 @@ Template.gameLobby.events({
         startGame.call({ roomId }, (err, result) => {
             if (err) {
                 M.toast({html: err.reason, displayLength: 3000, classes: 'error-toast'});
-                return;
-            }
-
-            if (result.notEnoughPlayers) {
+            } else if (result.notEnoughPlayers) {
                 M.toast({html: 'You need more players to start.', displayLength: 3000, classes: 'error-toast'});
-                return;
             } else if (result.tooManyPlayers) {
                 M.toast({html: 'You have too many players to start.', displayLength: 3000, classes: 'error-toast'});
-                return;
             } /* else if (result.success) {
                 // Updates in the collection should reactively change what renders
                 // in `template_single_game`. In particular, we do not need to re-route.
             } */
         });
     },
+
     'click .delete': function(e, tmpl) {
         e.preventDefault();
 
@@ -57,17 +53,17 @@ Template.gameLobby.events({
         deleteGameRoom.call({ roomId }, (err, result) => {
             if (err) {
                 M.toast({html: err.reason, displayLength: 3000, classes: 'error-toast'});
-                return;
-            }
-
-            if (result.notRoomOwner) {
+            } else if (result.notRoomOwner) {
                 M.toast({html: 'You must be the room owner to delete a game.', displayLength: 3000, classes: 'error-toast'});
-                return;
-            }
-
-            FlowRouter.go('home');
+            }  /* else if (result.success) {
+                // Updates in the collection should reactively change what renders
+                // in `template_single_game` for all people in the room. In particular,
+                // we do not need to re-route, and it would not even help, as it only
+                // routes the deleter, not the other folks in the room.
+            } */
         });
     },
+
     'click .kick': function(e, tmpl) {
         e.preventDefault();
 
@@ -80,12 +76,12 @@ Template.gameLobby.events({
         removePlayer.call({ removedId }, (err, result) => {
             if (err) { 
                 M.toast({html: err.reason, displayLength: 3000, classes: 'error-toast'});
-                return;
             }
         });
     },
+
     'click .leave': function(e, tmpl) {
         e.preventDefault();
         removeSelf.call(Callbacks.leftGame);
-    }
+    },
 });

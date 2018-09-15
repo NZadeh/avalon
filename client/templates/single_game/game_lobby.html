@@ -28,10 +28,10 @@ This template requires the following data:
                 </div>
                 <div class="col s12 flow-text">
                     <h3>Players</h3>
-                    <ul class="list-group">
-                        <li class="list-group-item">
+                    <ul class="collection">
+                        <li class="collection-item">
                             {{author}}
-                            <span style="float: right" class="glyphicon glyphicon-king" aria-hidden="true"></span>
+                            <span class="secondary-content"><i class="material-icons">supervisor_account</i></span>
                         </li>
                         {{#each player in normalPlayers}}
                             {{> usernameTemplate (extendContext player)}}
@@ -75,10 +75,10 @@ This template requires the following data:
 </template>
 
 <template name="usernameTemplate">
-    <li class="list-group-item">
+    <li class="collection-item">
         <span>{{username}}</span>
         {{#if renderingForOwner}}
-            <a href="#" class="kick right">
+            <a href="#" class="kick secondary-content">
                 <span class="hide">{{_id}}</span> <!-- Allows child[0].innerText to be id -->
                 <i class="material-icons">clear</i>
             </a>
