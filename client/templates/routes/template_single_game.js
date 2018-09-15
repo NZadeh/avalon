@@ -39,8 +39,8 @@ Template.Template_singleGame.helpers({
     if (playerNoLongerInGame) {
       // For the reasons above, we should route the user back home.
       FlowRouter.go('home');
-      if (roomDeleted) { Materialize.toast("Owner deleted the room.", 3000, 'error-toast'); }
-      if (playerKicked) { Materialize.toast("Owner kicked you from room.", 3000, 'error-toast'); }
+      if (roomDeleted) { M.toast({html: "Owner deleted the room.", displayLength: 3000, classes: 'error-toast'}); }
+      if (playerKicked) { M.toast({html: "Owner kicked you from room.", displayLength: 3000, classes: 'error-toast'}); }
       // Meanwhile, return a not-ready so that in the split second between when the user
       // is actually routed home and while this code is still running (and
       // the template rendering), the template does not try to access fields
@@ -61,29 +61,19 @@ Template.Template_singleGame.helpers({
       { _id: instance.getRoomId() },
       { fields: { players: 1, title: 1, ownerId: 1 } }
     );
-    if (!gameRoom) {
-      return {
-        inGameReady: instance.subscriptionsReady(),
-        title: 'Game does not appear to exist, or you do not have access to it.',
-      };
-    }
+    // If we're not finding the data, may as well return not-ready.
+    // For a similar reason as above, returning not-ready doubles as protection in the
+    // event the user is on the way out of a room but is still trying to render data
+    // after they have lost access to it...
+    if (!gameRoom) { return { inGameReady: false }; }
+
     var player = gameRoom.players.find(function(player) {
       return player._id === Meteor.userId();
     });
-    if (!player) {
-      return {
-        inGameReady: instance.subscriptionsReady(),
-        title: 'You appear not to be in the game... Try going back and rejoining.',
-      };
-    }
+    if (!player) { return { inGameReady: false }; }
 
     const secretInfo = SecretInfo.findOne({ playerId: player._id });
-    if (!secretInfo) {
-      return {
-        inGameReady: instance.subscriptionsReady(),
-        title: 'You appear not to have gotten your secret info... Ask the host to re-create the game.',
-      };
-    }
+    if (!secretInfo) { return { inGameReady: false }; }
 
     return {
       inGameReady: instance.subscriptionsReady(),

@@ -35,12 +35,12 @@ Template.inGame.events({
             var roomId = tmpl.data.roomId;
             backToLobby.call({ roomId }, (err, result) => {
                 if (err) {
-                    Materialize.toast(err.reason, 3000, 'error-toast');
+                    M.toast({html: err.reason, displayLength: 3000, classes: 'error-toast'});
                     return;
                 }
 
                 if (result.notRoomOwner) {
-                    Materialize.toast('You must be the room owner.', 3000, 'error-toast');
+                    M.toast({html: 'You must be the room owner.', displayLength: 3000, classes: 'error-toast'});
                     return;
                 } /* else if (result.success) {
                     // Updates in the collection should reactively change what renders

@@ -1,3 +1,7 @@
+Template.header.onRendered(function() {
+  $('.dropdown-trigger').dropdown();
+});
+
 Template.header.events({
     'click .logout': function() {
         // TODO(neemazad): Consider removing a player from everything during logout...?

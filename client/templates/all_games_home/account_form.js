@@ -22,11 +22,11 @@ Template.accountForm.events({
         var password = e.target.password.value;
 
         if (!username) {
-            Materialize.toast("Usernames are required.", 3000, 'error-toast');
+            M.toast({html: "Usernames are required.", displayLength: 3000, classes: 'error-toast'});
             return;
         }
         if (!password) {
-            Materialize.toast("Passwords are required now, for your own good.", 3000, 'error-toast');
+            M.toast({html: "Passwords are required now, for your own good.", displayLength: 3000, classes: 'error-toast'});
             return;
         }
 
@@ -44,19 +44,19 @@ Template.accountForm.events({
                 // So let's try to log in! :)
                 Meteor.loginWithPassword(username, password, function(loginErr) {
                     if (loginErr && loginErr.error === 403) {
-                        Materialize.toast("Username already in use, or incorrect password.", 3000, 'error-toast');
+                        M.toast({html: "Username already in use or incorrect password.", displayLength: 3000, classes: 'error-toast'});
                     } else if (loginErr) {
-                        Materialize.toast(loginErr.reason, 3000, 'error-toast');
+                        M.toast({html: loginErr.reason, displayLength: 3000, classes: 'error-toast'});
                     } else {
                         // Login was successful.
-                        Materialize.toast("You're in!", 3000, 'success-toast');
+                        M.toast({html: "You're in!", displayLength: 3000, classes: 'success-toast'});
                     }
                 });
             } else if (createUserErr) {
-                Materialize.toast(createUserErr.reason, 3000, 'error-toast');
+                M.toast({html: createUserErr.reason, displayLength: 3000, classes: 'error-toast'});
             } else {
                 // Registration was successful (and we're automatically logged in).
-                Materialize.toast("You're in!", 3000, 'success-toast');
+                M.toast({html: "You're in!", displayLength: 3000, classes: 'success-toast'});
             }
         });
     }

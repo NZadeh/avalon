@@ -51,24 +51,24 @@ Template.joinButton.events({
 
         joinRoom.call({ roomId, password },  (err, result) => {
             if (err) {
-                Materialize.toast(err.reason, 3000, 'error-toast');
+                M.toast({html: err.reason, displayLength: 3000, classes: 'error-toast'});
                 return;
             }
 
             if (result.alreadyInRoom) {
-                Materialize.toast('You\'re already in a room.', 3000, 'error-toast');
+                M.toast({html: 'You\'re already in a room.', displayLength: 3000, classes: 'error-toast'});
             } else if (result.alreadyStarted) {
-                Materialize.toast('This game has already started.', 3000, 'error-toast');
+                M.toast({html: 'This game has already started.', displayLength: 3000, classes: 'error-toast'});
             } else if (result.isAtCapacity) {
-                Materialize.toast('Sorry, the room you\'re trying to join is full.', 3000, 'error-toast');
+                M.toast({html: 'Sorry, the room you\'re trying to join is full.', displayLength: 3000, classes: 'error-toast'});
             } else if (result.wrongPassword) {
-                Materialize.toast('Incorrect password.', 3000, 'error-toast');
+                M.toast({html: 'Incorrect password.', displayLength: 3000, classes: 'error-toast'});
             } else if (result.success) {
                 FlowRouter.go('singleGame', {
                     _id: roomId
                 });
             } else {
-                Materialize.toast('An unknown error prevented you from joining this room.', 3000, 'error-toast');
+                M.toast({html: 'An unknown error prevented you from joining this room.', displayLength: 3000, classes: 'error-toast'});
             }
         });
     },

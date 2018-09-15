@@ -1,27 +1,32 @@
 <template name="header">
-    <nav class="navbar navbar-default" role="navigation">
-        <div class="nav-wrapper">    
-            <a class="brand-logo left grey-text text-darken-2" href="{{pathFor 'home'}}">
-                <i class="material-icons">assignment_ind</i>
+    <!-- Dropdown content, for use below. (Presumably, the class hides it by default.) -->
+    <ul class="dropdown-content" id="logout-dropdown">
+        <li>{{> smartLogout loggedIn=currentUser}}</li>
+    </ul>
+
+    <nav class="teal">
+        <div class="nav-wrapper">
+            <a href="{{pathFor 'home'}}" class="brand-logo left">
+                <i class="material-icons">hot_tub</i>
                 Avalon
             </a>
-        
-            {{#if currentUser}}
-            <button type="button" class="navbar-toggle collapsed" 
-                    data-toggle="collapse" data-target="#navigation">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <div class="right collapse navbar-collapse" id="navigation">
-                <ul class="right nav navbar-nav navbar-right">
-                    <li>
-                        <a href="#" class="logout">Logout</a>
-                    </li>
-                </ul>
-            </div>
-            {{/if}}
+            <!-- On medium and up, we show the logout... -->
+            <ul class="right hide-on-small-only">
+                <li>{{> smartLogout loggedIn=currentUser}}</li>
+            </ul>
+            <!-- But on small screens, we show the dropdown! -->
+            <ul class="right hide-on-med-and-up">
+                <!-- Dropdown trigger, registered in Javascript -->
+                <a href="#" data-target="logout-dropdown" class="dropdown-trigger"><i class="material-icons">menu</i></a>
+            </ul>
         </div>
     </nav>
+</template>
+
+<template name="smartLogout">
+    {{#if loggedIn}}
+        <a href="#" class="logout">Logout</a>
+    {{else}}
+        <a href="#">(Please log in)</a>
+    {{/if}}
 </template>

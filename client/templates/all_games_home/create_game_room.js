@@ -23,12 +23,12 @@ Template.createGameRoom.events({
             passwordProtected: !!e.target.password.value
         }, (err, result) => {
             if (err) {
-                Materialize.toast(err.reason, 3000, 'error-toast');
+                M.toast({html: err.reason, displayLength: 3000, classes: 'error-toast'});
                 return;
             }
 
             if (result.alreadyInRoom) {
-                Materialize.toast('You\'re already in a different game or lobby.', 3000, 'error-toast');
+                M.toast({html: 'You\'re already in a different game or lobby.', displayLength: 3000, classes: 'error-toast'});
                 return;
             }
 

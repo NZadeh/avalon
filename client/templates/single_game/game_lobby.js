@@ -34,15 +34,15 @@ Template.gameLobby.events({
         var roomId = tmpl.data.gameRoom._id;
         startGame.call({ roomId }, (err, result) => {
             if (err) {
-                Materialize.toast(err.reason, 3000, 'error-toast');
+                M.toast({html: err.reason, displayLength: 3000, classes: 'error-toast'});
                 return;
             }
 
             if (result.notEnoughPlayers) {
-                Materialize.toast('You need more players to start.', 3000, 'error-toast');
+                M.toast({html: 'You need more players to start.', displayLength: 3000, classes: 'error-toast'});
                 return;
             } else if (result.tooManyPlayers) {
-                Materialize.toast('You have too many players to start.', 3000, 'error-toast');
+                M.toast({html: 'You have too many players to start.', displayLength: 3000, classes: 'error-toast'});
                 return;
             } /* else if (result.success) {
                 // Updates in the collection should reactively change what renders
@@ -56,12 +56,12 @@ Template.gameLobby.events({
         var roomId = tmpl.data.gameRoom._id;
         deleteGameRoom.call({ roomId }, (err, result) => {
             if (err) {
-                Materialize.toast(err.reason, 3000, 'error-toast');
+                M.toast({html: err.reason, displayLength: 3000, classes: 'error-toast'});
                 return;
             }
 
             if (result.notRoomOwner) {
-                Materialize.toast('You must be the room owner to delete a game.', 3000, 'error-toast');
+                M.toast({html: 'You must be the room owner to delete a game.', displayLength: 3000, classes: 'error-toast'});
                 return;
             }
 
@@ -79,7 +79,7 @@ Template.gameLobby.events({
 
         removePlayer.call({ removedId }, (err, result) => {
             if (err) { 
-                Materialize.toast(err.reason, 3000, 'error-toast');
+                M.toast({html: err.reason, displayLength: 3000, classes: 'error-toast'});
                 return;
             }
         });
