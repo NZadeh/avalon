@@ -23,6 +23,7 @@ Template.inGame.events({
     'click .leave-btn': function(e, tmpl) {
         e.preventDefault();
 
+        // TODO(neemazad): Switch these confirms to modals (https://materializecss.com/modals.html)
         if (confirm('Are you sure you want to leave? This may (indirectly) reveal your role. You cannot rejoin the same game.')) {
             removeSelf.call(Callbacks.leftGame);
         }

@@ -16,25 +16,24 @@ A reusable component form parametrized by:
             </div>
 
             <div class="row">
-                <div class="col s12">
+                <div class="col s12 input-field">
                     <input name="nameField" id="nameField"
                            type="text" value=""
-                           placeholder="{{namePlaceholder}}"
-                           class="input-field" />
+                           placeholder="{{namePlaceholder}}" />
                 </div>
             </div>
 
             <div class="row">
-                <div class="col s12">
+                <div class="col s12 input-field">
                     <input name="password" id="password"
                            type="password" value=""
-                           placeholder="{{passwordPlaceholder}}"
-                           class="input-field" />
+                           placeholder="{{passwordPlaceholder}}" />
                 </div>
             </div>
 
             <div class="row">
                 <div class="col s12">
+                    <!-- Using a wideButton template did not seem to behave well with the Submit semantics -->
                     <input type="submit" value="{{submitButtonText}}"
                            class="waves-effect waves-light btn"
                            style="width: 100%"/>
