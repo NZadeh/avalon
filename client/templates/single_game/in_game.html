@@ -63,14 +63,14 @@ This templates requires the following data:
 
         <div class="row">
             <div class="col s12">
-                {{> wideDangerButton additionalClasses="leave-btn" buttonText="Leave game"}}
+                {{> modal (leaveGameModalArgs)}}
             </div>
         </div>
 
         {{#if isRoomOwner}}
         <div class="row">
             <div class="col s12">
-                {{> wideDangerButton additionalClasses="back-to-lobby-btn" buttonText="Back to lobby"}}
+                {{> modal (backToLobbyModalArgs)}}
             </div>
         </div>
         {{/if}}

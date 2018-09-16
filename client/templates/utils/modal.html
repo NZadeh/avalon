@@ -1,0 +1,37 @@
+<!-- 
+This template renders a button-triggered modal (pop-up) with a header, text,
+and a variable number of response buttons. To render, this modal requires:
+
+- uniqueId (String), a unique HTML `id` tag name.
+- buttonName (String), the text that will show up on the button that triggers the modal
+- modalHeader (String), the title of the pop-up modal
+- modalText (String), the contents of the pop-up modal
+- modalResponseButtons (Object Array), containing a variable number of:
+  + (button Object), which need to contain the following subfields:
+    - text (String), the text of the modal-button
+    - addlButtonClasses (optional String), additional `class`es for the button
+ -->
+
+<template name="modal">
+  <!-- Modal Trigger (via button!) -->
+  <!-- TODO(neemazad): Unify with button.html/js? -->
+  <!-- TODO(neemazad): Make this wide and red! -->
+  <button data-target="{{uniqueId}}" class="btn modal-trigger">{{buttonName}}</button>
+  <!-- {{> wideDangerButton additionalClasses="leave-btn" buttonText="Leave game"}} -->
+
+  <!-- Modal Structure (when the trigger fires) -->
+  <div id="{{uniqueId}}" class="modal">
+    <div class="modal-content">
+      <h4>{{modalHeader}}</h4>
+      <p>{{modalText}}</p>
+    </div>
+    <div class="modal-footer">
+      {{#each button in modalResponseButtons}}
+        <a href="#!"
+           class="modal-close waves-effect waves-green btn-flat {{button.addlButtonClasses}}">
+          {{button.text}}
+        </a>
+      {{/each}}
+    </div>
+  </div>
+</template>
