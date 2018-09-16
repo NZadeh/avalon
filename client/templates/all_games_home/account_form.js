@@ -1,7 +1,3 @@
-Template.accountForm.onCreated(function() {
-    Session.set('accountErrors', {});
-});
-
 Template.accountForm.helpers({
     // Establishes the data context for the child "createForm" template.
     formArgs: function() {
