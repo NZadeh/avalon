@@ -75,11 +75,13 @@ you need any other dependencies.
 Add a tuple in `settings.json` so that Meteor can connect to MongoDB using the URL
 that mLab shows, filling in the necessary fields, e.g.:
 ```
+{
   "galaxy.meteor.com": {
     "env": {
       "MONGO_URL": "mongodb://<username>:<password>@<mlab-provided-domain>:<port>/<database-name>"
     }
   }
+}
 ```
 (`settings.json` is intentionally `.gitignore`d).
 
