@@ -94,3 +94,4 @@ SET DEPLOY_HOSTNAME=galaxy.meteor.com
 meteor deploy <choose.any.sub.domain>.meteorapp.com --settings .\settings.json
 # ... wait 10-20 minutes ... check up on progress/logs in your Galaxy account.
 ```
+(I've been using `avalon` as the subdomain for meteorapp.com, above.)
