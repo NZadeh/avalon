@@ -20,15 +20,27 @@
 
 <template name="joinButton">
     {{#if playerNotLoggedIn}}
-        {{> wideButton additionalClasses="join disabled" buttonText="Login to join"}}
+        {{#wideButton additionalClasses="join disabled"}}
+            Login to join
+        {{/wideButton}}
     {{else if playerAlreadyInside}}
-        {{> wideButton additionalClasses="join" buttonText="Return to game"}}
-        {{> wideDangerButton additionalClasses="leave" buttonText="Leave game"}}
+        {{#wideButton additionalClasses="join"}}
+            Return to game
+        {{/wideButton}}
+        {{#wideDangerButton additionalClasses="leave"}}
+            Leave game
+        {{/wideDangerButton}}
     {{else if gameInProgress}}
-        {{> wideButton additionalClasses="join disabled" buttonText="In progress"}}
+        {{#wideButton additionalClasses="join disabled"}}
+            In progress
+        {{/wideButton}}
     {{else if playerInsideAnotherGame}}
-        {{> wideButton additionalClasses="join disabled" buttonText="In other game"}}
+        {{#wideButton additionalClasses="join disabled"}}
+            In other game
+        {{/wideButton}}
     {{else}}
-        {{> wideButton additionalClasses="join" buttonText="Join"}}
+        {{#wideButton additionalClasses="join"}}
+            Join
+        {{/wideButton}}
     {{/if}}
 </template>

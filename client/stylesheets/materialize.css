@@ -13,3 +13,9 @@
   /* Match same color as login/success buttons... */
   background-color: rgba(38, 166, 154, 0.8); /* #26A69A, 80% opaque */
 }
+
+
+/* additional styling for buttons. */
+button.avalon-wide {
+  width:100%;
+}

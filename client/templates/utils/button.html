@@ -1,17 +1,23 @@
 <!-- 
-  TODO(neemazad):
-  We may be able to use Content Blocks here to make buttons easier to write
-  https://www.discovermeteor.com/blog/spacebars-secrets-exploring-meteor-new-templating-engine/
--->
+We use Template.contentBlock to enable use like:
+  {{#wideButton}}   
+    Button label
+  {{/wideButton}} 
+
+or even:
+  {{#wideButton additionalClasses="custom-class" additionalAttributes=jsonAttributes}}
+    Button label
+  {{/wideButton}}
+ -->
 <template name="wideButton">
-	<a href="#" style="width: 100%"
-       class="btn {{additionalClasses}}">
-        {{buttonText}}
-    </a>
+  <button class="btn avalon-wide {{additionalClasses}}" {{additionalAttributes}}>
+    {{> Template.contentBlock}}
+  </button>
 </template>
 
 <template name="wideDangerButton">
-	{{> wideButton 
-		additionalClasses=(makeDangerous additionalClasses)
-		buttonText=buttonText}}
+  {{#wideButton additionalClasses=(makeDangerous additionalClasses)
+                additionalAttributes=additionalAttributes}}
+    {{> Template.contentBlock}}
+  {{/wideButton}}
 </template>

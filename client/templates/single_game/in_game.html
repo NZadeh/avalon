@@ -65,15 +65,13 @@ This templates requires the following data:
             <div class="col s12">
                 {{> modal (leaveGameModalArgs)}}
             </div>
+            {{#if isRoomOwner}}
+                <div class="col s12">
+                    {{> modal (backToLobbyModalArgs)}}
+                </div>
+            {{/if}}
         </div>
 
-        {{#if isRoomOwner}}
-        <div class="row">
-            <div class="col s12">
-                {{> modal (backToLobbyModalArgs)}}
-            </div>
-        </div>
-        {{/if}}
     </div>
 </template>
 

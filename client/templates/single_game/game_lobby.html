@@ -48,27 +48,29 @@ This template requires the following data:
                 </div>
             </div>
         {{/if}}
-        {{#if isRoomOwner}}
-            <div class="row">
-                <div class="col s12">
-                    {{> wideButton additionalClasses="start" buttonText="Start game"}}
-                </div>
-            </div>
-            <div class="row">
-                <div class="col s12">
-                    {{> wideDangerButton additionalClasses="delete" buttonText="Delete room"}}
-                </div>
-            </div>
-        {{else}}
-            <div class="row">
-                <div class="col s12">
-                    {{> wideButton additionalClasses="start disabled" buttonText="Waiting for owner"}}
-                </div>
-            </div>
-        {{/if}}
         <div class="row">
+            {{#if isRoomOwner}}
+                <div class="col s12">
+                    {{#wideButton additionalClasses="start"}}
+                        Start game
+                    {{/wideButton}}
+                </div>
+                <div class="col s12">
+                    {{#wideDangerButton additionalClasses="delete"}}
+                        Delete room
+                    {{/wideDangerButton}}
+                </div>
+            {{else}}
+                <div class="col s12">
+                    {{#wideButton additionalClasses="start disabled"}}
+                        Waiting for owner
+                    {{/wideButton}}
+                </div>
+            {{/if}}
             <div class="col s12">
-                {{> wideDangerButton additionalClasses="leave" buttonText="Leave lobby"}}
+                {{#wideDangerButton additionalClasses="leave"}}
+                    Leave lobby
+                {{/wideDangerButton}}
             </div>
         </div>
     </div>
@@ -78,7 +80,7 @@ This template requires the following data:
     <li class="collection-item">
         <span>{{username}}</span>
         {{#if renderingForOwner}}
-            <a href="#" class="kick secondary-content">
+            <a href="#" class="secondary-content kick">
                 <span class="hide">{{_id}}</span> <!-- Allows child[0].innerText to be id -->
                 <i class="material-icons">clear</i>
             </a>

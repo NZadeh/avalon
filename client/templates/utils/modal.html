@@ -14,10 +14,9 @@ and a variable number of response buttons. To render, this modal requires:
 
 <template name="modal">
   <!-- Modal Trigger (via button!) -->
-  <!-- TODO(neemazad): Unify with button.html/js? -->
-  <!-- TODO(neemazad): Make this wide and red! -->
-  <button data-target="{{uniqueId}}" class="btn modal-trigger">{{buttonName}}</button>
-  <!-- {{> wideDangerButton additionalClasses="leave-btn" buttonText="Leave game"}} -->
+  {{#wideDangerButton additionalClasses="modal-trigger" additionalAttributes=(modalAttributes uniqueId)}}
+    {{buttonName}}
+  {{/wideDangerButton}}
 
   <!-- Modal Structure (when the trigger fires) -->
   <div id="{{uniqueId}}" class="modal">
