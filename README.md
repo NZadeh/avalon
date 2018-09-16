@@ -39,8 +39,7 @@ usernames of the Spies [Assassin, Morgana, Oberon, etc.].)
 - Give players some way to reveal their information, i.e. "flip their card".
 - Give game owner an "end game" functionality that reveals all players' roles.
 - Log out players automatically after X hours / delete rooms after Y hours.
-- Unify all styling/classes to Materialize
-- Remove unnecessary dependencies (how?)
+- "Fun" modes that happen with low probability... (and possibly a way for the owner to disable them)
 - Just look at all the TODOs in the code :)
 
 ---

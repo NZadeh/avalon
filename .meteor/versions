@@ -70,7 +70,6 @@ reactive-var@1.0.11
 reload@1.2.0
 retry@1.1.0
 routepolicy@1.0.13
-sacha:spin@2.3.1
 service-configuration@1.0.11
 session@1.1.8
 sha@1.0.9
