@@ -32,8 +32,6 @@ Template.accountForm.events({
 
         // NOTE: For simplicity, we always try to make the account first, and if
         // the account already exists, use "failure" as an opportunity to log in.
-        // TODO(neemazad): Once accounts become longer term, consider reworking
-        // this strategy... :P  
         Accounts.createUser({
             username: username,
             password: password,
