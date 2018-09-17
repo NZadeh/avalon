@@ -1,0 +1,41 @@
+<template name="allGamesLobby">
+    {{#unless loggedIn}}
+        {{> accountForm}}
+        <div class="divider"></div>
+    {{/unless}}
+
+    {{#if gamesReady}}
+        {{#if gameRooms.count}}
+            <div class="container">
+                <div class="row">
+                    <div class="col s12 flow-text">
+                        <h5>Open game rooms</h5>
+                    </div>
+                </div>
+                {{#each gameRoom in gameRooms}}
+                    {{> gameTile (addExternalContextForTile gameRoom)}}
+                {{/each}}
+            </div>
+        {{else}}
+            <div class="row section">
+                <div class="col s12 flow-text">
+                    There aren't any open games at the moment.
+                    Be the first to make one! ;)
+                </div>
+            </div>
+        {{/if}}
+    {{else}}
+        <div class="row section">
+            <div class="col s12 flow-text">
+                Loading games...
+            </div>
+        </div>
+    {{/if}}
+
+    {{#if loggedIn}}
+        <div class="divider"></div>
+        <div class="container">
+            {{> createGameRoom}}
+        </div>
+    {{/if}}
+</template>

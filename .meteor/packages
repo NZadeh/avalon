@@ -30,3 +30,4 @@ kadira:blaze-layout
 arillo:flow-router-helpers
 dburles:collection-helpers
 ddp-rate-limiter
+accounts-base
