@@ -62,6 +62,27 @@ I like the GitHub desktop client... :D as that makes it pretty easy to manage ev
 
 You should be good to go, now...
 
+### Things to know...
+The structure of this project has been modeled after the [Meteor guide](https://guide.meteor.com/).
+Please read up on that if you have questions about the code as you encounter them; otherwise, just ask me.
+The example app that the guide often references is the [Meteor Todos app](https://github.com/meteor/todos).
+The example app is the reason why a lot of this project's code is the way it is -- it seems like a
+best practice established by the Meteor community. (Code written this way also removes some of the "magic"
+"action at a distance" properties that some Meteor projects seem to have, which can be quite confusing
+at times.)
+
+In particular, you will notice that the `client` and `server` directories are mostly... "empty"!
+(Actually, these are special directories whose code is always loaded by the framework, on
+the `client` side and on the `server` side respectively. Even subdirectories that have these
+names are treated as special, and the files inside those directories are only linked in to the respective side.)
+Apparently, this "emptiness" is by design. The idea is to `import` all of the dependencies we need, so that
+we don't link in any dependencies we don't need -- for example, test code that lives side-by-side
+with the implementation.
+
+The `imports` directory is a special directory where the code is *never* included by default, and files
+in that directory rely on the ECMAScript `import` keyword to make their way into the app. You will notice
+that almost all of the app is written inside of the `imports` directory.
+
 ---
 
 ## Release process
@@ -74,7 +95,7 @@ but the gist of it is:
 Run `meteor` in the project directory so that the app is built and you can tell whether
 you need any other dependencies.
 
-Add a tuple in `settings.json` so that Meteor can connect to MongoDB using the URL
+Add a tuple in `<project-directory>/settings.json` so that Meteor can connect to MongoDB using the URL
 that mLab shows, filling in the necessary fields, e.g.:
 ```
 {
@@ -85,7 +106,7 @@ that mLab shows, filling in the necessary fields, e.g.:
   }
 }
 ```
-(`settings.json` is intentionally `.gitignore`d).
+(`settings.json` is intentionally `.gitignore`d, since it contains private login information).
 
 Then...
 
