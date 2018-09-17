@@ -83,6 +83,11 @@ The `imports` directory is a special directory where the code is *never* include
 in that directory rely on the ECMAScript `import` keyword to make their way into the app. You will notice
 that almost all of the app is written inside of the `imports` directory.
 
+#### Materialize!
+The UI for this project is handled by the Materialize npm package. The package is included
+into this project via `client/main.js`, and gives global access to all of the goodness
+explained in the [Materialize documentation](https://materializecss.com/getting-started.html).
+
 ---
 
 ## Release process
