@@ -18,6 +18,8 @@ starts.
 "Avalon role-dealer" has a simple registration system. Users type in
 a unique username and (hopefully unique :) password to log in.
 
+NOTE: Currently, accounts are wiped after 6 days.
+
 ### Game Rooms
 Game rooms are either password protected or they're not. In order to
 join a password protected game room -- either via the main page or via
@@ -27,6 +29,8 @@ The user who created the game room is designated the room's owner, which
 gives them the power to start the game and delete the game room. If they
 leave the game room, another user is randomly chosen to be the room's
 owner.
+
+NOTE: Game rooms are wiped after 4 hours.
 
 ## Game Play
 Once the room owner starts the game, everyone will receive a role based
@@ -38,7 +42,6 @@ usernames of the Spies [Assassin, Morgana, Oberon, etc.].)
 - Add a way for room owner to pass ownership to a different person in the lobby.
 - Give players some way to reveal their information, i.e. "flip their card".
 - Give game owner an "end game" functionality that reveals all players' roles.
-- Log out players automatically after X hours / delete rooms after Y hours.
 - "Fun" modes that happen with low probability... (and possibly a way for the owner to disable them)
 - Just look at all the TODOs in the code :)
 
