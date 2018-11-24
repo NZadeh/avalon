@@ -32,22 +32,21 @@ Template.Template_singleGame.helpers({
     const instance = Template.instance();
     var gameRoom = GameRooms.findOne(instance.getRoomId());
 
-    // TODO(neemazad): Make these error messages more accurate. (Track state.)
-
     // Reasons we may need to route the user away:
     // (note, this runs reactively if gameRoom changes)
     // - The room was deleted while the user was inside
     // - The user was kicked from the room...
     // - The user is not in this room but they know the URL/room id for some reason.
-    const playerLeftOrRoomDeleted = instance.subscriptionsReady() && !gameRoom;
-    const playerKicked = instance.subscriptionsReady() && gameRoom && 
-                         !gameRoom.containsUserId(Meteor.userId());
-    const playerNoLongerInGame = playerLeftOrRoomDeleted || playerKicked;
-    if (playerNoLongerInGame) {
-      // For the reasons above, we should route the user back home.
+    // Ideally, we would give error messages, but it is rather difficult to differentiate
+    // the different "states" (causes listed above) without active state tracking.
+    // TODO(neemazad): We could add state tracking (using `userData`) if we want to give
+    // informative "error" or "update" messages why a user was redirected. :)
+    const gameRoomUnavailable = instance.subscriptionsReady() && !gameRoom;
+    const playerNotInRoom = instance.subscriptionsReady() && gameRoom && 
+                            !gameRoom.containsUserId(Meteor.userId());
+    const shouldRedirectHome = gameRoomUnavailable || playerNotInRoom;
+    if (shouldRedirectHome) {
       FlowRouter.go('home');
-      if (playerLeftOrRoomDeleted) { M.toast({html: "You left (or owner deleted the room).", displayLength: 3000, classes: 'error-toast'}); }
-      if (playerKicked) { M.toast({html: "Owner kicked you from room.", displayLength: 3000, classes: 'error-toast'}); }
       // Meanwhile, return a not-ready so that in the split second between when the user
       // is actually routed home and while this code is still running (and
       // the template rendering), the template does not try to access fields
