@@ -9,9 +9,10 @@ Template.accountForm.helpers({
     // Establishes the data context for the child "createForm" template.
     formArgs: function() {
         return {
-            formTitle: "Use this form to claim a username.",
+            formTitle: "Use this form to temporarily claim a username.",
+            optionalSubtitle: "(Username is reclaimed after 6 days.)",
             namePlaceholder: "Your (preferred) name",
-            passwordPlaceholder: "Password (optional)",
+            passwordPlaceholder: "Password (required)",
             submitButtonText: "Login with name",
         };
     },

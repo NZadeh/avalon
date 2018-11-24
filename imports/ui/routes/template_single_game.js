@@ -32,6 +32,8 @@ Template.Template_singleGame.helpers({
     const instance = Template.instance();
     var gameRoom = GameRooms.findOne(instance.getRoomId());
 
+    // TODO(neemazad): Investigate why we are incorrectly routing users away on refresh...
+
     // Reasons we may need to route the user away:
     // (note, this runs reactively if gameRoom changes)
     // - The room was deleted while the user was inside

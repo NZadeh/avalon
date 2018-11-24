@@ -29,6 +29,7 @@ const deleteInactiveAccounts = function(inactiveMs) {
 Meteor.startup(function() {
   const cleanDelayInMs = 60 * 1000;  // Check once a minute.
   const kInactiveRoomThresholdMs = 4 * 60 * 60 * 1000;  // 4 hours.
+  // NOTE: If you change this, also change the subtitle of the `account_form`.
   const kInactiveAccountThresholdMs = 6 * 24 * 60 * 60 * 1000;  // ~6 days.
 
   Meteor.setInterval(function() {

@@ -1,6 +1,7 @@
 <!-- 
 A reusable component form parametrized by:
 - formTitle (String)
+- optionalSubtitle (String), optional!
 - namePlaceholder (String)
 - passwordPlaceholder (String)
 - submitButtonText (String)
@@ -13,6 +14,11 @@ A reusable component form parametrized by:
                 <div class="col s12 flow-text">
                     <h5>{{formTitle}}</h5>
                 </div>
+                {{#if optionalSubtitle}}
+                    <div class="col s12 flow-text">
+                        <h6 class="teal-text text-lighten-2">{{optionalSubtitle}}</h6>
+                    </div>
+                {{/if}}
             </div>
 
             <div class="row">
