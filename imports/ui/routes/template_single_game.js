@@ -32,12 +32,13 @@ Template.Template_singleGame.helpers({
     const instance = Template.instance();
     var gameRoom = GameRooms.findOne(instance.getRoomId());
 
-    // TODO(neemazad): Investigate why we are incorrectly routing users away on refresh...
+    // TODO(neemazad): Make these error messages more accurate. (Track state.)
 
     // Reasons we may need to route the user away:
     // (note, this runs reactively if gameRoom changes)
     // - The room was deleted while the user was inside
     // - The user was kicked from the room...
+    // - The user is not in this room but they know the URL/room id for some reason.
     const playerLeftOrRoomDeleted = instance.subscriptionsReady() && !gameRoom;
     const playerKicked = instance.subscriptionsReady() && gameRoom && 
                          !gameRoom.containsUserId(Meteor.userId());

@@ -1,9 +1,6 @@
 import { FlowRouter } from 'meteor/kadira:flow-router';
 import { BlazeLayout } from 'meteor/kadira:blaze-layout';
 
-import { GameRooms } from '/imports/collections/game_rooms/game_rooms';
-import { Permissions } from '/imports/utils/permissions';
-
 // These imports contain the common layout and all of the templates
 // the router "routes" to.
 import '/imports/ui/application/layout.js';
@@ -19,15 +16,6 @@ FlowRouter.route('/', {
 
 FlowRouter.route('/room/:_id', {
   name: 'singleGame',
-
-  triggersEnter: [function(context, redirect) {
-    // For some reason, if the user finds their way to this room without
-    // actually being in it (e.g. used hard-coded URL), re-route them back home.
-    if (!Permissions.activeUserIsInGameRoom(context.params._id)) {
-      redirect('/');
-    }
-  }],
-
   action() {
     BlazeLayout.render('layout', {main: 'Template_singleGame'});
   }
