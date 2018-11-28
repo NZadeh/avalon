@@ -1,5 +1,7 @@
 import './header.html';
 
+import '/imports/ui/common/how_to_play.js';
+
 import { FlowRouter } from 'meteor/kadira:flow-router';
 import { Meteor } from 'meteor/meteor';
 

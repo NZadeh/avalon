@@ -1,7 +1,7 @@
 <template name="header">
-    <!-- Dropdown content, for use below. (Presumably, the class hides it by default.) -->
+    <!-- Dropdown content, for use below. (Invisible by default.)-->
     <ul class="dropdown-content" id="logout-dropdown">
-        <li>{{> smartLogout loggedIn=currentUser}}</li>
+        {{> headerListItems}}
     </ul>
 
     <nav class="teal">
@@ -10,17 +10,22 @@
                 <i class="material-icons">hot_tub</i>
                 Avalon
             </a>
-            <!-- On medium and up, we show the logout... -->
+            <!-- On medium and up, we directly list out the items in the header ... -->
             <ul class="right hide-on-small-only">
-                <li>{{> smartLogout loggedIn=currentUser}}</li>
+                {{> headerListItems}}
             </ul>
-            <!-- But on small screens, we show the dropdown! -->
+            <!-- But on small screens, we show a collapsed dropdown! -->
             <ul class="right hide-on-med-and-up">
                 <!-- Dropdown trigger, registered in Javascript -->
                 <a href="#" data-target="logout-dropdown" class="dropdown-trigger"><i class="material-icons">menu</i></a>
             </ul>
         </div>
     </nav>
+</template>
+
+<template name="headerListItems">
+    <li>{{> howToPlayLinkText}}</li> <!-- This triggers the modal in `layout.html` -->
+    <li>{{> smartLogout loggedIn=currentUser}}</li>
 </template>
 
 <template name="smartLogout">

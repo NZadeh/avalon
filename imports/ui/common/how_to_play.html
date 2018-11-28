@@ -1,0 +1,58 @@
+<!--
+This file contains two inter-dependent templates.
+1. One is the link text which when clicked will render the modal.
+2. The other is the modal itself.
+
+If these templates were merged into one, it would be near impossible to hide
+the link text (say in a header hamburger) and show the modal, given the
+crazy CSS materialize needs to make that happen.
+
+By keeping them separate, we can put the modal at a scope that makes sense
+(application level), and add the link text to trigger it anywhere!
+
+Because the information inside the modal is static, there is almost no "information
+passing" necessary into the template. A lot of the content comes hard-coded from
+the partner .js file, and this file describes how it will be rendered.
+ -->
+
+<!-- The (public) template described as 1. above. -->
+<template name="howToPlayLinkText">
+  <a class="waves-effect waves-light modal-trigger" href="#{{uniqueId}}">{{linkName}}</a>
+</template>
+
+<!-- The (public) template described as 2. above. -->
+<template name="howToPlayModal">
+  <!-- Modal Structure (when the trigger fires) -->
+  <div id="{{uniqueId}}" class="modal modal-fixed-footer">
+    <div class="modal-content">
+      <h5>{{modalName}}</h5>
+      {{> howToPlayTabs}}
+    </div>
+  </div>
+</template>
+
+<!-- A helper "template", purely for decomposition & readability. -->
+<template name="howToPlayTabs">
+  <div class="row">
+    <ul id="tabs-swipe-demo" class="tabs tabs-fixed-width z-depth-1">
+      <!-- I believe class of s11 means that the tab name will not compress "..."
+           until it is 11/12 of the column width -->
+      {{#each tab in tabs}}
+        <li class="tab col s11"><a href="#{{idify(tab.name)}}">{{tab.name}}</a></li>
+      {{/each}}
+    </ul>
+    <!-- Note that the id for each div lines up with a corresponding href tag above. -->
+    {{#each tab in tabs}}
+      <div id="{{idify(tab.name)}}" class="col s12 {{tab.color}} left-align flow-text">
+        <p>{{tab.content.introduction}}</p>
+        {{#if tab.content.bullets}}
+          <ol>
+          {{#each bullet in tab.content.bullets}}
+              <li>{{bullet}}</li>
+          {{/each}}
+          </ol>
+        {{/if}}
+      </div>
+    {{/each}}
+  </div>
+</template>
