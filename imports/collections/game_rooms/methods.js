@@ -7,7 +7,6 @@ import { GameRooms } from '/imports/collections/game_rooms/game_rooms';
 import { HelperConstants } from '/imports/collections/game_rooms/constants';
 import { HelperMethods } from '/imports/collections/game_rooms/methods_helper';
 import { Permissions } from '/imports/utils/permissions';
-import { SecretInfo } from '/imports/collections/game_rooms/secret_info';
 
 export const addGameRoom = new ValidatedMethod({
   name: 'avalon.addGameRoom',
@@ -128,16 +127,22 @@ export const startGame = new ValidatedMethod({
       return { tooManyPlayers: true };
     }
 
-    const idToRoleMap = HelperMethods.assignRolesToPlayers(inRoomPlayers);
-    idToRoleMap.forEach(function(role, id, map) {
-      SecretInfo.insert({
-        playerId: id,
-        roleName: role[HelperConstants.kRoleNameField],
-        roleInfo: role[HelperConstants.kRoleKnownInfo],
-      });
-    });
-    GameRooms.update({_id: roomId}, { $set: { open: false } });
+    // The code after this point in the method relies on randomness.
+    // When the client (specifically room host's client) runs the optimistic
+    // UI calculation, it will often show some random assignment of roles
+    // to the user in the time between when the room owner hits the Start
+    // button on their device and when the server finishes its computation
+    // and sends the result back to everybody. By returning early, we can
+    // avoid a surprising, ephemeral role assignment for the room owner.
+    if (this.isSimulation) {
+      return { waitingForServer: true };
+    } 
 
+    const { ServerSecrets } =
+        require('/imports/collections/game_rooms/server/secret_code.js');
+    ServerSecrets.assignRoles(inRoomPlayers);
+
+    GameRooms.update({_id: roomId}, { $set: { open: false } });
     return { success: true };
   },
 });
@@ -193,9 +198,13 @@ export const backToLobby = new ValidatedMethod({
       return { notRoomOwner: true };
     }
 
-    SecretInfo.remove({ playerId: { $in: room.players.map(player => player._id) } })
-    GameRooms.update({_id: roomId}, { $set: { open: true } });
+    if (!this.isSimulation) {
+      const { ServerSecrets } =
+        require('/imports/collections/game_rooms/server/secret_code.js');
+      ServerSecrets.clearRoles(room.players);
+    }
 
+    GameRooms.update({_id: roomId}, { $set: { open: true } });
     return { success: true };
   },
 });

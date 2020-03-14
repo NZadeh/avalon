@@ -28,11 +28,13 @@ const deleteInactiveAccounts = function(inactiveMs) {
 
 Meteor.startup(function() {
   const cleanDelayInMs = 60 * 1000;  // Check once a minute.
-  const kInactiveRoomThresholdMs = 4 * 60 * 60 * 1000;  // 4 hours.
+  const kInactiveRoomThresholdMs = 12 * 60 * 60 * 1000;  // 12 hours.
   // NOTE: If you change this, also change the subtitle of the `account_form`.
   const kInactiveAccountThresholdMs = 6 * 24 * 60 * 60 * 1000;  // ~6 days.
 
   Meteor.setInterval(function() {
+    // TODO(neemazad): Track activity in the room somehow to use
+    // instead of creation time to determine inactivity.
     deleteInactiveRooms(/*if inactive for*/kInactiveRoomThresholdMs);
 
     // There's almost no downside to deleting the accounts each week... as

@@ -43,6 +43,8 @@ Template.gameLobby.events({
         M.toast({html: 'You need more players to start.', displayLength: 3000, classes: 'error-toast'});
       } else if (result.tooManyPlayers) {
         M.toast({html: 'You have too many players to start.', displayLength: 3000, classes: 'error-toast'});
+      } else if (result.waitingForServer) {
+        M.toast({html: 'Waiting for server...', displayLength: 1000, classes: 'success-toast'});
       } /* else if (result.success) {
         // Updates in the collection should reactively change what renders
         // in `template_single_game`. In particular, we do not need to re-route.
