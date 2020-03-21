@@ -23,6 +23,25 @@ Meteor.publish('singleGameRoom', function(roomId) {
     return GameRooms.find({_id: roomId});
 });
 
+Meteor.publish('gameRoomInfo', function(roomId) {
+    new SimpleSchema({
+      roomId: {type: String}
+    }).validate({ roomId });
+
+    // TODO(neemazad): Hopefully this does the right thing when we go from
+    // no gameinfo id to having gameinfo id when the game starts.
+    // TODO(neemazad): Hide some information here... e.g. live vote tally . vote?
+    return GameRooms.find({_id: roomId}).inGameInfo();
+});
+
+Meteor.publish('gameRoomVoteHistory', function(roomId) {
+    new SimpleSchema({
+      roomId: {type: String}
+    }).validate({ roomId });
+
+    return GameRooms.find({_id: roomId}).inGameInfo().allPlayerVoteHistory();
+});
+
 Meteor.publish('playerSecretInfo', function() {
     // Note that by using `this.userId`, we ensure that this information is only
     // accessible to the logged in user. No other players' role information is

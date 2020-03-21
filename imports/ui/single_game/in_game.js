@@ -79,5 +79,9 @@ Template.inGame.events({
         // in `template_single_game`. In particular, we do not need to re-route.
       } */
     });
-  }
+  },
+
+  // TODO(neemazad): Note to future self -- when adding click support for putting on
+  // proposals, make sure to check that the click does nothing on frontend too
+  // when not the proposer :P
 });

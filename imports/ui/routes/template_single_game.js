@@ -17,6 +17,8 @@ Template.Template_singleGame.onCreated(function singleGameOnCreated() {
 
   this.autorun(() => {
     this.subscribe('singleGameRoom', this.getRoomId());
+    this.subscribe('gameRoomInfo', this.getRoomId());
+    this.subscribe('gameRoomVoteHistory', this.getRoomId());
     this.subscribe('playerSecretInfo');
   });
 });
@@ -65,7 +67,7 @@ Template.Template_singleGame.helpers({
     const instance = Template.instance();
     const gameRoom = GameRooms.findOne(
       { _id: instance.getRoomId() },
-      { fields: { players: 1, title: 1, ownerId: 1 } }
+      { fields: { players: 1, title: 1, ownerId: 1, inGameInfoId: 1 } }
     );
     // If we're not finding the data, may as well return not-ready.
     // For a similar reason as above, returning not-ready doubles as protection in the
@@ -81,6 +83,15 @@ Template.Template_singleGame.helpers({
     const secretInfo = SecretInfo.findOne({ playerId: player._id });
     if (!secretInfo) { return { inGameReady: false }; }
 
+    const inGameInfo = gameRoom.inGameInfo();
+    if (!inGameInfo) { return { inGameReady: false }; }
+
+    const seatingOrderMap = gameRoom.seatingOrderMap();
+    const properlyOrderedPlayerNames = gameRoom.players
+        .sort((player1, player2) => 
+                seatingOrderMap.get(player1._id) - seatingOrderMap.get(player2._id))
+        .map(player => player.username);
+
     return {
       inGameReady: instance.subscriptionsReady(),
       title: gameRoom.title,
@@ -91,9 +102,10 @@ Template.Template_singleGame.helpers({
         role: secretInfo.roleName,
         info: secretInfo.roleInfo,
       },
-      playerNames: gameRoom.players.map(player => player.username),
+      playerNames: properlyOrderedPlayerNames,
       roleNames: HelperMethods.roleNamesForNPlayerGame(gameRoom.players.length),
       isRoomOwner: Permissions.isRoomOwner(gameRoom),
+      inGameInfo: inGameInfo,  // almost all info in this object needs to be rendered
     };
   },
 });

@@ -6,6 +6,7 @@ import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { GameRooms } from '/imports/collections/game_rooms/game_rooms';
 import { HelperConstants } from '/imports/collections/game_rooms/constants';
 import { HelperMethods } from '/imports/collections/game_rooms/methods_helper';
+import { InGameInfo, VoteHistory } from '/imports/collections/game_rooms/in_game_info.js';
 import { Permissions } from '/imports/utils/permissions';
 
 export const addGameRoom = new ValidatedMethod({
@@ -142,7 +143,12 @@ export const startGame = new ValidatedMethod({
         require('/imports/collections/game_rooms/server/secret_code.js');
     ServerSecrets.assignRoles(inRoomPlayers);
 
+    // TODO(neemazad): move this to before the simulation code...?
     GameRooms.update({_id: roomId}, { $set: { open: false } });
+
+    const inGameInfo = HelperMethods.generateStartingInGameInfo(inRoomPlayers);
+    const inGameId = InGameInfo.insert(inGameInfo);
+    GameRooms.update({_id: roomId}, { $set: { inGameInfoId: inGameId } });
     return { success: true };
   },
 });
@@ -204,10 +210,146 @@ export const backToLobby = new ValidatedMethod({
       ServerSecrets.clearRoles(room.players);
     }
 
+    // Consider unifying the code with hooks.js `afterRemoveRooms`. It's mostly
+    // the same (clear roles and delete in game info, but slightly different.)
+    InGameInfo.remove({_id: room.inGameInfoId});
     GameRooms.update({_id: roomId}, { $set: { open: true } });
     return { success: true };
   },
 });
+
+// --------------------------------
+// Below this point are in-game methods.
+// TODO(neemazad): Move to differnt file?
+// --------------------------------
+export const toggleOnProposal = new ValidatedMethod({
+  name: 'avalon.toggleOnProposal',
+
+  validate: new SimpleSchema({
+    roomId: {
+      type: String,
+      regEx: SimpleSchema.RegEx.Id,
+    },
+    playerName: String,
+  }).validator(),
+
+  run({ roomId, playerName }) {
+    const room = GameRooms.findOne(roomId);
+    const existingInfo = room.inGameInfo();
+    const playerId = room.nameToId(playerName)
+
+    // this.userId is the ID of the method's caller.
+    if (this.userId != existingInfo.proposer) {
+      return { notProposer: true};
+    }
+    if (!room.containsUserId(playerId)) {
+      return { playerNotInRoom: true };
+    }
+
+    // There might be a more concise phrasing where we can conditionally
+    // give the selector $pull or $push, but not sure how. Do the long form
+    // way for now...
+    if (existingInfo.selectedOnMission.includes(playerId)) {
+      InGameInfo.findAndModify({_id: room.inGameInfoId},
+        { $pull: { selectedOnMission: playerId }});
+    } else {
+      InGameInfo.findAndModify({_id: room.inGameInfoId},
+        { $addToSet: { selectedOnMission: playerId }});
+    }
+
+    return { success: true };
+  },
+});
+
+export const finalizeProposal = new ValidatedMethod({
+  name: 'avalon.finalizeProposal',
+
+  validate: new SimpleSchema({
+    roomId: {
+      type: String,
+      regEx: SimpleSchema.RegEx.Id,
+    },
+  }).validator(),
+
+  run({ roomId }) {
+    const room = GameRooms.findOne(roomId);
+    const existingInfo = room.inGameInfo();
+
+    // this.userId is the ID of the method's caller.
+    if (this.userId != existingInfo.proposer) {
+      return { notProposer: true};
+    }
+    if (existingInfo.proposalVoteInProgress) {
+      return { voteAlreadyInProgress: true };
+    }
+
+    const numShouldBeOnProposal =
+        existingInfo.missionCounts[existingInfo.currentMissionNumber];
+    const numOnProposal = existingInfo.selectedOnMission.length;
+
+    if (numOnProposal != numShouldBeOnProposal) {
+      return { incorrectNumPlayers: numOnProposal, needs: numShouldBeOnProposal};
+    }
+
+    InGameInfo.update({_id: room.inGameInfoId},
+      { $set: { proposalVoteInProgress: true }});
+
+    return { success: true };
+  },
+});
+
+export const voteOnProposal = new ValidatedMethod({
+  name: 'avalon.voteOnProposal',
+
+  validate: new SimpleSchema({
+    roomId: {
+      type: String,
+      regEx: SimpleSchema.RegEx.Id,
+    },
+    vote: Boolean, // True is accept, false is reject.
+  }).validator(),
+
+  run({ roomId, vote }) {
+    const room = GameRooms.findOne(roomId);
+    const existingInfo = room.inGameInfo();
+    const voterId = this.userId;
+
+    if (!room.containsUserId(voterId)) {
+      return { playerNotInRoom: true };
+    }
+
+    if (!existingInfo.proposalVoteInProgress) {
+      return { proposalNotFinalized: true };
+    }
+
+    // TODO(neemazad): It seems like theoretically there's a race condition here
+    // with checking whether the player has already voted. If the player can
+    // call the method twice quickly, it seems impossible to guarantee that
+    // the player isn't voting twice. There might be something we can do with
+    // `upsert` or `setOnInsert`... but not sure atm.
+    //
+    // We rely on server-side rate-limiting of this method, as well as using
+    // `addToSet` to mitigate duplicates.
+    const found = existingInfo.liveVoteTally.find(function(talliedVote) {
+      return voterId === talliedVote.playerId;
+    });
+    if (!!found) {
+      return { alreadyVoted: true };
+    }
+
+    const voteObject = { playerId: voterId, vote: vote};
+    InGameInfo.update({_id: room.inGameInfoId}, {
+      $addToSet: { liveVoteTally: voteObject }
+    });
+    // Note that the Database updates automatically when all the votes are in,
+    // so we don't need to handle that here.
+
+    return { success: true };  // TODO(neemazad): maybe return vote as read from db?
+  },
+});
+
+// TODO(neemazad): add mission support (success fail).
+
 
 
 // TODO(neemazad): Test that this rate-limiting works, in some way.
@@ -215,6 +357,7 @@ export const backToLobby = new ValidatedMethod({
 const RATE_LIMITED_METHODS = _.pluck([
   addGameRoom,
   startGame,
+  voteOnProposal,
 ], 'name');
 
 if (Meteor.isServer) {

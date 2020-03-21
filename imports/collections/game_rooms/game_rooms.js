@@ -2,6 +2,7 @@ import { Mongo } from 'meteor/mongo';
 import SimpleSchema from 'simpl-schema';
 
 import { GameRoomHooks } from '/imports/collections/game_rooms/hooks.js';
+import { InGameInfo } from '/imports/collections/game_rooms/in_game_info.js';
 
 class GameRoomCollection extends Mongo.Collection {
   insert(room, callback) {
@@ -79,6 +80,13 @@ GameRooms.schema = new SimpleSchema({
   'players.$': Object,
   'players.$._id': String,
   'players.$.username': String,
+
+  inGameInfoId: {
+    type: String,
+    regEx: SimpleSchema.RegEx.Id,
+    optional: true, // This field only exists when the game is in progress.
+    // denyUpdate: true, // TODO(neemazad): Do we want to deny update? What's the effect?
+  },
 });
 
 GameRooms.attachSchema(GameRooms.schema);
@@ -91,6 +99,27 @@ GameRooms.helpers({
       /*initialValue=*/false
     );
   },
+
+  nameToId(playerName) {
+    const found = this.players.find(player => player.username == playerName);
+    return found._id;
+  },
+
+  inGameInfo() {
+    return InGameInfo.findOne(this.inGameInfoId);
+  },
+
+  seatingOrderMap() {
+    const gameInfo = inGameInfo();
+    if (!gameInfo) { console.log("seatingOrderMap called before inGameInfo was available."); }
+
+    var ordering = new Map();
+    var seatingPosition = 0;
+    gameInfo.playersInGame.map(function(playerId) {
+      ordering.set(playerId, seatingPosition++);
+    });
+    return ordering;
+  },  
 });
 
 

@@ -1,5 +1,6 @@
 import { GameRooms } from '/imports/collections/game_rooms/game_rooms';
 import { HelperConstants } from '/imports/collections/game_rooms/constants';
+import { InGameInfo } from '/imports/collections/game_rooms/in_game_info.js';
 
 const kMerlin = "Merlin";
 const kPercival = "Percival";
@@ -83,6 +84,31 @@ const kOrderedRolesArray = [
   new Spy(),
 ];
 
+const kMissionCounts = [
+  [2, 3, 2, 3, 3],  // 5-player
+  [2, 3, 4, 3, 4],  // 6-player
+  [2, 3, 3, 4, 4],  // 7-player
+  [3, 4, 4, 5, 5],  // 8-player
+  [3, 4, 4, 5, 5],  // 9-player
+  [3, 4, 4, 5, 5],  // 10-player
+];
+
+var missionCountsForNPlayers = function(num_players) {
+  // ** For testing: **
+  if (num_players === 2) { return [2, 2, 2, 2, 2]; }
+  // ** End: For testing **
+
+  const index = num_players - 5;
+  console.assert(0 <= index && index < missionCounts.length,
+                 "Unknown mission count for num_players: " + num_players);
+  return kMissionCounts[num_players - 5];
+};
+
+var numFailsRequiredForNPlayersOnMissionK = function(num_players, mission_number) {
+  if (num_players >= 7 && mission_number === 4) return 2;
+  return 1;
+};
+
 /**
  * From: https://stackoverflow.com/a/12646864
  *
@@ -109,12 +135,15 @@ var appendToMapForKey = function(map, key, value) {
   map.set(key, valueArray);
 };
 
-
-var removeJoinAuth = function(userId, username, roomId) {
-  //remove them from the room's player list
+/**
+ * Removes a user from GameRooms. GameRooms should handle automatically
+ * updating or deleting any data associated with that player, e.g.
+ * voting history and other in-game data.
+ */
+var removeUserIdFromRoom = function(userId, roomId) {
   var gameRoom = GameRooms.findOne(roomId);
   if (!gameRoom) {
-    return; //no room to remove them from
+    return;  // Somehow, the room doesn't exist...
   }
   GameRooms.update(
     {_id: roomId},
@@ -122,23 +151,23 @@ var removeJoinAuth = function(userId, username, roomId) {
     { multi: true }
   );
 
-  //check to see if the room is then empty
+  // If the room became empty, we can delete the room. Otherwise,
+  // arbitrarily choose a new owner.
+  // TODO(neemazad): Give players a way of passing room ownership as well.
   gameRoom = GameRooms.findOne({_id: roomId}); //updated
   var players = gameRoom.players;
   if (players.length === 0) {
-    //their leaving the room made it empty
-    GameRooms.remove({_id: roomId}); //so delete the room
+    // Last player in the room just left.
+    GameRooms.remove({_id: roomId});
   } else {
-    //not empty so choose a new owner
+    // Otherwise, choose a new owner.
     var newOwner = players[0];
-    var updateObj = {
+    var newOwnerInfo = {
       ownerId: newOwner._id,
       author: newOwner.username
     };
 
-    GameRooms.update({_id: roomId}, {
-      $set: updateObj,
-    });
+    GameRooms.update({_id: roomId}, {$set: newOwnerInfo});
   }
 };
 
@@ -175,7 +204,7 @@ export const HelperMethods = {
     players.forEach(function(player, index) {
       const playerRole = shuffledRoles[index];
       console.assert(idToRoleInfo.get(player._id)[HelperConstants.kRoleNameField].includes(playerRole.name()),
-        "Attempting to give player info for another player's role...");
+          "Attempting to give player info for another player's role...");
 
       const knownRoleNames = playerRole.knows();
       var knownPlayers = 
@@ -196,7 +225,8 @@ export const HelperMethods = {
       // A critical step, to hide any information from the order of names in the text.
       var shuffledKnown = shuffleArray(knownPlayers);
 
-      idToRoleInfo.get(player._id)[HelperConstants.kRoleKnownInfo] = playerRole.formatPlayerKnowledge(shuffledKnown);
+      idToRoleInfo.get(player._id)[HelperConstants.kRoleKnownInfo] =
+          playerRole.formatPlayerKnowledge(shuffledKnown);
     });
 
     return idToRoleInfo;
@@ -228,7 +258,7 @@ export const HelperMethods = {
       };
     }
 
-    removeJoinAuth(user._id, user.username, currRoomId);
+    removeUserIdFromRoom(user._id, currRoomId);
 
     return {
       success: true
@@ -241,5 +271,35 @@ export const HelperMethods = {
   roleNamesForNPlayerGame(n) {
     n = Math.min(n, kOrderedRolesArray.length);
     return kOrderedRolesArray.slice(0, n).map(role => role.nameTeam());
-  }
+  },
+
+  /**
+   * Return value should be directly insertible into the InGameInfo collection.
+   */
+  generateStartingInGameInfo(inRoomPlayers) {
+    const playerIds = inRoomPlayers.map(function(player) {
+      // NOTE: Vote info initialization is handled by InGameInfo collection.
+      return {_id: player._id};
+    });
+    const shuffledIds = shuffleArray(playerIds);
+    // Since the array of seating order is shuffled, just choose the first
+    // person in "seating order".
+    // TODO(neemazad): Track previous Merlin.
+    const proposerId = shuffledIds[0]._id;
+
+    return {
+        playersInGame: shuffledIds,
+        missionCounts: missionCountsForNPlayers(inRoomPlayers.length),
+        currentMissionNumber: 1,
+        currentProposalNumber: 1,
+        proposer: proposerId,
+        selectedOnMission: [/*nobody yet*/],
+        proposalVoteInProgress: /*no proposal yet*/false,
+        liveVoteTally: [/*starts empty*/],
+        missionInProgress: /*no mission yet*/false,
+        liveMissionTally: [/*starts empty*/],
+        missionOutcomes: [/*none yet*/],
+        winner: "undecided",
+    };
+  },
 };
