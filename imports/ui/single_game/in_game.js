@@ -155,10 +155,14 @@ Template.inGame.helpers({
     const headers = ["P"].concat(deduceNecessaryHeaders(exampleVoteHistory));
     
     var rows = [];
-    this.nameToVotesMap.forEach(function(value, key, map) {
+    const capturedNameToVotesMap = this.nameToVotesMap;
+    // Render history in player order.
+    this.playerNames.forEach(function(name) {
+      const voteHistory = capturedNameToVotesMap.get(name);
+      // TODO(neemazad): Check if name is 5th... and append a Hammer emoji.
       rows.push({
-        username: key,
-        flattenedVoteHistory: flatten(value),
+        username: name,
+        flattenedVoteHistory: flatten(voteHistory),
       });
     });
     return {

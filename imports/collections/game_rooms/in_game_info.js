@@ -270,5 +270,8 @@ VoteHistory.schema = new SimpleSchema({
     minCount: 0,  // Start with no proposals on a mission
     maxCount: 5,  // Up to the 5th
   },
-  'missions.$.$': Boolean  // True: Success, False: Fail
+  'missions.$.$': Object,
+  'missions.$.$.vote': Boolean, // True: Success, False: Fail
+  'missions.$.$.wasProposer': Boolean,
+  'missions.$.$.wasOnProposal': Boolean,
 });

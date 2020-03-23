@@ -128,6 +128,8 @@ export const startGame = new ValidatedMethod({
       return { tooManyPlayers: true };
     }
 
+    GameRooms.update({_id: roomId}, { $set: { open: false } });
+
     // The code after this point in the method relies on randomness.
     // When the client (specifically room host's client) runs the optimistic
     // UI calculation, it will often show some random assignment of roles
@@ -142,9 +144,6 @@ export const startGame = new ValidatedMethod({
     const { ServerSecrets } =
         require('/imports/collections/game_rooms/server/secret_code.js');
     ServerSecrets.assignRoles(inRoomPlayers);
-
-    // TODO(neemazad): move this to before the simulation code...?
-    GameRooms.update({_id: roomId}, { $set: { open: false } });
 
     const inGameInfo = HelperMethods.generateStartingInGameInfo(inRoomPlayers);
     const inGameId = InGameInfo.insert(inGameInfo);
@@ -422,8 +421,6 @@ export const voteOnMission = new ValidatedMethod({
 });
 
 
-
-// TODO(neemazad): Test that this rate-limiting works, in some way.
 // Get list of all method names we want to rate-limit.
 const RATE_LIMITED_METHODS = _.pluck([
   addGameRoom,

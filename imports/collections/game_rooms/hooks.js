@@ -95,7 +95,11 @@ const copyVoteTallyInfoToPersonalHistory = function(updatedInfo) {
   const map = updatedInfo.playerIdToVoteHistoryIdMap();
   updatedInfo.liveVoteTally.forEach(function(singleVote) {
     const playerId = singleVote.playerId;
-    const vote = singleVote.vote;
+    const voteUpdate = {
+      vote: singleVote.vote,
+      wasProposer: updatedInfo.proposer === playerId,
+      wasOnProposal: updatedInfo.selectedOnMission.includes(playerId),
+    }
     const voteHistoryId = map.get(playerId);
 
     const voteHistory = VoteHistory.findOne({_id: voteHistoryId});
@@ -104,9 +108,9 @@ const copyVoteTallyInfoToPersonalHistory = function(updatedInfo) {
     const missionIndexToUpdate = voteHistory.missions.length - 1;
     // Build up the update from scratch, so that we can use MongoDB
     // dot notation to access the correct array index in missions.
-    // { $push: { `missions.${missionIndexToUpdate}` : vote} }
+    // { $push: { `missions.${missionIndexToUpdate}` : voteUpdate} }
     var update = { $push: {} };
-    update.$push[`missions.${missionIndexToUpdate}`] = vote;
+    update.$push[`missions.${missionIndexToUpdate}`] = voteUpdate;
     VoteHistory.update({_id: voteHistoryId}, update);
   });
 };
