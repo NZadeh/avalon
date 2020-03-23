@@ -1,6 +1,7 @@
-Avalon role-dealer
+Avalon role-dealer and gameplay
 ====================================================================
-A Meteor.js app that handles the Avalon night-phase.
+A Meteor.js app that handles the Avalon night-phase and, newly,
+the in-game mechanics minus chatting. (#coronavirus2019.)
 
 This project (and even the README) started out by cannibalizing
 [turbomaze's Petra](https://github.com/turbomaze/petra) (#neverforgetyourroots),
@@ -15,15 +16,15 @@ joined a room, they're presented with a waiting page until the game
 starts.
 
 ### Accounts
-"Avalon role-dealer" has a simple registration system. Users type in
+There's a simple registration system. Users type in
 a unique username and (hopefully unique :) password to log in.
 
 NOTE: Currently, accounts are wiped after 6 days.
 
 ### Game Rooms
 Game rooms are either password protected or they're not. In order to
-join a password protected game room -- either via the main page or via
-a direct link -- users need to provide the correct password.
+join a password protected game room, users need to provide the correct
+password.
 
 The user who created the game room is designated the room's owner, which
 gives them the power to start the game and delete the game room. If they
@@ -37,6 +38,9 @@ Once the room owner starts the game, everyone will receive a role based
 on the total number of players, as well as receive any information that
 role has. (For example, the player who receives Merlin will also see the
 usernames of the Spies [Assassin, Morgana, Oberon, etc.].)
+
+Proposals, missions, and vote history all happen and are tracked in real-time
+inside the game room once the game starts.
 
 ## Changes in the works (Feature requests)
 - Add a way for room owner to pass ownership to a different person in the lobby.

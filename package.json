@@ -1,7 +1,7 @@
 {
   "name": "avalon",
   "version": "1.0.0",
-  "description": "Avalon role-dealer, written in Meteor.js",
+  "description": "Avalon role-dealer and gameplay, written in Meteor.js",
   "main": "index.js",
   "directories": {
     "lib": "lib"
