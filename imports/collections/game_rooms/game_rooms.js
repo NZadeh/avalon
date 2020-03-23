@@ -93,7 +93,7 @@ GameRooms.attachSchema(GameRooms.schema);
 
 // See https://guide.meteor.com/collections.html#collection-helpers for info.
 GameRooms.helpers({
-  containsUserId(userId) {
+  includesUserId(userId) {
     return this.players.reduce(
       (alreadyContains, player) => alreadyContains || player._id == userId,
       /*initialValue=*/false
@@ -105,18 +105,23 @@ GameRooms.helpers({
     return found._id;
   },
 
+  idToName(playerId) {
+    const found = this.players.find(player => player._id == playerId);
+    return found.username;
+  },
+
   inGameInfo() {
-    return InGameInfo.findOne(this.inGameInfoId);
+    return InGameInfo.findOne({_id: this.inGameInfoId});
   },
 
   seatingOrderMap() {
-    const gameInfo = inGameInfo();
+    const gameInfo = this.inGameInfo();
     if (!gameInfo) { console.log("seatingOrderMap called before inGameInfo was available."); }
 
     var ordering = new Map();
     var seatingPosition = 0;
-    gameInfo.playersInGame.map(function(playerId) {
-      ordering.set(playerId, seatingPosition++);
+    gameInfo.playersInGame.map(function(player) {
+      ordering.set(player._id, seatingPosition++);
     });
     return ordering;
   },  

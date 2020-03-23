@@ -1,0 +1,18 @@
+<!-- The template used for offering yes/no votes on proposals and missions. -->
+<template name="yesNoVote">
+    <div class="col s12 flow-text"> 
+        <i>{{helperText}}</i>
+    </div>
+    {{#halfButton additionalClasses=(concat additionalClasses "vote-yes")}}
+        <span class="secondary-content left">
+            <i class="material-icons white-text">thumb_up</i>
+        </span>
+        {{yesButtonText}}
+    {{/halfButton}}
+    {{#halfDangerButton additionalClasses=(concat additionalClasses "vote-no")}}
+        <span class="secondary-content left">
+            <i class="material-icons white-text">thumb_down</i>
+        </span>
+        {{noButtonText}}
+    {{/halfDangerButton}}
+</template>

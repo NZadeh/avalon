@@ -8,9 +8,9 @@ Template.allGamesLobby.helpers({
   addExternalContextForTile(room) {
     const instance = Template.instance();
 
-    const playerAlreadyInside = room.containsUserId(instance.data.playerId);
+    const playerAlreadyInside = room.includesUserId(instance.data.playerId);
     const playerInsideAnyGame = instance.data.gameRooms  // This is a collection Cursor
-        .map((room) => room.containsUserId(instance.data.playerId))
+        .map((room) => room.includesUserId(instance.data.playerId))
         .filter(contains => contains)
         .length > 0;
 

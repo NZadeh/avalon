@@ -16,9 +16,9 @@ class InGameInfoCollection extends Mongo.Collection {
   }
 
   remove(selector, callback) {
-    const info = this.find(selector).fetch();
+    const infos = this.find(selector).fetch();
     const result = super.remove(selector, callback);
-    InGameInfoHooks.afterRemoveInfo(info);
+    InGameInfoHooks.afterRemoveInfos(infos);
     return result;
   }
 }
@@ -139,6 +139,7 @@ InGameInfo.schema = new SimpleSchema({
     maxCount: 5,  // End with 5...
   },
   'missionOutcomes.$': Object,
+  'missionOutcomes.$.succeeded': Boolean,
   'missionOutcomes.$.successes': SimpleSchema.Integer,
   'missionOutcomes.$.fails': SimpleSchema.Integer,
   'missionOutcomes.$.playerIdsOnMission': {
@@ -152,33 +153,89 @@ InGameInfo.schema = new SimpleSchema({
     regEx: SimpleSchema.RegEx.Id,
   },
 
-  winner: {
+  // TODO(neemazad): Collapse mission/vote in progress into this "enum"
+  gamePhase: {
     type: String,
-    allowedValues: ['undecided', 'resistance', 'spies'],
+    allowedValues: [
+      'inProgress',
+      'spiesWin',
+      'assassinationPhase',
+      'resistanceWin',
+    ],
   },
 });
 
 InGameInfo.attachSchema(InGameInfo.schema);
 
+// Returns arrayA - arrayB.
+const setDifference = function(arrayA, arrayB) {
+  return arrayA.filter(elem => !arrayB.includes(elem));
+};
+
 // See https://guide.meteor.com/collections.html#collection-helpers for info.
 InGameInfo.helpers({
-  voteHistoryId(playerId) {
-    const found = this.playersInGame.find(function(player) {
-      return player._id == playerId;
-    });
-    return found.voteHistoryId;
+  playerIdToVoteHistoryIdMap() {
+    var map = new Map();
+    this.playersInGame.forEach(player => map.set(player._id, player.voteHistoryId));
+    return map;
   },
 
-  voteHistory(playerId) {
-    const voteId = voteHistoryId(playerId);
-    if (!voteId) return voteId;  // Pass through garbage.
-    return VoteHistory.findOne({_id: voteId});
-  },
-
-  allPlayerVoteHistory() {
+  allPlayerVoteHistoryCursor() {
     const voteHistoryIds =
         this.playersInGame.map(player => player.voteHistoryId);
-    return VoteHistory.findOne({_id: {$in: voteHistoryIds}});
+    return VoteHistory.find({_id: {$in: voteHistoryIds}});
+  },
+
+  playersNeedingToAct() {
+    if (this.proposalVoteInProgress) {
+      // If the vote is in progress, this should be everyone in the room
+      // minus folks who have voted in liveVoteTally.
+      return setDifference(
+          this.playersInGame.map(player => player._id),
+          this.liveVoteTally.map(talliedVote => talliedVote.playerId));
+    } else if (this.missionInProgress) {
+      // If the mission is in progress, this should be everyone selected
+      // on mission minus the folks who have voted in liveMissionTally.
+      return setDifference(
+          this.selectedOnMission,
+          this.liveMissionTally.map(talliedVote => talliedVote.playerId));
+    } else {
+      // No vote and no mission means the proposer needs to act.
+      return [this.proposer]; // Array with one-element.
+    }
+  },
+
+  numShouldBeOnProposal() {
+    return this.missionCounts[this.currentMissionNumber - 1];
+  },
+
+  numCurrentlyOnProposal() {
+    return this.selectedOnMission.length;
+  },
+
+  numFailsRequired() {
+    if (this.playersInGame.length >= 7 && 
+        this.currentMissionNumber === 4) return 2;
+    return 1;
+  },
+
+  missionSuccessFailCounts() {
+    var numSuccesses = 0;
+    var numFails = 0;
+    this.missionOutcomes.forEach(function(outcome) {
+      if (outcome.succeeded) {
+        ++numSuccesses;
+      } else {
+        ++numFails;
+      }
+    });
+
+    return [numSuccesses, numFails];
+  },
+
+  isGameOverState() {
+    return ['spiesWin', 'assassinationPhase', 'resistanceWin'].includes(
+               this.gamePhase);
   },
 });
 

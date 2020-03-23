@@ -181,7 +181,7 @@ export const removePlayer = new ValidatedMethod({
     });
     if (!gameRoom) return { notAuthorized: true };
 
-    const removedPlayerInRoom = gameRoom.containsUserId(removedId);
+    const removedPlayerInRoom = gameRoom.includesUserId(removedId);
     const isOwner = Permissions.isRoomOwner(gameRoom);
 
     const allowedToRemove = removedId == Meteor.userId() || (removedPlayerInRoom && isOwner);
@@ -236,24 +236,31 @@ export const toggleOnProposal = new ValidatedMethod({
   run({ roomId, playerName }) {
     const room = GameRooms.findOne(roomId);
     const existingInfo = room.inGameInfo();
-    const playerId = room.nameToId(playerName)
+    const playerId = room.nameToId(playerName);
+
+    if (existingInfo.isGameOverState()) {
+      return { gameOver: true};
+    }
 
     // this.userId is the ID of the method's caller.
     if (this.userId != existingInfo.proposer) {
       return { notProposer: true};
     }
-    if (!room.containsUserId(playerId)) {
+    if (!room.includesUserId(playerId)) {
       return { playerNotInRoom: true };
+    }
+    if (existingInfo.missionInProgress) {
+      return { missionAlreadyInProgress: true };
     }
 
     // There might be a more concise phrasing where we can conditionally
     // give the selector $pull or $push, but not sure how. Do the long form
     // way for now...
     if (existingInfo.selectedOnMission.includes(playerId)) {
-      InGameInfo.findAndModify({_id: room.inGameInfoId},
+      InGameInfo.update({_id: room.inGameInfoId},
         { $pull: { selectedOnMission: playerId }});
     } else {
-      InGameInfo.findAndModify({_id: room.inGameInfoId},
+      InGameInfo.update({_id: room.inGameInfoId},
         { $addToSet: { selectedOnMission: playerId }});
     }
 
@@ -275,6 +282,10 @@ export const finalizeProposal = new ValidatedMethod({
     const room = GameRooms.findOne(roomId);
     const existingInfo = room.inGameInfo();
 
+    if (existingInfo.isGameOverState()) {
+      return { gameOver: true};
+    }
+
     // this.userId is the ID of the method's caller.
     if (this.userId != existingInfo.proposer) {
       return { notProposer: true};
@@ -283,9 +294,8 @@ export const finalizeProposal = new ValidatedMethod({
       return { voteAlreadyInProgress: true };
     }
 
-    const numShouldBeOnProposal =
-        existingInfo.missionCounts[existingInfo.currentMissionNumber];
-    const numOnProposal = existingInfo.selectedOnMission.length;
+    const numShouldBeOnProposal = existingInfo.numShouldBeOnProposal();
+    const numOnProposal = existingInfo.numCurrentlyOnProposal();
 
     if (numOnProposal != numShouldBeOnProposal) {
       return { incorrectNumPlayers: numOnProposal, needs: numShouldBeOnProposal};
@@ -314,7 +324,11 @@ export const voteOnProposal = new ValidatedMethod({
     const existingInfo = room.inGameInfo();
     const voterId = this.userId;
 
-    if (!room.containsUserId(voterId)) {
+    if (existingInfo.isGameOverState()) {
+      return { gameOver: true};
+    }
+
+    if (!room.includesUserId(voterId)) {
       return { playerNotInRoom: true };
     }
 
@@ -348,7 +362,64 @@ export const voteOnProposal = new ValidatedMethod({
   },
 });
 
-// TODO(neemazad): add mission support (success fail).
+export const voteOnMission = new ValidatedMethod({
+  name: 'avalon.voteOnMission',
+
+  validate: new SimpleSchema({
+    roomId: {
+      type: String,
+      regEx: SimpleSchema.RegEx.Id,
+    },
+    vote: Boolean, // True is Suuccess, false is Fail.
+  }).validator(),
+
+  // TODO(neemazad): Near-dup of voteOnProposal -- consider unifying.
+  run({ roomId, vote }) {
+    const room = GameRooms.findOne(roomId);
+    const existingInfo = room.inGameInfo();
+    const voterId = this.userId;
+
+    if (existingInfo.isGameOverState()) {
+      return { gameOver: true};
+    }
+
+    if (!room.includesUserId(voterId)) {
+      return { playerNotInRoom: true };
+    }
+
+    if (!existingInfo.missionInProgress) {
+      return { missionNotFinalized: true };
+    }
+
+    if (!existingInfo.selectedOnMission.includes(voterId)) {
+      return { notOnMission: true };
+    }
+
+    // TODO(neemazad): It seems like theoretically there's a race condition here
+    // with checking whether the player has already voted. If the player can
+    // call the method twice quickly, it seems impossible to guarantee that
+    // the player isn't voting twice. There might be something we can do with
+    // `upsert` or `setOnInsert`... but not sure atm.
+    //
+    // We rely on server-side rate-limiting of this method, as well as using
+    // `addToSet` to mitigate duplicates.
+    const found = existingInfo.liveMissionTally.find(function(talliedVote) {
+      return voterId === talliedVote.playerId;
+    });
+    if (!!found) {
+      return { alreadyVoted: true };
+    }
+
+    const voteObject = { playerId: voterId, vote: vote};
+    InGameInfo.update({_id: room.inGameInfoId}, {
+      $addToSet: { liveMissionTally: voteObject }
+    });
+    // Note that the Database updates automatically when all the votes are in,
+    // so we don't need to handle that here.
+
+    return { success: true };  // TODO(neemazad): maybe return vote as read from db?
+  },
+});
 
 
 
@@ -358,6 +429,7 @@ const RATE_LIMITED_METHODS = _.pluck([
   addGameRoom,
   startGame,
   voteOnProposal,
+  voteOnMission,
 ], 'name');
 
 if (Meteor.isServer) {

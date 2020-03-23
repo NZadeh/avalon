@@ -53,7 +53,7 @@ Template.joinButton.events({
 
         joinRoom.call({ roomId, password },  (err, result) => {
             if (err) {
-                M.toast({html: err.reason, displayLength: 3000, classes: 'error-toast'});
+                M.toast({html: err, displayLength: 3000, classes: 'error-toast'});
                 return;
             }
 

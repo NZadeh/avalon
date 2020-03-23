@@ -96,17 +96,14 @@ const kMissionCounts = [
 var missionCountsForNPlayers = function(num_players) {
   // ** For testing: **
   if (num_players === 2) { return [2, 2, 2, 2, 2]; }
+  if (num_players === 3) { return [2, 3, 2, 3, 3]; }
+  if (num_players === 4) { return [2, 3, 4, 3, 4]; }
   // ** End: For testing **
 
   const index = num_players - 5;
   console.assert(0 <= index && index < missionCounts.length,
                  "Unknown mission count for num_players: " + num_players);
   return kMissionCounts[num_players - 5];
-};
-
-var numFailsRequiredForNPlayersOnMissionK = function(num_players, mission_number) {
-  if (num_players >= 7 && mission_number === 4) return 2;
-  return 1;
 };
 
 /**
@@ -284,7 +281,7 @@ export const HelperMethods = {
     const shuffledIds = shuffleArray(playerIds);
     // Since the array of seating order is shuffled, just choose the first
     // person in "seating order".
-    // TODO(neemazad): Track previous Merlin.
+    // TODO(neemazad): Track previous Merlin (in backToLobby).
     const proposerId = shuffledIds[0]._id;
 
     return {
@@ -299,7 +296,7 @@ export const HelperMethods = {
         missionInProgress: /*no mission yet*/false,
         liveMissionTally: [/*starts empty*/],
         missionOutcomes: [/*none yet*/],
-        winner: "undecided",
+        gamePhase: "inProgress",
     };
   },
 };

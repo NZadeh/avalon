@@ -12,6 +12,7 @@ This templates requires the following data:
 - playerNames (String Array), of player usernames
 - roleNames (String Array), of player roles [not tied to the players] in the game
 - isRoomOwner (boolean), whether the player we are rendering for is the room owner
+// TODO(neemazad): There's a lot more now. Maybe update when I have time.
  -->
 
 <template name="inGame">
@@ -20,37 +21,102 @@ This templates requires the following data:
             <div class="row">
                 <div class="col s12">
                     <h3>{{title}}</h3>
-                    <div>
-                        <ul class="collection">
-                            {{#with known}}
-                                {{> knownInfo}}
-                             {{/with}}   
-                        </ul>
-                    </div>
                 </div>
             </div>
-
             <div class="row">
-                <div class="col s12 flow-text">
-                    <h4>Players</h4>
-                    <div class="room-players">
-                        <ul class="collection">
-                            {{#each player in playersList}}
-                                {{> listPlayer username=player}}
-                            {{/each}}
-                        </ul>
-                    </div>
+                <div class="col s12">
+                    <h4>Your information</h4>
+                </div>
+                <div class="col s12">
+                    <ul class="collection">
+                        {{#with known}}
+                            {{> knownInfo}}
+                         {{/with}}   
+                    </ul>
                 </div>
             </div>
 
             <div class="row">
                 <div class="col s12 flow-text">
                     <h4>Roles in game</h4>  
+                </div>
+                <div class="col s12 flow-text">
                     <ul class="collection">
                         {{#each role in roleList}}
                             {{> listRole role=role}}
                         {{/each}}
                     </ul>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col s12 flow-text">
+                    <h4>Gameplay</h4> 
+                </div>
+                {{#unless isGameOver}}
+                    <div class="col s12 flow-text">
+                        <h5>
+                            Mission <b>{{inGameInfo.currentMissionNumber}}</b>,
+                            Proposal <b>{{inGameInfo.currentProposalNumber}}</b>
+                        </h5>
+                        <p>
+                            <b>{{numRequiredOnMission}}</b> players.
+                            <b>{{numFailsRequired}}</b> to fail.
+                        </p>
+                        {{#each outcome in previousMissionOutcomes}}
+                            {{> avalonToken outcome=outcome}}
+                        {{/each}}
+                    </div>
+                    <div class="col s12 flow-text">
+                        <h5>Decreer: <b>{{currentProposer}}</b></h5>
+
+                        {{#if inGameInfo.proposalVoteInProgress}}
+                            {{#wideButton additionalClasses="wait-wait-wait disabled"}}
+                                Wait wait wait!
+                            {{/wideButton}}
+                            {{> yesNoVote (proposalButtonArgs) }}
+                        {{else if inGameInfo.missionInProgress}}
+                            {{#if shouldShowMissionButton}}
+                                {{> yesNoVote (missionButtonArgs) }}
+                            {{/if}}
+                        {{else}}
+                            {{#if isProposer}}
+                                <i>Tap on the players below to select your mission. Hit "For Arthur!" when done.</i>
+                                {{#wideButton additionalClasses=(conditionallyDisabled "propose")}}
+                                    For Arthur! ({{numRequiredOnMission}})
+                                {{/wideButton}}
+                            {{/if}}
+                        {{/if}}
+                    </div>
+                {{else}}
+                    <h5><b>{{gameStateText}}</b></h5>
+                    {{#each outcome in previousMissionOutcomes}}
+                        {{> avalonToken outcome=outcome}}
+                    {{/each}}
+                {{/unless}}
+            </div>
+
+            <div class="row">
+                <div class="col s12 flow-text">
+                    <h5>Players</h5>
+                    <div class="room-players">
+                        <ul class="collection">
+                            {{#each player in playersList}}
+                                {{> listPlayer 
+                                        formattingClasses=player.materializeFormatting
+                                        username=player.name
+                                        isProposer=player.proposing
+                                        onProposal=player.onProposal
+                                        hasPreviousVote=player.hasPrevVote
+                                        previousVote=player.prevVote
+                                        needsToAct=player.needsToAct}}
+                            {{/each}}
+                        </ul>
+                    </div>
+                </div>
+                <div class="col s12 flow-text">
+                    <h5>Game History</h5>
+                    {{> gameHistory (gameHistoryArgs) }}
                 </div>
             </div>
         {{else}}
@@ -92,8 +158,70 @@ This templates requires the following data:
     </li>
 </template>
 
+<template name="avalonToken">
+    {{#if outcome}}
+        <img src="/avalon_success_small.png"
+             alt="Success"
+             style="width:50px;height:50px;"/>
+    {{else}}
+        <img src="/avalon_failure_small.png" 
+             alt="Fail"
+             style="width:50px;height:50px;"/>
+    {{/if}}
+</template>
+
 <template name="listPlayer">
-    <li class="collection-item">
-        {{username}}
+    <li class="collection-item proposable {{formattingClasses}}">
+        {{#if needsToAct}}
+            <span class="secondary-content left">
+                <i class="material-icons">how_to_vote</i>
+            </span>
+        {{/if}}
+        {{#if isProposer}}
+            <span class="secondary-content left">
+                <i class="material-icons">record_voice_over</i>
+            </span>
+        {{/if}}
+        <span class="username center-align">
+            {{username}}
+        </span>
+        {{#if hasPreviousVote}}
+            <span class="">
+                <i class="material-icons tiny right">
+                    {{#if previousVote}}
+                        thumb_up
+                    {{else}}
+                        thumb_down
+                    {{/if}}
+                </i>
+            </span>
+        {{/if}}
+        {{#if onProposal}}
+            <span class="secondary-content btn-floating pulse">
+                <i class="material-icons">verified_user</i>
+            </span>
+        {{/if}}
     </li>
+</template>
+
+<template name="gameHistory">
+    <table class="responsive-table">
+        <thead>
+            <tr>
+                {{#each header in colHeaders}}
+                    <th>{{header}}</th>
+                {{/each}}
+            </tr>
+        </thead>
+        <tbody>
+            {{#each row in rows}}
+                <tr>
+                    <td>{{row.username}}</td>
+                    {{#each vote in row.flattenedVoteHistory}}
+                        <td class="{{formatVoteCell vote}}">{{#if vote}}✓{{else}}✗{{/if}}</td>
+                    {{/each}}
+                </tr>
+            {{/each}}
+        </tbody>
+    </table>
 </template>

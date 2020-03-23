@@ -38,7 +38,7 @@ Template.gameLobby.events({
     var roomId = tmpl.data.gameRoom._id;
     startGame.call({ roomId }, (err, result) => {
       if (err) {
-        M.toast({html: err.reason, displayLength: 3000, classes: 'error-toast'});
+        M.toast({html: err, displayLength: 3000, classes: 'error-toast'});
       } else if (result.notEnoughPlayers) {
         M.toast({html: 'You need more players to start.', displayLength: 3000, classes: 'error-toast'});
       } else if (result.tooManyPlayers) {
@@ -58,7 +58,7 @@ Template.gameLobby.events({
     var roomId = tmpl.data.gameRoom._id;
     deleteGameRoom.call({ roomId }, (err, result) => {
       if (err) {
-        M.toast({html: err.reason, displayLength: 3000, classes: 'error-toast'});
+        M.toast({html: err, displayLength: 3000, classes: 'error-toast'});
       } else if (result.notRoomOwner) {
         M.toast({html: 'You must be the room owner to delete a game.', displayLength: 3000, classes: 'error-toast'});
       }  /* else if (result.success) {
@@ -81,7 +81,7 @@ Template.gameLobby.events({
 
     removePlayer.call({ removedId }, (err, result) => {
       if (err) { 
-        M.toast({html: err.reason, displayLength: 3000, classes: 'error-toast'});
+        M.toast({html: err, displayLength: 3000, classes: 'error-toast'});
       }
     });
   },

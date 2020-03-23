@@ -55,22 +55,7 @@ export const GameRoomHooks = {
 
 // --------------------------------
 
-const calculateConditionalUpdates = function(inGameInfo) {
-  var approves = 0;
-  var rejects = 0;
-  inGameInfo.liveVoteTally.forEach(function(talliedVote) {
-    if (talliedVote.vote) {
-      ++approves;
-    } else {
-      ++rejects;
-    }
-  });
-  // To be returned.
-  const passed = approves > rejects;
-  // To be returned.
-  const isFifth = inGameInfo.currentProposalNumber == 5;
-
-  // Calculate next proposer.
+const calculateNextProposer = function(inGameInfo) {
   const players = inGameInfo.playersInGame;
   const proposingIndex = players.findIndex(function(player) {
     return player._id == inGameInfo.proposer;
@@ -78,32 +63,79 @@ const calculateConditionalUpdates = function(inGameInfo) {
   console.assert(0 <= proposingIndex && proposingIndex < players.length,
                  "Unable to find current proposer when moving to next proposal...");
   const nextIndex = (proposingIndex + 1) % players.length;
+  return players[nextIndex]._id;
+};
 
+const tallyVotes = function(voteObjectList) {
+  var approves = 0;
+  var rejects = 0;
+  voteObjectList.forEach(function(talliedVote) {
+    if (talliedVote.vote) {
+      ++approves;
+    } else {
+      ++rejects;
+    }
+  });
+  return [approves, rejects];
+}
+
+const calculateConditionalProposalUpdates = function(inGameInfo) {
+  const [approves, rejects] = tallyVotes(inGameInfo.liveVoteTally);
+
+  const passed = approves > rejects;
+  const isFifth = inGameInfo.currentProposalNumber == 5;
   return {
     proposalPassed: passed,
     rejectedFifth: (!passed && isFifth),
-    nextProposerId: players[nextIndex]._id,
+    nextProposerId: calculateNextProposer(inGameInfo),
   };
 };
 
-const copyVoteTallyInfoToPersonalHistory = function(voteTally) {
-  voteTally.forEach(function(singleVote) {
+const copyVoteTallyInfoToPersonalHistory = function(updatedInfo) {
+  const map = updatedInfo.playerIdToVoteHistoryIdMap();
+  updatedInfo.liveVoteTally.forEach(function(singleVote) {
     const playerId = singleVote.playerId;
     const vote = singleVote.vote;
+    const voteHistoryId = map.get(playerId);
 
-    const voteHistory = InGameInfo.voteHistory(playerId);
+    const voteHistory = VoteHistory.findOne({_id: voteHistoryId});
     console.assert(!!voteHistory, "Could not find valid vote history.");
 
-    // TODO(neemazad): if $push approach doesn't work, try this code instead.
-    // var updatedMissions = voteHistory.missions;
-    // updatedMissions[updatedMissions.length - 1].push(vote);
-    // VoteHistory.update({_id: InGameInfo.voteHistoryId(playerId)},
-    //     {$set: { missions: updatedMissions }});
     const missionIndexToUpdate = voteHistory.missions.length - 1;
-    VoteHistory.update({_id: InGameInfo.voteHistoryId(playerId)},
-          {$push: { ("missions." + missionIndexToUpdate): vote }});
+    // Build up the update from scratch, so that we can use MongoDB
+    // dot notation to access the correct array index in missions.
+    // { $push: { `missions.${missionIndexToUpdate}` : vote} }
+    var update = { $push: {} };
+    update.$push[`missions.${missionIndexToUpdate}`] = vote;
+    VoteHistory.update({_id: voteHistoryId}, update);
   });
 };
+
+const calculateConditionalMissionUpdates = function(inGameInfo) {
+  const [successes, fails] = tallyVotes(inGameInfo.liveMissionTally);
+
+  const [missionsSucceeded, missionsFailed] =
+      inGameInfo.missionSuccessFailCounts();
+
+  const thisMissionSucceeded = (fails < inGameInfo.numFailsRequired());
+  const spiesWin = missionsFailed >= 2 && !thisMissionSucceeded;
+  const assassinationPhase = missionsSucceeded >= 2 && thisMissionSucceeded;
+
+  const newGamePhase =
+      spiesWin ? "spiesWin" :
+      (assassinationPhase ? "assassinationPhase" :
+                            "inProgress");                
+
+  return {
+    succeeded: thisMissionSucceeded,
+    numSuccesses: successes,
+    numFails: fails,
+    playerIdsOnMission: inGameInfo.selectedOnMission,
+    newPhase: newGamePhase,
+    nextProposerId: calculateNextProposer(inGameInfo),
+  };
+};
+
 
 export const InGameInfoHooks = {
   beforeInsertInfo(inGameInfo) {
@@ -121,13 +153,12 @@ export const InGameInfoHooks = {
       // Use the same selector for the `update` call to find the updated vote tally.
       const updatedInfo = InGameInfo.findOne(selector);
       if (updatedInfo.liveVoteTally.length >= updatedInfo.playersInGame.length) {
-        const updates = calculateConditionalUpdates(updatedInfo);
-        copyVoteTallyInfoToPersonalHistory(updatedInfo.liveVoteTally);
+        const updates = calculateConditionalProposalUpdates(updatedInfo);
+        copyVoteTallyInfoToPersonalHistory(updatedInfo);
         // Note that this call will also call into `afterUpdateInfo` but the
         // modifier won't match.
         InGameInfo.update(selector, { 
           $set: {
-            selectedOnMission: [/*cleared*/],
             proposalVoteInProgress: false,  // everyone voted, so we're done.
             liveVoteTally: [/*cleared*/],
           },
@@ -136,22 +167,76 @@ export const InGameInfoHooks = {
         if (updates.proposalPassed) {
           InGameInfo.update(selector, { $set: { missionInProgress: true } });
         } else if (updates.rejectedFifth) {
-          InGameInfo.update(selector, { $set: { winner: "spies" } });
+          // TODO(neemazad): Probably clear a bunch of data here too?
+          // Freeze update-ability etc.
+          InGameInfo.update(selector, { $set: { gamePhase: "spiesWin" } });
         } else {
           // Proposal passes on to the next person...
-          // TODO(neemazad): Need to confirm that we can actually use two modifiers like this...
           InGameInfo.update(selector, {
             $inc: { currentProposalNumber: 1 },
-            $set: { proposer: updates.nextProposerId },
+            $set: { 
+              proposer: updates.nextProposerId,
+              selectedOnMission: [/*cleared*/],
+            },
           });
         }
       }
+    } else if (_.has(modifier, "$addToSet") && _.has(modifier.$addToSet, "liveMissionTally")) {
+      // Use the same selector for the `update` call to find the updated vote tally.
+      const updatedInfo = InGameInfo.findOne(selector);
+      if (updatedInfo.liveMissionTally.length >= updatedInfo.numShouldBeOnProposal()) {
+        const updates = calculateConditionalMissionUpdates(updatedInfo);
+        const missionOutcomeUpdate = {
+          succeeded: updates.succeeded,
+          successes: updates.numSuccesses,
+          fails: updates.numFails,
+          playerIdsOnMission: updates.playerIdsOnMission,
+        };
+
+        // Always update these, whether the game is over or not.
+        InGameInfo.update(selector, {
+          $push: { missionOutcomes: missionOutcomeUpdate},
+          $set: {
+            selectedOnMission: [/*cleared*/],
+            missionInProgress: false,
+            liveMissionTally: [/*cleared*/],
+            gamePhase: updates.newPhase,
+          },
+        });
+
+        if (updates.newPhase === "inProgress") {
+          InGameInfo.update(selector, {
+            $inc: { currentMissionNumber: 1 },
+            // Note that this set should also trigger the branch below to
+            // update VoteHistory as need be...
+            $set: {
+              currentProposalNumber: 1,
+              proposer: updates.nextProposerId,
+            },
+          });
+        }
+      }
+    } else if (_.has(modifier, "$set") &&
+               _.has(modifier.$set, "currentProposalNumber") &&
+               modifier.$set.currentProposalNumber === 1) {
+      const updatedInfo = InGameInfo.findOne(selector);
+      // Note: the assumption here is that whenever the proposal number is set
+      // to 1, we need to create a "mission" array for VoteHistory...
+      // Note: when the game is created, `beforeInsertInfo` handles creating
+      // the first empty "mission" array.
+      updatedInfo.playersInGame.map(function(player) {
+        VoteHistory.update({_id: player.voteHistoryId}, {
+          $push: {missions: []}, 
+        });
+      });
     }
   },
 
-  afterRemoveInfo(inGameInfo) {
-    const voteHistoryIds =
-        inGameInfo.playersInGame.map(player => player.voteHistoryId);
-    VoteHistory.remove({_id: { $in: voteHistoryIds}});
+  afterRemoveInfos(inGameInfos) {
+    inGameInfos.forEach(function(inGameInfo) {
+      const voteHistoryIds =
+          inGameInfo.playersInGame.map(player => player.voteHistoryId);
+      VoteHistory.remove({_id: { $in: voteHistoryIds}});
+    });
   },
 };

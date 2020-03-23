@@ -18,6 +18,19 @@ button.avalon-wide {
   width:100%;
 }
 
+button.avalon-half {
+  width:45%;
+}
+
+/* For when <i> and <b> tags are suboptimal. */
+.avalon-text-bold {
+  font-weight: bold;
+}
+
+.avalon-text-italic {
+  font-style: italic;
+}
+
 /* A hacky fix to make sure the height of the how_to_play modal is 
  * based on the content inside of it (auto), instead of a buggy 400px.
  * The rest of the fix is in `how_to_play.js`.

@@ -31,3 +31,4 @@ arillo:flow-router-helpers
 dburles:collection-helpers
 ddp-rate-limiter@1.0.7
 accounts-base@1.5.0
+reywood:publish-composite

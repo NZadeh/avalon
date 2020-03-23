@@ -17,8 +17,6 @@ Template.Template_singleGame.onCreated(function singleGameOnCreated() {
 
   this.autorun(() => {
     this.subscribe('singleGameRoom', this.getRoomId());
-    this.subscribe('gameRoomInfo', this.getRoomId());
-    this.subscribe('gameRoomVoteHistory', this.getRoomId());
     this.subscribe('playerSecretInfo');
   });
 });
@@ -45,7 +43,7 @@ Template.Template_singleGame.helpers({
     // informative "error" or "update" messages why a user was redirected. :)
     const gameRoomUnavailable = instance.subscriptionsReady() && !gameRoom;
     const playerNotInRoom = instance.subscriptionsReady() && gameRoom && 
-                            !gameRoom.containsUserId(Meteor.userId());
+                            !gameRoom.includesUserId(Meteor.userId());
     const shouldRedirectHome = gameRoomUnavailable || playerNotInRoom;
     if (shouldRedirectHome) {
       FlowRouter.go('home');
@@ -91,6 +89,27 @@ Template.Template_singleGame.helpers({
         .sort((player1, player2) => 
                 seatingOrderMap.get(player1._id) - seatingOrderMap.get(player2._id))
         .map(player => player.username);
+    const currentlyProposed = inGameInfo.selectedOnMission.map(id => gameRoom.idToName(id));
+
+    const voteIdToPlayerIdMap = new Map(
+          // Invert this map.
+          Array.from(inGameInfo.playerIdToVoteHistoryIdMap(),
+                     a => a.reverse()));
+    var nameToVotesMap = new Map(); // Fill in a map of string name to vote history arrays.
+
+    // TODO(neemazad): nameToVotesMap needs to be filled in in seating order... O_O.
+    const allVoteObjects = inGameInfo.allPlayerVoteHistoryCursor().fetch();
+    allVoteObjects.forEach(function(voteObject) {
+      const voteId = voteObject._id;
+      const playerId = voteIdToPlayerIdMap.get(voteId);
+      const playerName = gameRoom.idToName(playerId);
+      const missions = voteObject.missions;
+
+      nameToVotesMap.set(playerName, missions);
+    });
+
+    const waitingOnNames = inGameInfo.playersNeedingToAct()
+        .map(id => gameRoom.idToName(id));
 
     return {
       inGameReady: instance.subscriptionsReady(),
@@ -103,8 +122,13 @@ Template.Template_singleGame.helpers({
         info: secretInfo.roleInfo,
       },
       playerNames: properlyOrderedPlayerNames,
+      nameToVotesMap: nameToVotesMap,
       roleNames: HelperMethods.roleNamesForNPlayerGame(gameRoom.players.length),
       isRoomOwner: Permissions.isRoomOwner(gameRoom),
+      isProposer: Meteor.userId() === inGameInfo.proposer,
+      currentProposer: gameRoom.idToName(inGameInfo.proposer),
+      namesOnProposal: currentlyProposed,
+      waitingOnNames: waitingOnNames,
       inGameInfo: inGameInfo,  // almost all info in this object needs to be rendered
     };
   },
