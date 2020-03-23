@@ -171,8 +171,6 @@ export const InGameInfoHooks = {
         if (updates.proposalPassed) {
           InGameInfo.update(selector, { $set: { missionInProgress: true } });
         } else if (updates.rejectedFifth) {
-          // TODO(neemazad): Probably clear a bunch of data here too?
-          // Freeze update-ability etc.
           InGameInfo.update(selector, { $set: { gamePhase: "spiesWin" } });
         } else {
           // Proposal passes on to the next person...

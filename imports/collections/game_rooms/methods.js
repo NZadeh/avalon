@@ -217,10 +217,9 @@ export const backToLobby = new ValidatedMethod({
   },
 });
 
-// --------------------------------
-// Below this point are in-game methods.
-// TODO(neemazad): Move to differnt file?
-// --------------------------------
+// ------------------------------------- //
+// Below this point are in-game methods. //
+// ------------------------------------- //
 export const toggleOnProposal = new ValidatedMethod({
   name: 'avalon.toggleOnProposal',
 

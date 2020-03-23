@@ -376,13 +376,3 @@ Template.inGame.events({
     });
   },
 });
-
-Template.gameHistory.helpers({
-  // TODO(neemazad): Formatting the cell doesn't look great. Maybe we're better
-  // off adding "shield" emojis inside the table instead, or something.
-  formatVoteCell: function(vote) {
-    return "";
-    // if (vote) return "green lighten-5";
-    // return "red lighten-5";
-  },
-});

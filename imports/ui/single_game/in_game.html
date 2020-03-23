@@ -218,7 +218,7 @@ This templates requires the following data:
                 <tr>
                     <td>{{row.username}}</td>
                     {{#each vote in row.flattenedVoteHistory}}
-                        <td class="{{formatVoteCell vote}}">
+                        <td>
                             {{#if vote.wasProposer}}👑{{/if}} 
                             {{#if vote.vote}}✓{{else}}✗{{/if}}
                             {{#if vote.wasOnProposal}}🛡️{{/if}}

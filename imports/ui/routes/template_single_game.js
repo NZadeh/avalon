@@ -97,7 +97,6 @@ Template.Template_singleGame.helpers({
                      a => a.reverse()));
     var nameToVotesMap = new Map(); // Fill in a map of string name to vote history arrays.
 
-    // TODO(neemazad): nameToVotesMap needs to be filled in in seating order... O_O.
     const allVoteObjects = inGameInfo.allPlayerVoteHistoryCursor().fetch();
     allVoteObjects.forEach(function(voteObject) {
       const voteId = voteObject._id;
@@ -129,6 +128,9 @@ Template.Template_singleGame.helpers({
       currentProposer: gameRoom.idToName(inGameInfo.proposer),
       namesOnProposal: currentlyProposed,
       waitingOnNames: waitingOnNames,
+      // TODO(neemazad): Look to see whether we should pass in specific
+      // inGameInfo fields instead of this object, as we're partially doing
+      // that already.
       inGameInfo: inGameInfo,  // almost all info in this object needs to be rendered
     };
   },

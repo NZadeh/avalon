@@ -131,8 +131,6 @@ InGameInfo.schema = new SimpleSchema({
   'liveMissionTally.$.vote': Boolean,
 
 
-  // TODO(neemazad): Maybe consider breaking this out into its own
-  // Collection...? Will make updates to it more efficient, I think.
   missionOutcomes: {
     type: Array,
     minCount: 0,  // Start the game with 0 missions.

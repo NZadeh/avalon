@@ -85,7 +85,6 @@ GameRooms.schema = new SimpleSchema({
     type: String,
     regEx: SimpleSchema.RegEx.Id,
     optional: true, // This field only exists when the game is in progress.
-    // denyUpdate: true, // TODO(neemazad): Do we want to deny update? What's the effect?
   },
 });
 
