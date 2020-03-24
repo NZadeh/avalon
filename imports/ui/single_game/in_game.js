@@ -17,40 +17,63 @@ import '/imports/ui/common/button.js';
 import '/imports/ui/common/modal.js';
 import '/imports/ui/common/yes_no_vote.js';
 
-// Anonymous helper! Assumes all arrays have at least one value.
+// Anonymous helper!
 const lastElemOfLastArray = function(nestedArray) {
-  const lastArray = nestedArray[nestedArray.length - 1];
-  return lastArray[lastArray.length - 1];
+  // Base case.
+  if (nestedArray != undefined && !(nestedArray instanceof Array)) {
+    return nestedArray;
+  }
+
+  for (let index = nestedArray.length - 1; index >= 0; --index) {
+    let lastElem = lastElemOfLastArray(nestedArray[index])
+    if (lastElem != undefined) return lastElem;
+  }
+
+  return undefined;
 };
 
 // Anonymous helper to create ["1.1", "1.2", ..., "3.4"].
-const deduceNecessaryHeaders = function(voteHistory) {
+const deduceNecessaryHeaders = function(voteHistory, successesFails) {
   var headers = [];
   var mission = 1;
   voteHistory.forEach(function(proposalVotes) {
     for (let proposalNum = 1; proposalNum <= proposalVotes.length; ++proposalNum) {
       headers.push(`${mission}.${proposalNum}`);
     }
+    // A header for the mission result.
+    if (successesFails.length > mission - 1) headers.push(`${mission}.*`);
     mission++;
   });
   return headers;
 };
 
-const flatten = function(nestedArray) {
-  function flattenHelper(nestedArray, output) {
+const flatten = function(nestedArray, insertAtArrayBoundary) {
+  function flattenHelper(nestedArray, insertAtArrayBoundary, output) {
     // Base case
     if (!(nestedArray instanceof Array)) {
       output.push(nestedArray);
       return;
     }
+
     // Still unnesting
-    nestedArray.forEach(function(maybeNestedArray) {
-      flattenHelper(maybeNestedArray, output);
+    nestedArray.forEach(function(maybeNestedArray, index) {
+      flattenHelper(
+        maybeNestedArray,
+        insertAtArrayBoundary ? insertAtArrayBoundary[index] : undefined,
+        output);
     });
+
+    // "1-level-above-base-case" where we need to append an element after
+    // unnesting and calling all of the single-element base cases on a flat
+    // array.
+    if (insertAtArrayBoundary != undefined && 
+        !(insertAtArrayBoundary instanceof Array)) {
+      output.push(insertAtArrayBoundary);
+    }
   };
 
   var flattened = [];
-  flattenHelper(nestedArray, flattened);
+  flattenHelper(nestedArray, insertAtArrayBoundary, flattened);
   return flattened;
 };
 
@@ -127,11 +150,11 @@ Template.inGame.helpers({
 
       const formatting = `${cellColor} ${textColor} ${textEmphasis} ${zDepth}`;
 
-      // Yes this is sort of duplicating work, but comparing to undefined seems
-      // a bit hairy when the value itself is a boolean...
-      const hasVote = capturedThis.nameToVotesMap.has(name);
       const allVotes = capturedThis.nameToVotesMap.get(name);
-      const prevVote = lastElemOfLastArray(allVotes);
+      const prevVoteObj = lastElemOfLastArray(allVotes);
+      const prevVote = prevVoteObj ? prevVoteObj.vote : undefined;
+      const hasVote = prevVote != undefined;
+      
       return {
         name: name,
         proposing: name === capturedThis.currentProposer,
@@ -150,9 +173,19 @@ Template.inGame.helpers({
   },
 
   gameHistoryArgs: function() {
+    // TODO(neemazad): Implement collapsing vote history... (to show
+    // only finished missions and current mission proposals)
     const exampleVoteHistory = this.nameToVotesMap.values().next().value;
+    // We are going to "insert" fake "votes" that signify mission outcomes.
+    const voteLikeSuccessesFails = this.inGameInfo.missionOutcomes.map(
+        outcome => ({
+          isMissionResult: true,
+          missionResult: outcome.succeeded,
+        })
+    );
     // P is for "*P*layers". The first column is all the player names.
-    const headers = ["P"].concat(deduceNecessaryHeaders(exampleVoteHistory));
+    const headers = ["P"].concat(
+        deduceNecessaryHeaders(exampleVoteHistory, voteLikeSuccessesFails));
     
     var rows = [];
     const capturedNameToVotesMap = this.nameToVotesMap;
@@ -162,7 +195,7 @@ Template.inGame.helpers({
       // TODO(neemazad): Check if name is 5th... and append a Hammer emoji.
       rows.push({
         username: name,
-        flattenedVoteHistory: flatten(voteHistory),
+        flattenedVoteHistory: flatten(voteHistory, voteLikeSuccessesFails),
       });
     });
     return {

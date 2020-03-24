@@ -115,7 +115,7 @@ This templates requires the following data:
                     </div>
                 </div>
                 <div class="col s12 flow-text">
-                    <h5>Game History</h5>
+                    <h4>Game History</h4>
                     {{> gameHistory (gameHistoryArgs) }}
                 </div>
             </div>
@@ -161,11 +161,11 @@ This templates requires the following data:
 <template name="avalonToken">
     {{#if outcome}}
         <img src="/avalon_success_small.png"
-             alt="Success"
+             alt="Mission Success"
              style="width:50px;height:50px;"/>
     {{else}}
         <img src="/avalon_failure_small.png" 
-             alt="Fail"
+             alt="Mission Fail"
              style="width:50px;height:50px;"/>
     {{/if}}
 </template>
@@ -205,7 +205,7 @@ This templates requires the following data:
 </template>
 
 <template name="gameHistory">
-    <table class="responsive-table">
+    <table class="responsive-table centered">
         <thead>
             <tr>
                 {{#each header in colHeaders}}
@@ -218,14 +218,33 @@ This templates requires the following data:
                 <tr>
                     <td>{{row.username}}</td>
                     {{#each vote in row.flattenedVoteHistory}}
-                        <td>
-                            {{#if vote.wasProposer}}👑{{/if}} 
-                            {{#if vote.vote}}✓{{else}}✗{{/if}}
-                            {{#if vote.wasOnProposal}}🛡️{{/if}}
-                        </td>
+                        {{#if vote.isMissionResult}}
+                            <td>
+                                {{#if vote.missionResult}}✔️{{else}}❌{{/if}}
+                            </td>
+                        {{else}}
+                            <td>
+                                {{#showIf condition=vote.wasProposer}}👑{{/showIf}}
+                                <span>{{#if vote.vote}}✓{{else}}✗{{/if}}</span>
+                                {{#showIf condition=vote.wasOnProposal}}🛡️{{/showIf}}
+                            </td>
+                        {{/if}}
                     {{/each}}
                 </tr>
             {{/each}}
         </tbody>
     </table>
+</template>
+
+<!--
+A helper template that keeps the formatting consistent whether the content is
+hidden or not. Uses visibility:hidden to achieve this. Useful inside of the
+reactive materialize table where it reshapes super dynamically.
+ -->
+<template name="showIf">
+    {{#if condition}}
+        <span>{{> Template.contentBlock}}</span>
+    {{else}}
+        <span style="visibility:hidden">{{> Template.contentBlock}}</span>
+    {{/if}}
 </template>
