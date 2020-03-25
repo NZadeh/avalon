@@ -10,8 +10,8 @@ const kLoyal = "Loyal Servant";
 const kOberon = "Oberon";
 const kMinion = "Minion of Mordred";
 
-const kResistance = "Resistance";
-const kSpies = "Spy";
+const kResistance = HelperConstants.kResistance;
+const kSpies = HelperConstants.kSpy;
 
 const kDefaultKnowNothing = "Nothing about other players.";
 
@@ -191,6 +191,7 @@ export const HelperMethods = {
       // Map a player id to the role name.
       var roleInfo = {}
       roleInfo[HelperConstants.kRoleNameField] =  role.nameTeam();
+      roleInfo[HelperConstants.kAlignment] = role.team();
       idToRoleInfo.set(players[index]._id, roleInfo);
       
       // Map the role name to the player name.

@@ -5,8 +5,10 @@ import { FlowRouter } from 'meteor/kadira:flow-router';
 import { joinRoom, removeSelf } from '/imports/collections/game_rooms/methods';
 import { HelperConstants } from '/imports/collections/game_rooms/constants';
 import { Callbacks } from '/imports/utils/callbacks';
+import { CommonUiCode } from '/imports/ui/common/common_ui_code';
 
 import '/imports/ui/common/button.js';
+import '/imports/ui/common/modal.js';
 
 Template.gameTile.helpers({
     currentNumPlayers: function() {
@@ -28,8 +30,15 @@ Template.gameTile.helpers({
             roomId: instance.data._id,
             passwordProtected: instance.data.passwordProtected,
         };
-    }
+    },
 });
+
+Template.joinButton.helpers({    
+    leaveGameModalArgs: function() {
+        // NOTE: The class name lines up with the `events` handlers below.
+        return CommonUiCode.leaveGameModalArgs("leave");
+    },
+})
 
 Template.joinButton.events({
     'click .join': function(e, tmpl) {

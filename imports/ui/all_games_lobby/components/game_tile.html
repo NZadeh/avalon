@@ -27,9 +27,15 @@
         {{#wideButton additionalClasses="join"}}
             Return to game
         {{/wideButton}}
-        {{#wideDangerButton additionalClasses="leave"}}
-            Leave game
-        {{/wideDangerButton}}
+        {{#if gameInProgress}}
+            <!-- If the game is in progress, add a pop-up first... -->
+            {{> modal (leaveGameModalArgs)}}
+        {{else}}
+            <!-- Otherwise we can leave the game directly... -->
+            {{#wideDangerButton additionalClasses="leave"}}
+                Leave game
+            {{/wideDangerButton}}
+        {{/if}}
     {{else if gameInProgress}}
         {{#wideButton additionalClasses="join disabled"}}
             In progress

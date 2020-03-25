@@ -408,6 +408,20 @@ export const voteOnMission = new ValidatedMethod({
       return { alreadyVoted: true };
     }
 
+    // The info after this point requires "SECRET CODE!!!". Return early
+    // on the client, even though the client has access to the information
+    // returned by the secret code anyways...
+    if (this.isSimulation) {
+      return { waitingForServer: true };
+    } 
+
+    const { ServerSecrets } =
+        require('/imports/collections/game_rooms/server/secret_code.js');
+    if (vote === false &&
+        ServerSecrets.playerAlignment(voterId) != HelperConstants.kSpy) {
+      return { cantFail: true };
+    }
+
     const voteObject = { playerId: voterId, vote: vote};
     InGameInfo.update({_id: room.inGameInfoId}, {
       $addToSet: { liveMissionTally: voteObject }

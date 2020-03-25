@@ -3,6 +3,7 @@ import './in_game.html';
 import { GameRooms } from '/imports/collections/game_rooms/game_rooms';
 import { HelperConstants } from '/imports/collections/game_rooms/constants';
 import { Callbacks } from '/imports/utils/callbacks';
+import { CommonUiCode } from '/imports/ui/common/common_ui_code';
 
 import {
   removeSelf,
@@ -45,6 +46,12 @@ const deduceNecessaryHeaders = function(voteHistory, successesFails) {
     mission++;
   });
   return headers;
+};
+
+const booleanArrayOf = function(numTrue, numFalse) {
+  return Array(numTrue + numFalse)
+             .fill(true, 0, numTrue)
+             .fill(false, numTrue, numTrue + numFalse);
 };
 
 const flatten = function(nestedArray, insertAtArrayBoundary) {
@@ -154,10 +161,15 @@ Template.inGame.helpers({
       const prevVoteObj = lastElemOfLastArray(allVotes);
       const prevVote = prevVoteObj ? prevVoteObj.vote : undefined;
       const hasVote = prevVote != undefined;
-      
+      const remainingProposerNames = capturedThis.remainingProposerNames;
+      console.log(remainingProposerNames);
+
       return {
         name: name,
         proposing: name === capturedThis.currentProposer,
+        mightProposeThisMission: remainingProposerNames.includes(name),
+        proposalPosition: capturedThis.inGameInfo.currentProposalNumber +
+                          remainingProposerNames.indexOf(name),
         onProposal: onProposal,
         materializeFormatting: formatting,
         hasPrevVote: hasVote,
@@ -180,7 +192,14 @@ Template.inGame.helpers({
     const voteLikeSuccessesFails = this.inGameInfo.missionOutcomes.map(
         outcome => ({
           isMissionResult: true,
-          missionResult: outcome.succeeded,
+          missionSpecifics: booleanArrayOf(outcome.successes, outcome.fails)
+                              .map(success => ({
+                                success: success,
+                                formatting: "text-darken-3 " + 
+                                            (outcome.succeeded ?
+                                                "blue-text" :
+                                                "red-text"),
+                              })),
         })
     );
     // P is for "*P*layers". The first column is all the player names.
@@ -189,12 +208,17 @@ Template.inGame.helpers({
     
     var rows = [];
     const capturedNameToVotesMap = this.nameToVotesMap;
+    const currentProposalNumber = this.inGameInfo.currentProposalNumber;
+    const remainingProposerNames = this.remainingProposerNames;
+
     // Render history in player order.
     this.playerNames.forEach(function(name) {
       const voteHistory = capturedNameToVotesMap.get(name);
-      // TODO(neemazad): Check if name is 5th... and append a Hammer emoji.
+
       rows.push({
         username: name,
+        mightProposeThisMission: remainingProposerNames.includes(name),
+        proposalPosition: currentProposalNumber + remainingProposerNames.indexOf(name),
         flattenedVoteHistory: flatten(voteHistory, voteLikeSuccessesFails),
       });
     });
@@ -238,19 +262,8 @@ Template.inGame.helpers({
   },
 
   leaveGameModalArgs: function() {
-    return {
-      uniqueId: "leave-game-modal",
-      buttonName: "Leave Game",
-      modalHeader: "Leave Game?",
-      modalText: "Leaving while the game is in progress will " +
-                 "probably break the rest of the game. " +
-                 "You will not be able to rejoin the same game.",
-      modalResponseButtons: [
-        // NOTE: `addlButtonClasses` lines up with the `events` handlers below.
-        {text: "Leave", addlButtonClasses: "leave-btn"},
-        {text: "Never mind"},
-      ],
-    };
+    // NOTE: The class name lines up with the `events` handlers below.
+    return CommonUiCode.leaveGameModalArgs("leave-btn");
   },
 
   backToLobbyModalArgs: function() {
@@ -402,6 +415,9 @@ Template.inGame.events({
       } else if (result.alreadyVoted) {
         M.toast({html: 'You already voted!', displayLength: 3000, classes: 'error-toast'});
         return;
+      } else if (result.cantFail) {
+        M.toast({html: 'Your role can\'t fail a mission!', displayLength: 3000, classes: 'error-toast'});
+        return;
       } /* else if (result.success) {
         // Updates in the collection should reactively change what renders
         // in `template_single_game`. In particular, we do not need to re-route.
@@ -409,3 +425,33 @@ Template.inGame.events({
     });
   },
 });
+
+Template.avalonTokenRow.helpers({
+  padToFive(outcomes) {
+    var stringOutcomes = outcomes.map(outcome => outcome ? "success" : "fail")
+    for (let i = 0; i < 5 - outcomes.length; ++i) {
+      stringOutcomes.push(`${i}`);
+    }
+    return stringOutcomes;
+  },
+
+  success(outcome) {
+    return outcome === "success";
+  },
+
+  failure(outcome) {
+    return outcome === "fail";
+  },
+
+  // TODO(neemazad): Could do a exponentially decaying opacity here...
+  // instead of special casing the current mission and all other missions.
+  currentMission(outcome) {
+    return outcome === "0";
+  },
+});
+
+Template.maybeTagProposer.helpers({
+  materializeNumber(position) {
+    return `filter_${position}`;
+  },
+})

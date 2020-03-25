@@ -55,25 +55,30 @@ This templates requires the following data:
                 </div>
                 {{#unless isGameOver}}
                     <div class="col s12 flow-text">
-                        <h5>
-                            Mission <b>{{inGameInfo.currentMissionNumber}}</b>,
-                            Proposal <b>{{inGameInfo.currentProposalNumber}}</b>
-                        </h5>
-                        <p>
-                            <b>{{numRequiredOnMission}}</b> players.
-                            <b>{{numFailsRequired}}</b> to fail.
-                        </p>
-                        {{#each outcome in previousMissionOutcomes}}
-                            {{> avalonToken outcome=outcome}}
-                        {{/each}}
-                    </div>
-                    <div class="col s12 flow-text">
                         <h5>Decreer: <b>{{currentProposer}}</b></h5>
-
+                    </div>
+                    {{> avalonTokenRow outcomesToRender=previousMissionOutcomes}}
+                    <div class="col s6 flow-text">
+                        <h5>
+                            <b>{{numRequiredOnMission}}</b> players
+                        </h5>
+                    </div>
+                    <div class="col s6 flow-text">
+                        <h5>
+                            <b>{{numFailsRequired}}</b> to fail
+                        </h5>
+                    </div>
+                {{else}}
+                    <h5><b>{{gameStateText}}</b></h5>
+                    {{> avalonTokenRow outcomesToRender=previousMissionOutcomes}}
+                {{/unless}}
+                <div class="col s12 flow-text">
+                    <h4>Players</h4>
+                    {{#unless isGameOver}}
                         {{#if inGameInfo.proposalVoteInProgress}}
-                            {{#wideButton additionalClasses="wait-wait-wait disabled"}}
-                                Wait wait wait!
-                            {{/wideButton}}
+                            <!-- {{#wideButton additionalClasses="wait-wait-wait disabled"}}
+                                TODO(neemazad): Implement: "Wait wait wait!"
+                            {{/wideButton}} -->
                             {{> yesNoVote (proposalButtonArgs) }}
                         {{else if inGameInfo.missionInProgress}}
                             {{#if shouldShowMissionButton}}
@@ -87,24 +92,16 @@ This templates requires the following data:
                                 {{/wideButton}}
                             {{/if}}
                         {{/if}}
-                    </div>
-                {{else}}
-                    <h5><b>{{gameStateText}}</b></h5>
-                    {{#each outcome in previousMissionOutcomes}}
-                        {{> avalonToken outcome=outcome}}
-                    {{/each}}
-                {{/unless}}
-            </div>
+                    {{/unless}}
 
-            <div class="row">
-                <div class="col s12 flow-text">
-                    <h5>Players</h5>
                     <div class="room-players">
                         <ul class="collection">
                             {{#each player in playersList}}
                                 {{> listPlayer 
                                         formattingClasses=player.materializeFormatting
                                         username=player.name
+                                        mightProposeThisMission=player.mightProposeThisMission
+                                        proposalPosition=player.proposalPosition
                                         isProposer=player.proposing
                                         onProposal=player.onProposal
                                         hasPreviousVote=player.hasPrevVote
@@ -158,28 +155,49 @@ This templates requires the following data:
     </li>
 </template>
 
-<template name="avalonToken">
-    {{#if outcome}}
-        <img src="/avalon_success_small.png"
-             alt="Mission Success"
-             style="width:50px;height:50px;"/>
-    {{else}}
-        <img src="/avalon_failure_small.png" 
-             alt="Mission Fail"
-             style="width:50px;height:50px;"/>
-    {{/if}}
+<template name="avalonTokenRow">
+    <!-- Make the width smaller on large screens by adding dummy columns.
+         Be careful making changes here... test them in game and look at
+         all window sizes to check for weird row-collapsing bugs. -->
+    <div class="col s1 m1 l2"></div>
+    <div class="col s10 m10 l8 flow-text">
+        {{#each outcome in (padToFive outcomesToRender)}}
+            {{#if (success outcome)}}
+                <img src="/avalon_success_small.png"
+                     alt="Mission Success"
+                     class="avalon-row-token"/>
+            {{else if (failure outcome)}}
+                <img src="/avalon_failure_small.png" 
+                     alt="Mission Fail"
+                     class="avalon-row-token"/>
+            {{else if (currentMission outcome)}}
+                <img src="/avalon_success_small.png"
+                     alt="Mission Not Yet Run"
+                     class="avalon-row-token token-not-finalized token-current-mission"/>
+            {{else}}
+                <img src="/avalon_success_small.png"
+                     alt="Mission Not Yet Run"
+                     class="avalon-row-token token-not-finalized"/>
+            {{/if}}
+        {{/each}}
+    </div>
+    <div class="col s1 m1 l2"></div>
 </template>
 
 <template name="listPlayer">
     <li class="collection-item proposable {{formattingClasses}}">
+        {{> maybeTagProposer
+                maybe=mightProposeThisMission
+                position=proposalPosition
+                addlOuterClasses="secondary-content left"}}
         {{#if needsToAct}}
             <span class="secondary-content left">
-                <i class="material-icons">how_to_vote</i>
+                <i class="material-icons">hourglass_empty</i>
             </span>
         {{/if}}
         {{#if isProposer}}
             <span class="secondary-content left">
-                <i class="material-icons">record_voice_over</i>
+                <i class="material-icons">event_seat</i>
             </span>
         {{/if}}
         <span class="username center-align">
@@ -216,17 +234,41 @@ This templates requires the following data:
         <tbody>
             {{#each row in rows}}
                 <tr>
-                    <td>{{row.username}}</td>
+                    <td>
+                        {{row.username}}
+                        {{> maybeTagProposer 
+                                maybe=row.mightProposeThisMission
+                                position=row.proposalPosition
+                                addlInnerClasses="tiny"}}
+                    </td>
                     {{#each vote in row.flattenedVoteHistory}}
                         {{#if vote.isMissionResult}}
                             <td>
-                                {{#if vote.missionResult}}✔️{{else}}❌{{/if}}
+                                {{#each specific in vote.missionSpecifics}}
+                                    <i class="material-icons {{specific.formatting}}">
+                                        {{#if specific.success}}check{{else}}clear{{/if}}
+                                    </i>
+                                {{/each}}
                             </td>
                         {{else}}
                             <td>
-                                {{#showIf condition=vote.wasProposer}}👑{{/showIf}}
-                                <span>{{#if vote.vote}}✓{{else}}✗{{/if}}</span>
-                                {{#showIf condition=vote.wasOnProposal}}🛡️{{/showIf}}
+                                {{#showIf condition=vote.wasProposer}}
+                                    <i class="material-icons tiny">event_seat</i>
+                                {{/showIf}}
+                                <span>
+                                    {{#if vote.vote}}
+                                        <i class="material-icons tiny blue-text text-darken-3">
+                                            thumb_up
+                                        </i>
+                                    {{else}}
+                                        <i class="material-icons tiny red-text text-darken-3">
+                                            thumb_down
+                                        </i>
+                                    {{/if}}
+                                </span>
+                                {{#showIf condition=vote.wasOnProposal}}
+                                    <i class="material-icons tiny">security</i>
+                                {{/showIf}}
                             </td>
                         {{/if}}
                     {{/each}}
@@ -246,5 +288,17 @@ reactive materialize table where it reshapes super dynamically.
         <span>{{> Template.contentBlock}}</span>
     {{else}}
         <span style="visibility:hidden">{{> Template.contentBlock}}</span>
+    {{/if}}
+</template>
+
+<template name="maybeTagProposer">
+    {{#if maybe}}
+        <span class="{{addlOuterClasses}}">
+            <i class="material-icons {{addlInnerClasses}}">
+                <!-- filter_{{position}} -->
+                <!-- {{position}} -->
+                {{materializeNumber position}}
+            </i>
+        </span>
     {{/if}}
 </template>

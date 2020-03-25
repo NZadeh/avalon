@@ -10,11 +10,16 @@ export const ServerSecrets = {
         playerId: id,
         roleName: role[HelperConstants.kRoleNameField],
         roleInfo: role[HelperConstants.kRoleKnownInfo],
+        alignment: role[HelperConstants.kAlignment],
       });
     });
   },
 
   clearRoles(inRoomPlayers) {
-    SecretInfo.remove({ playerId: { $in: inRoomPlayers.map(player => player._id) } })
-  }
+    SecretInfo.remove({ playerId: { $in: inRoomPlayers.map(player => player._id) } });
+  },
+
+  playerAlignment(playerId) {
+    return SecretInfo.findOne({ playerId: playerId }).alignment;
+  },
 }

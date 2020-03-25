@@ -107,8 +107,26 @@ Template.Template_singleGame.helpers({
       nameToVotesMap.set(playerName, missions);
     });
 
+    // TODO(neemazad): probably change idToName to return a map, and pass that
+    // map in to in_game.js. Then we can move a bunch of this computation into
+    // re-useable code there?
     const waitingOnNames = inGameInfo.playersNeedingToAct()
         .map(id => gameRoom.idToName(id));
+
+    const remainingProposerNames = (function() {
+      const players = inGameInfo.playersInGame;
+      const currProposerIndex = players.findIndex(
+          player => player._id == inGameInfo.proposer);
+
+      var names = [];
+      for (let i = currProposerIndex;
+           i <= currProposerIndex + 5 - inGameInfo.currentProposalNumber;
+           ++i) {
+        let index = i % players.length;
+        names.push(gameRoom.idToName(players[index]._id));
+      }
+      return names;
+    })();
 
     return {
       inGameReady: instance.subscriptionsReady(),
@@ -126,6 +144,7 @@ Template.Template_singleGame.helpers({
       isRoomOwner: Permissions.isRoomOwner(gameRoom),
       isProposer: Meteor.userId() === inGameInfo.proposer,
       currentProposer: gameRoom.idToName(inGameInfo.proposer),
+      remainingProposerNames: remainingProposerNames,
       namesOnProposal: currentlyProposed,
       waitingOnNames: waitingOnNames,
       // TODO(neemazad): Look to see whether we should pass in specific
