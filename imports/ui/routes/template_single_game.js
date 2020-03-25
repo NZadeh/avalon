@@ -12,6 +12,11 @@ import { Permissions } from '/imports/utils/permissions';
 import '/imports/ui/single_game/game_lobby.js';
 import '/imports/ui/single_game/in_game.js';
 
+// TODO(neemazad): Leaving the game while the game is in progress breaks the game.
+// The data isn't available I guess, and not even the "back to lobby" button shows
+// for the owner. Everyone just has to leave the room one by one.
+// Can we fix this?
+
 Template.Template_singleGame.onCreated(function singleGameOnCreated() {
   this.getRoomId = () => FlowRouter.getParam('_id');
 
