@@ -101,9 +101,9 @@ var missionCountsForNPlayers = function(num_players) {
   // ** End: For testing **
 
   const index = num_players - 5;
-  console.assert(0 <= index && index < missionCounts.length,
+  console.assert(0 <= index && index < kMissionCounts.length,
                  "Unknown mission count for num_players: " + num_players);
-  return kMissionCounts[num_players - 5];
+  return kMissionCounts[index];
 };
 
 /**

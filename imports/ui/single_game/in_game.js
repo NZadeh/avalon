@@ -162,7 +162,6 @@ Template.inGame.helpers({
       const prevVote = prevVoteObj ? prevVoteObj.vote : undefined;
       const hasVote = prevVote != undefined;
       const remainingProposerNames = capturedThis.remainingProposerNames;
-      console.log(remainingProposerNames);
 
       return {
         name: name,
@@ -202,8 +201,8 @@ Template.inGame.helpers({
                               })),
         })
     );
-    // P is for "*P*layers". The first column is all the player names.
-    const headers = ["P"].concat(
+    // The first column is all the player names.
+    const headers = ["Player"].concat(
         deduceNecessaryHeaders(exampleVoteHistory, voteLikeSuccessesFails));
     
     var rows = [];
@@ -231,14 +230,15 @@ Template.inGame.helpers({
   proposalButtonArgs: function() {
     var additionalClasses = "vote-proposal";
     if (!this.waitingOnNames.includes(this.known.name)) {
-      additionalClasses += " disabled";
+      additionalClasses += " disabled-avalon";
     }
 
     return {
       helperText: "Tap to approve or reject the proposal.",
       additionalClasses: additionalClasses,
-      yesButtonText: "Yea",
-      noButtonText: "Nay",
+      yesImgName: "approve_token_med",
+      noImgName: "reject_token_med",
+      type: "token",
     };
   },
 
@@ -250,14 +250,15 @@ Template.inGame.helpers({
   missionButtonArgs: function() {
     var additionalClasses = "mission-proposal";
     if (!this.waitingOnNames.includes(this.known.name)) {
-      additionalClasses += " disabled";
+      additionalClasses += " disabled-avalon";
     }
 
     return {
       helperText: "Tap to succeed or fail the mission.",
       additionalClasses: additionalClasses,
-      yesButtonText: "{😊}",
-      noButtonText: "{😈}",
+      yesImgName: "success_card_med",
+      noImgName: "fail_card_med",
+      type: "card",
     };
   },
 

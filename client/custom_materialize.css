@@ -1,25 +1,25 @@
 /* Additional styling for the toasts. */
 #toast-container {
-	width:100%;
+	width: 100%;
 }
 .toast.error-toast {
-	width:100%;
+	width: 100%;
 	/* Match same color as warning buttons... */
 	background-color: rgba(255, 82, 82, 0.8); /* #FF5252, 80% opaque */
 }
 .toast.success-toast {
-  width:100%;
+  width: 100%;
   /* Match same color as login/success buttons... */
   background-color: rgba(38, 166, 154, 0.8); /* #26A69A, 80% opaque */
 }
 
 /* Additional styling for buttons. */
 button.avalon-wide {
-  width:100%;
+  width: 100%;
 }
 
 button.avalon-half {
-  width:45%;
+  width: 45%;
 }
 
 /* For when <i> and <b> tags are suboptimal. */
@@ -32,21 +32,58 @@ button.avalon-half {
 }
 
 .avalon-row-token {
-  width:18%;
-  height:18%;
+  width: 18%;
+  height: 18%;
 }
 .avalon-row-token.token-not-finalized {
-  opacity:0.15;
+  opacity: 0.15;
 }
 .avalon-row-token.token-not-finalized.token-current-mission {
-  opacity:0.3;
+  opacity: 0.3;
+}
+
+.avalon-yes-no-token {
+  width: 80px;
+}
+.avalon-yes-no-card {
+  width: 100px;
+}
+.disabled-avalon {
+  opacity: 50%;
+}
+
+div.game-history-table {
+  overflow: scroll;
+  overflow-y: scroll;
+  max-height: 85vh;
+}
+
+.game-history-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: white;
+}
+
+.game-history-table thead th: first-child {
+  /* The "Player" top-left entry should additionally stick to the left
+     and stay on top of everything else (z-index is higher). */
+  left: 0;
+  z-index: 2;
+}
+
+.game-history-table tbody td: first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background-color: white;
 }
 
 /* A hacky fix to make sure the height of the how_to_play modal is 
  * based on the content inside of it (auto), instead of a buggy 400px.
  * The rest of the fix is in `how_to_play.js`.
- * https://github.com/Dogfalo/materialize/issues/4159 */
+ * https: //github.com/Dogfalo/materialize/issues/4159 */
 .carousel.carousel-slider .carousel-item {
   /* `important` is required since materialize.css takes precedence otherwise. */
-  height:auto !important;
+  height: auto !important;
 }

@@ -21,17 +21,3 @@ or even:
     {{> Template.contentBlock}}
   {{/wideButton}}
 </template>
-
-<!-- TODO(neemazad): Unify wide and half button into own template. They only differ by class. -->
-<template name="halfButton">
-  <button class="btn avalon-half btn-large {{additionalClasses}}" {{additionalAttributes}}>
-    {{> Template.contentBlock}}
-  </button>
-</template>
-
-<template name="halfDangerButton">
-  {{#halfButton additionalClasses=(makeDangerous additionalClasses)
-                additionalAttributes=additionalAttributes}}
-    {{> Template.contentBlock}}
-  {{/halfButton}}
-</template>

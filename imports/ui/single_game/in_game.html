@@ -15,6 +15,11 @@ This templates requires the following data:
 // TODO(neemazad): There's a lot more now. Maybe update when I have time.
  -->
 
+<!-- TODO(neemazad):
+     - Pop-up buggy, maybe too small on desktop
+     - Mission votes...   Maybe introduce delay/pop-up to prevent double-click...
+     - When someone leaves, don't break the game...!
+     -->
 <template name="inGame">
     <div class="container">
         {{#if inGameReady}}
@@ -72,45 +77,53 @@ This templates requires the following data:
                     <h5><b>{{gameStateText}}</b></h5>
                     {{> avalonTokenRow outcomesToRender=previousMissionOutcomes}}
                 {{/unless}}
+            </div>
+            <div class="row">
                 <div class="col s12 flow-text">
                     <h4>Players</h4>
-                    {{#unless isGameOver}}
-                        {{#if inGameInfo.proposalVoteInProgress}}
-                            <!-- {{#wideButton additionalClasses="wait-wait-wait disabled"}}
-                                TODO(neemazad): Implement: "Wait wait wait!"
-                            {{/wideButton}} -->
-                            {{> yesNoVote (proposalButtonArgs) }}
-                        {{else if inGameInfo.missionInProgress}}
-                            {{#if shouldShowMissionButton}}
-                                {{> yesNoVote (missionButtonArgs) }}
-                            {{/if}}
-                        {{else}}
-                            {{#if isProposer}}
-                                <i>Tap on the players below to select your mission. Hit "For Arthur!" when done.</i>
-                                {{#wideButton additionalClasses=(conditionallyDisabled "propose")}}
-                                    For Arthur! ({{numRequiredOnMission}})
-                                {{/wideButton}}
-                            {{/if}}
-                        {{/if}}
-                    {{/unless}}
-
-                    <div class="room-players">
-                        <ul class="collection">
-                            {{#each player in playersList}}
-                                {{> listPlayer 
-                                        formattingClasses=player.materializeFormatting
-                                        username=player.name
-                                        mightProposeThisMission=player.mightProposeThisMission
-                                        proposalPosition=player.proposalPosition
-                                        isProposer=player.proposing
-                                        onProposal=player.onProposal
-                                        hasPreviousVote=player.hasPrevVote
-                                        previousVote=player.prevVote
-                                        needsToAct=player.needsToAct}}
-                            {{/each}}
-                        </ul>
-                    </div>
                 </div>
+                {{#unless isGameOver}}
+                    {{#if inGameInfo.proposalVoteInProgress}}
+                        <!-- {{#wideButton additionalClasses="wait-wait-wait disabled"}}
+                            TODO(neemazad): Implement: "Wait wait wait!"
+                        {{/wideButton}} -->
+                        {{> yesNoVote (proposalButtonArgs) }}
+                    {{else if inGameInfo.missionInProgress}}
+                        {{#if shouldShowMissionButton}}
+                            {{> yesNoVote (missionButtonArgs) }}
+                        {{/if}}
+                    {{else}}
+                        {{#if isProposer}}
+                            <div class="col s12 flow-text">
+                                <i>
+                                    Tap on the players below to select your
+                                    mission. Hit "For Arthur!" when done.
+                                </i>
+                            </div>
+                            {{#wideButton additionalClasses=(conditionallyDisabled "propose")}}
+                                For Arthur! ({{numRequiredOnMission}})
+                            {{/wideButton}}
+                        {{/if}}
+                    {{/if}}
+                {{/unless}}
+                <div class="col s12 flow-text">
+                    <ul class="collection">
+                        {{#each player in playersList}}
+                            {{> listPlayer 
+                                    formattingClasses=player.materializeFormatting
+                                    username=player.name
+                                    mightProposeThisMission=player.mightProposeThisMission
+                                    proposalPosition=player.proposalPosition
+                                    isProposer=player.proposing
+                                    onProposal=player.onProposal
+                                    hasPreviousVote=player.hasPrevVote
+                                    previousVote=player.prevVote
+                                    needsToAct=player.needsToAct}}
+                        {{/each}}
+                    </ul>
+                </div>
+            </div>
+            <div class="row">
                 <div class="col s12 flow-text">
                     <h4>Game History</h4>
                     {{> gameHistory (gameHistoryArgs) }}
@@ -128,6 +141,7 @@ This templates requires the following data:
             <div class="col s12">
                 {{> modal (leaveGameModalArgs)}}
             </div>
+            <!-- TODO maybe show this for everyone if game not loading... -->
             {{#if isRoomOwner}}
                 <div class="col s12">
                     {{> modal (backToLobbyModalArgs)}}
@@ -156,7 +170,7 @@ This templates requires the following data:
 </template>
 
 <template name="avalonTokenRow">
-    <!-- Make the width smaller on large screens by adding dummy columns.
+    <!-- This makes the width smaller on large screens by adding dummy columns.
          Be careful making changes here... test them in game and look at
          all window sizes to check for weird row-collapsing bugs. -->
     <div class="col s1 m1 l2"></div>
@@ -204,15 +218,7 @@ This templates requires the following data:
             {{username}}
         </span>
         {{#if hasPreviousVote}}
-            <span class="">
-                <i class="material-icons tiny right">
-                    {{#if previousVote}}
-                        thumb_up
-                    {{else}}
-                        thumb_down
-                    {{/if}}
-                </i>
-            </span>
+            {{> yesNoVoteResult yes=previousVote positioning="right"}}
         {{/if}}
         {{#if onProposal}}
             <span class="secondary-content btn-floating pulse">
@@ -223,59 +229,63 @@ This templates requires the following data:
 </template>
 
 <template name="gameHistory">
-    <table class="responsive-table centered">
-        <thead>
-            <tr>
-                {{#each header in colHeaders}}
-                    <th>{{header}}</th>
-                {{/each}}
-            </tr>
-        </thead>
-        <tbody>
-            {{#each row in rows}}
+    <div class="game-history-table">
+        <table class="centered">
+            <thead>
                 <tr>
-                    <td>
-                        {{row.username}}
-                        {{> maybeTagProposer 
-                                maybe=row.mightProposeThisMission
-                                position=row.proposalPosition
-                                addlInnerClasses="tiny"}}
-                    </td>
-                    {{#each vote in row.flattenedVoteHistory}}
-                        {{#if vote.isMissionResult}}
-                            <td>
-                                {{#each specific in vote.missionSpecifics}}
-                                    <i class="material-icons {{specific.formatting}}">
-                                        {{#if specific.success}}check{{else}}clear{{/if}}
-                                    </i>
-                                {{/each}}
-                            </td>
-                        {{else}}
-                            <td>
-                                {{#showIf condition=vote.wasProposer}}
-                                    <i class="material-icons tiny">event_seat</i>
-                                {{/showIf}}
-                                <span>
-                                    {{#if vote.vote}}
-                                        <i class="material-icons tiny blue-text text-darken-3">
-                                            thumb_up
-                                        </i>
-                                    {{else}}
-                                        <i class="material-icons tiny red-text text-darken-3">
-                                            thumb_down
-                                        </i>
-                                    {{/if}}
-                                </span>
-                                {{#showIf condition=vote.wasOnProposal}}
-                                    <i class="material-icons tiny">security</i>
-                                {{/showIf}}
-                            </td>
-                        {{/if}}
+                    {{#each header in colHeaders}}
+                        <th>{{header}}</th>
                     {{/each}}
                 </tr>
-            {{/each}}
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                {{#each row in rows}}
+                    <tr>
+                        <td>
+                            {{row.username}}
+                            {{> maybeTagProposer 
+                                    maybe=row.mightProposeThisMission
+                                    position=row.proposalPosition
+                                    addlInnerClasses="tiny"}}
+                        </td>
+                        {{#each vote in row.flattenedVoteHistory}}
+                            {{#if vote.isMissionResult}}
+                                <td>
+                                    {{#each specific in vote.missionSpecifics}}
+                                        <i class="material-icons {{specific.formatting}}">
+                                            {{#if specific.success}}check{{else}}clear{{/if}}
+                                        </i>
+                                    {{/each}}
+                                </td>
+                            {{else}}
+                                <td>
+                                    {{#showIf condition=vote.wasProposer}}
+                                        <i class="material-icons tiny">event_seat</i>
+                                    {{/showIf}}
+                                    {{> yesNoVoteResult yes=vote.vote}}
+                                    {{#showIf condition=vote.wasOnProposal}}
+                                        <i class="material-icons tiny">security</i>
+                                    {{/showIf}}
+                                </td>
+                            {{/if}}
+                        {{/each}}
+                    </tr>
+                {{/each}}
+            </tbody>
+        </table>
+    </div>
+</template>
+
+<template name="maybeTagProposer">
+    {{#if maybe}}
+        <span class="{{addlOuterClasses}}">
+            <i class="material-icons {{addlInnerClasses}}">
+                <!-- filter_{{position}} -->
+                <!-- {{position}} -->
+                {{materializeNumber position}}
+            </i>
+        </span>
+    {{/if}}
 </template>
 
 <!--
@@ -291,14 +301,17 @@ reactive materialize table where it reshapes super dynamically.
     {{/if}}
 </template>
 
-<template name="maybeTagProposer">
-    {{#if maybe}}
-        <span class="{{addlOuterClasses}}">
-            <i class="material-icons {{addlInnerClasses}}">
-                <!-- filter_{{position}} -->
-                <!-- {{position}} -->
-                {{materializeNumber position}}
+<!-- Thumbs up or thumbs down! If positioning is set, can position. -->
+<template name="yesNoVoteResult">
+    <span class={{positioning}}>
+        {{#if yes}}
+            <i class="material-icons tiny blue-text text-darken-3">
+                thumb_up
             </i>
-        </span>
-    {{/if}}
+        {{else}}
+            <i class="material-icons tiny red-text text-darken-3">
+                thumb_down
+            </i>
+        {{/if}}
+    </span>
 </template>
