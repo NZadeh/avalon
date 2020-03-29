@@ -65,14 +65,14 @@ div.game-history-table {
   background-color: white;
 }
 
-.game-history-table thead th: first-child {
+.game-history-table thead th:first-child {
   /* The "Player" top-left entry should additionally stick to the left
      and stay on top of everything else (z-index is higher). */
   left: 0;
   z-index: 2;
 }
 
-.game-history-table tbody td: first-child {
+.game-history-table tbody td:first-child {
   position: sticky;
   left: 0;
   z-index: 1;

@@ -13,4 +13,6 @@ export const HelperConstants = {
   kMaxPlayers: 10,  // The maximum number of players allowed in a game.
 
   kNoRoomId: false,  // Using "false" to represent the room ID of not being in a room
+
+  kDisabledButtonClass: "disabled-avalon",  // Specified in custom_materialize.css
 };

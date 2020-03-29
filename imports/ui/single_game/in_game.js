@@ -230,7 +230,7 @@ Template.inGame.helpers({
   proposalButtonArgs: function() {
     var additionalClasses = "vote-proposal";
     if (!this.waitingOnNames.includes(this.known.name)) {
-      additionalClasses += " disabled-avalon";
+      additionalClasses += ` ${HelperConstants.kDisabledButtonClass}`;
     }
 
     return {
@@ -250,7 +250,7 @@ Template.inGame.helpers({
   missionButtonArgs: function() {
     var additionalClasses = "mission-proposal";
     if (!this.waitingOnNames.includes(this.known.name)) {
-      additionalClasses += " disabled-avalon";
+      additionalClasses += ` ${HelperConstants.kDisabledButtonClass}`;
     }
 
     return {
@@ -374,6 +374,10 @@ Template.inGame.events({
 
     var roomId = tmpl.data.roomId;
     const clickedButton = e.currentTarget;
+    if (clickedButton.classList.contains(HelperConstants.kDisabledButtonClass)) {
+      return;  // Do nothing if the "button" is disabled.
+    }
+
     const vote = clickedButton.classList.contains("vote-yes");
     voteOnProposal.call({ roomId, vote }, (err, result) => {
       if (err) {
@@ -399,6 +403,10 @@ Template.inGame.events({
 
     var roomId = tmpl.data.roomId;
     const clickedButton = e.currentTarget;
+    if (clickedButton.classList.contains(HelperConstants.kDisabledButtonClass)) {
+      return;  // Do nothing if the "button" is disabled.
+    }
+
     const vote = clickedButton.classList.contains("vote-yes");
 
     voteOnMission.call({ roomId, vote }, (err, result) => {
