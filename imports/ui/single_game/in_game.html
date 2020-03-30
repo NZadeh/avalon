@@ -89,6 +89,8 @@ This templates requires the following data:
                 {{else if inGameInfo.missionInProgress}}
                     {{#if shouldShowMissionButton}}
                         {{> missionVote (missionButtonArgs) }}
+                    {{else}}
+                        <h5>Mission voting in progress...</h5>
                     {{/if}}
                 {{else}}
                     {{#if isProposer}}
