@@ -82,9 +82,6 @@ This templates requires the following data:
             </div>
             {{#unless isGameOver}}
                 {{#if inGameInfo.proposalVoteInProgress}}
-                    <!-- {{#wideButton additionalClasses="wait-wait-wait disabled"}}
-                        TODO(neemazad): Implement: "Wait wait wait!"
-                    {{/wideButton}} -->
                     {{> proposalVote (proposalButtonArgs) }}
                 {{else if inGameInfo.missionInProgress}}
                     {{#if shouldShowMissionButton}}
@@ -200,6 +197,9 @@ This templates requires the following data:
 <!-- A wrapper around `yesNoVote` to allow customizing.
      Context is passed through to yesNoVote. -->
 <template name="proposalVote">
+    <!-- {{#wideButton additionalClasses="wait-wait-wait disabled"}}
+        TODO(neemazad): Implement: "Wait wait wait!"
+    {{/wideButton}} -->
     {{> yesNoVote }}
 </template>
 

@@ -100,6 +100,9 @@ InGameInfo.schema = new SimpleSchema({
   // Cleared after each round when written to individual player history.
   // Used to determine when voting is done...
   // TODO(neemazad): Hide the votes field in the subscription, somehow.
+  // I think that means either storing a copy of who voted (but not what)
+  // in a different field and blocking out this field, or possibly hiding
+  // the actual vote behind an ID...
   liveVoteTally: {
     type: Array,
     minCount: 0,
@@ -118,6 +121,9 @@ InGameInfo.schema = new SimpleSchema({
   // Cleared after each mission when written to history.
   // Used to determine when succeeding/failing is done...
   // TODO(neemazad): Hide the votes field in the subscription, somehow.
+  // Since we don't need to attribute the vote back to the player, it
+  // might be possible to separate out the vote into its own array field
+  // and block that array from being returned.
   liveMissionTally: {
     type: Array,
     minCount: 0,
