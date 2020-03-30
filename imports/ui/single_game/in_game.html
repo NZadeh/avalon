@@ -17,139 +17,136 @@ This templates requires the following data:
 
 <!-- TODO(neemazad):
      - Pop-up buggy, maybe too small on desktop
-     - Mission votes...   Maybe introduce delay/pop-up to prevent double-click...
      - When someone leaves, don't break the game...!
      -->
 <template name="inGame">
-    <div class="container">
-        {{#if inGameReady}}
-            <div class="row">
-                <div class="col s12">
-                    <h3>{{title}}</h3>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col s12">
-                    <h4>Your information</h4>
-                </div>
-                <div class="col s12">
-                    <ul class="collection">
-                        {{#with known}}
-                            {{> knownInfo}}
-                         {{/with}}   
-                    </ul>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col s12 flow-text">
-                    <h4>Roles in game</h4>  
-                </div>
-                <div class="col s12 flow-text">
-                    <ul class="collection">
-                        {{#each role in roleList}}
-                            {{> listRole role=role}}
-                        {{/each}}
-                    </ul>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col s12 flow-text">
-                    <h4>Gameplay</h4> 
-                </div>
-                {{#unless isGameOver}}
-                    <div class="col s12 flow-text">
-                        <h5>Decreer: <b>{{currentProposer}}</b></h5>
-                    </div>
-                    {{> avalonTokenRow outcomesToRender=previousMissionOutcomes}}
-                    <div class="col s6 flow-text">
-                        <h5>
-                            <b>{{numRequiredOnMission}}</b> players
-                        </h5>
-                    </div>
-                    <div class="col s6 flow-text">
-                        <h5>
-                            <b>{{numFailsRequired}}</b> to fail
-                        </h5>
-                    </div>
-                {{else}}
-                    <h5><b>{{gameStateText}}</b></h5>
-                    {{> avalonTokenRow outcomesToRender=previousMissionOutcomes}}
-                {{/unless}}
-            </div>
-            <div class="row">
-                <div class="col s12 flow-text">
-                    <h4>Players</h4>
-                </div>
-                {{#unless isGameOver}}
-                    {{#if inGameInfo.proposalVoteInProgress}}
-                        <!-- {{#wideButton additionalClasses="wait-wait-wait disabled"}}
-                            TODO(neemazad): Implement: "Wait wait wait!"
-                        {{/wideButton}} -->
-                        {{> yesNoVote (proposalButtonArgs) }}
-                    {{else if inGameInfo.missionInProgress}}
-                        {{#if shouldShowMissionButton}}
-                            {{> yesNoVote (missionButtonArgs) }}
-                        {{/if}}
-                    {{else}}
-                        {{#if isProposer}}
-                            <div class="col s12 flow-text">
-                                <i>
-                                    Tap on the players below to select your
-                                    mission. Hit "For Arthur!" when done.
-                                </i>
-                            </div>
-                            {{#wideButton additionalClasses=(conditionallyDisabled "propose")}}
-                                For Arthur! ({{numRequiredOnMission}})
-                            {{/wideButton}}
-                        {{/if}}
-                    {{/if}}
-                {{/unless}}
-                <div class="col s12 flow-text">
-                    <ul class="collection">
-                        {{#each player in playersList}}
-                            {{> listPlayer 
-                                    formattingClasses=player.materializeFormatting
-                                    username=player.name
-                                    mightProposeThisMission=player.mightProposeThisMission
-                                    proposalPosition=player.proposalPosition
-                                    isProposer=player.proposing
-                                    onProposal=player.onProposal
-                                    hasPreviousVote=player.hasPrevVote
-                                    previousVote=player.prevVote
-                                    needsToAct=player.needsToAct}}
-                        {{/each}}
-                    </ul>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col s12 flow-text">
-                    <h4>Game History</h4>
-                    {{> gameHistory (gameHistoryArgs) }}
-                </div>
-            </div>
-        {{else}}
-            <div class="row">
-                <div class="col s12 flow-text">
-                    <h4>Game starting...</h4>
-                </div>
-            </div>
-        {{/if}}
-
+    {{#if inGameReady}}
         <div class="row">
             <div class="col s12">
-                {{> modal (leaveGameModalArgs)}}
+                <h3>{{title}}</h3>
             </div>
-            <!-- TODO maybe show this for everyone if game not loading... -->
-            {{#if isRoomOwner}}
-                <div class="col s12">
-                    {{> modal (backToLobbyModalArgs)}}
-                </div>
-            {{/if}}
+        </div>
+        <div class="row">
+            <div class="col s12">
+                <h4>Your information</h4>
+            </div>
+            <div class="col s12">
+                <ul class="collection">
+                    {{#with known}}
+                        {{> knownInfo}}
+                     {{/with}}   
+                </ul>
+            </div>
         </div>
 
+        <div class="row">
+            <div class="col s12 flow-text">
+                <h4>Roles in game</h4>  
+            </div>
+            <div class="col s12 flow-text">
+                <ul class="collection">
+                    {{#each role in roleList}}
+                        {{> listRole role=role}}
+                    {{/each}}
+                </ul>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col s12 flow-text">
+                <h4>Gameplay</h4> 
+            </div>
+            {{#unless isGameOver}}
+                <div class="col s12 flow-text">
+                    <h5>Decreer: <b>{{currentProposer}}</b></h5>
+                </div>
+                {{> avalonTokenRow outcomesToRender=previousMissionOutcomes}}
+                <div class="col s6 flow-text">
+                    <h5>
+                        <b>{{numRequiredOnMission}}</b> players
+                    </h5>
+                </div>
+                <div class="col s6 flow-text">
+                    <h5>
+                        <b>{{numFailsRequired}}</b> to fail
+                    </h5>
+                </div>
+            {{else}}
+                <h5><b>{{gameStateText}}</b></h5>
+                {{> avalonTokenRow outcomesToRender=previousMissionOutcomes}}
+            {{/unless}}
+        </div>
+        <div class="row">
+            <div class="col s12 flow-text">
+                <h4>Players</h4>
+            </div>
+            {{#unless isGameOver}}
+                {{#if inGameInfo.proposalVoteInProgress}}
+                    <!-- {{#wideButton additionalClasses="wait-wait-wait disabled"}}
+                        TODO(neemazad): Implement: "Wait wait wait!"
+                    {{/wideButton}} -->
+                    {{> proposalVote (proposalButtonArgs) }}
+                {{else if inGameInfo.missionInProgress}}
+                    {{#if shouldShowMissionButton}}
+                        {{> missionVote (missionButtonArgs) }}
+                    {{/if}}
+                {{else}}
+                    {{#if isProposer}}
+                        <div class="col s12 flow-text">
+                            <i>
+                                Tap on the players below to select your
+                                mission. Hit "For Arthur!" when done.
+                            </i>
+                        </div>
+                        {{#wideButton additionalClasses=(conditionallyDisabled "propose")}}
+                            For Arthur! ({{numRequiredOnMission}})
+                        {{/wideButton}}
+                    {{/if}}
+                {{/if}}
+            {{/unless}}
+            <div class="col s12 flow-text">
+                <ul class="collection">
+                    {{#each player in playersList}}
+                        {{> listPlayer 
+                                formattingClasses=player.materializeFormatting
+                                username=player.name
+                                mightProposeThisMission=player.mightProposeThisMission
+                                proposalPosition=player.proposalPosition
+                                isProposer=player.proposing
+                                onProposal=player.onProposal
+                                hasPreviousVote=player.hasPrevVote
+                                previousVote=player.prevVote
+                                needsToAct=player.needsToAct}}
+                    {{/each}}
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col s12 flow-text">
+                <h4>Game History</h4>
+                {{> gameHistory (gameHistoryArgs) }}
+            </div>
+        </div>
+    {{else}}
+        <div class="row">
+            <div class="col s12 flow-text">
+                <h4>Game starting...</h4>
+            </div>
+        </div>
+    {{/if}}
+
+    <div class="row">
+        <div class="col s12">
+            {{> buttonModal (leaveGameModalArgs)}}
+        </div>
+        <!-- TODO maybe show this for everyone if game not loading... -->
+        {{#if isRoomOwner}}
+            <div class="col s12">
+                {{> buttonModal (backToLobbyModalArgs)}}
+            </div>
+        {{/if}}
     </div>
+
     <!--
     TODO(neemazad): Add a modal here that explains the roles...
     Possibly include this modal inside of game_lobby also (or directly
@@ -196,6 +193,19 @@ This templates requires the following data:
         {{/each}}
     </div>
     <div class="col s1 m1 l2"></div>
+</template>
+
+<!-- A wrapper around `yesNoVote` to allow customizing.
+     Context is passed through to yesNoVote. -->
+<template name="proposalVote">
+    {{> yesNoVote }}
+</template>
+
+<!-- A wrapper around `yesNoVote` to allow customizing.
+     Context is passed through to yesNoVote. -->
+<template name="missionVote">
+    {{> yesNoVote }}
+    {{> triggeredModal modalArgs }}
 </template>
 
 <template name="listPlayer">

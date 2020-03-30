@@ -15,7 +15,15 @@ import '/imports/ui/single_game/in_game.js';
 // TODO(neemazad): Leaving the game while the game is in progress breaks the game.
 // The data isn't available I guess, and not even the "back to lobby" button shows
 // for the owner. Everyone just has to leave the room one by one.
-// Can we fix this?
+//
+// The fix should be tracking a bit whether a player is in the game or not in
+// GameRoom. If the gameroom is closed (in progress) when the player leaves,
+// update that bit. When the gameroom opens, trigger cleaning up/removing all
+// players with that bit.
+//
+// This will enable us to allow players to rejoin as well, since we keep their
+// id and info in the room. If so, we need also need to trigger cleaning up/removing
+// player info from old room when they join a new room...
 
 Template.Template_singleGame.onCreated(function singleGameOnCreated() {
   this.getRoomId = () => FlowRouter.getParam('_id');

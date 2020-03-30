@@ -11,12 +11,22 @@ and a variable number of response buttons. To render, this modal requires:
     - text (String), the text of the modal-button
     - addlButtonClasses (optional String), additional `class`es for the button
  -->
-
-<template name="modal">
+<template name="buttonModal">
   <!-- Modal Trigger (via button!) -->
   {{#wideDangerButton additionalClasses="modal-trigger" additionalAttributes=(modalAttributes uniqueId)}}
     {{buttonName}}
   {{/wideDangerButton}}
+
+  <!-- Modal Structure (when the trigger fires) -->
+  {{> triggeredModal }}
+</template>
+
+<!-- See comments above. The same, except must be triggered externally.
+     No button.  -->
+<template name="triggeredModal">
+  <!-- Modal Trigger is via something external, like a Javascript call.
+       See modal.js as well as corresponding .js files for the .html use
+       sites of this template. -->
 
   <!-- Modal Structure (when the trigger fires) -->
   <div id="{{uniqueId}}" class="modal">
@@ -26,8 +36,7 @@ and a variable number of response buttons. To render, this modal requires:
     </div>
     <div class="modal-footer">
       {{#each button in modalResponseButtons}}
-        <a href="#!"
-           class="modal-close waves-effect waves-green btn-flat {{button.addlButtonClasses}}">
+        <a class="modal-close btn-flat {{button.addlButtonClasses}}">
           {{button.text}}
         </a>
       {{/each}}

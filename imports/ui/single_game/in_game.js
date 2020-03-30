@@ -259,6 +259,14 @@ Template.inGame.helpers({
       yesImgName: "success_card_med",
       noImgName: "fail_card_med",
       type: "card",
+      modalArgs: {
+        uniqueId: "mission-modal",
+        modalHeader: "You're on mission!",
+        modalText: "Dismiss this window to vote with the cards.",
+        modalResponseButtons: [
+          { text: "Dismiss" },
+        ],
+      },
     };
   },
 
@@ -457,6 +465,14 @@ Template.avalonTokenRow.helpers({
   currentMission(outcome) {
     return outcome === "0";
   },
+});
+
+Template.missionVote.onRendered(function() {
+  // Note, the `triggeredModal` sub-template has already been initialized
+  // by this point. Here we can just open the modal without re-initializing.
+  const modalHtml = document.querySelector(`#${this.data.modalArgs.uniqueId}`);
+  var modal = M.Modal.getInstance(modalHtml);
+  modal.open();
 });
 
 Template.maybeTagProposer.helpers({

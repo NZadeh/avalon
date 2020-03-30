@@ -21,7 +21,7 @@ Template.howToPlayModal.onRendered(function() {
 
   // TODO(neemazad): Sometimes, after clicking through to Role Info multiple times,
   // the content does not appear until clicking around on the different tabs. Why?
-  $('.modal').modal({
+  $(`#${kHowToPlayModalId}`).modal({
     // Voodoo magic found online to make the tabs work inside of a modal...
     onOpenEnd: function(el) {
       $(el).find('.tabs').tabs({ swipeable: true, onShow: resizeTabToActiveItemHeight });

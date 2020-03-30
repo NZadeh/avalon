@@ -4,14 +4,18 @@
         <i>{{helperText}}</i>
     </div>
 
-    <div class={{concat additionalClasses "col s6 right-align vote-yes"}}> 
-        <img src={{imagePath yesImgName}}
-             alt="'Say yes' {{type}}"
-             class="avalon-yes-no-{{type}}"/>
+    <div class="col s6 right-align">
+        <a class="vote-yes avalon-clickable {{additionalClasses}}">
+            <img src={{imagePath yesImgName}}
+                 alt="'Say yes' {{type}}"
+                 class="avalon-yes-no-{{type}}"/>
+         </a>
     </div>
-    <div class={{concat additionalClasses "col s6 left-align vote-no"}}> 
-        <img src={{imagePath noImgName}}
-             alt="'Say no' {{type}}"
-             class="avalon-yes-no-{{type}}"/>
+    <div class="col s6 left-align">
+        <a class="vote-no avalon-clickable {{additionalClasses}}">
+            <img src={{imagePath noImgName}}
+                 alt="'Say no' {{type}}"
+                 class="avalon-yes-no-{{type}} avalon-clickable"/>
+         </a>
     </div>
 </template>

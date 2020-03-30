@@ -29,7 +29,7 @@
         {{/wideButton}}
         {{#if gameInProgress}}
             <!-- If the game is in progress, add a pop-up first... -->
-            {{> modal (leaveGameModalArgs)}}
+            {{> buttonModal (leaveGameModalArgs)}}
         {{else}}
             <!-- Otherwise we can leave the game directly... -->
             {{#wideDangerButton additionalClasses="leave"}}

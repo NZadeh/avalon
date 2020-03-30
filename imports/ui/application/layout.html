@@ -1,11 +1,9 @@
 <template name="layout">
     {{> header}}
 
-    <div class="container">
-        <div class="row center-align" id="main">
-            <!-- We use BlazeLayout and FlowRouter to inject content here. -->
-            {{> Template.dynamic template=main}}
-        </div>
+    <div class="avalon-body center-align container" id="main">
+          <!-- We use BlazeLayout and FlowRouter to inject content here. -->
+          {{> Template.dynamic template=main}}
     </div>
     
     {{> howToPlayModal}} <!-- Hidden by default, triggered by a link in the header. -->
