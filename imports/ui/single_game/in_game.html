@@ -16,8 +16,8 @@ This templates requires the following data:
  -->
 
 <!-- TODO(neemazad):
-     - Pop-up buggy, maybe too small on desktop
-     - When someone leaves, don't break the game...!
+     - Pop-up Role Info buggy, maybe too small on desktop -- probably make it
+       its own screen and add a back to game button.
      -->
 <template name="inGame">
     {{#if inGameReady}}
@@ -113,6 +113,7 @@ This templates requires the following data:
                                 proposalPosition=player.proposalPosition
                                 isProposer=player.proposing
                                 onProposal=player.onProposal
+                                absent=player.absent
                                 hasPreviousVote=player.hasPrevVote
                                 previousVote=player.prevVote
                                 needsToAct=player.needsToAct}}
@@ -212,6 +213,14 @@ This templates requires the following data:
 
 <template name="listPlayer">
     <li class="collection-item proposable {{formattingClasses}}">
+        {{#if absent}}
+            <span class="secondary-content left">
+                <i class="material-icons">cloud_off</i>
+            </span>
+            <span class="secondary-content right">
+                <i class="material-icons">cloud_off</i>
+            </span>
+        {{/if}}
         {{> maybeTagProposer
                 maybe=mightProposeThisMission
                 position=proposalPosition
@@ -223,7 +232,7 @@ This templates requires the following data:
         {{/if}}
         {{#if isProposer}}
             <span class="secondary-content left">
-                <i class="material-icons">event_seat</i>
+                <i class="material-icons">{{customizeProposerIcon username}}</i>
             </span>
         {{/if}}
         <span class="username center-align">

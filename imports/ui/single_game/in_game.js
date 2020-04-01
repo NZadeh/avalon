@@ -149,6 +149,7 @@ Template.inGame.helpers({
     // Name order information is controlled from above. Keep it.
     return this.playerNames.map(function(name) {
       const onProposal = capturedThis.namesOnProposal.includes(name);
+      const isAbsent = capturedThis.absentNames.includes(name);
       const renderingSelf = name === capturedThis.known.name; 
       const cellColor = cellBackgroundColor(onProposal, renderingSelf);
       const textColor = cellTextColor(onProposal, renderingSelf);
@@ -170,6 +171,7 @@ Template.inGame.helpers({
         proposalPosition: capturedThis.inGameInfo.currentProposalNumber +
                           remainingProposerNames.indexOf(name),
         onProposal: onProposal,
+        absent: isAbsent,
         materializeFormatting: formatting,
         hasPrevVote: hasVote,
         prevVote: prevVote,
@@ -479,4 +481,12 @@ Template.maybeTagProposer.helpers({
   materializeNumber(position) {
     return `filter_${position}`;
   },
-})
+});
+
+Template.listPlayer.helpers({
+  // Just for fun :)
+  customizeProposerIcon(username) {
+    if (username === "Dilsher") return "directions_bus";
+    return "event_seat";
+  },
+});

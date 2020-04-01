@@ -4,6 +4,25 @@ import SimpleSchema from 'simpl-schema';
 import { HelperConstants } from '/imports/collections/game_rooms/constants';
 
 export const SecretInfo = new Mongo.Collection('SecretInfo');
+export const secretInfoUniqueId = function(playerId, roomId) {
+  return `${playerId}_${roomId}`;
+};
+
+const uniqueIdValidator = new SimpleSchema({
+  id: {
+    type: String,
+    regEx: SimpleSchema.RegEx.Id,
+  },
+});
+
+const secretInfoUniqueIdValidation = function() {
+  const [playerId, roomId] = this.value.split("_", 2);
+
+  return uniqueIdValidator.validate([
+    { id: playerId },
+    { id: roomId },
+  ]);
+};
 
 // Deny all client-side updates since we will be using methods to manage this collection
 SecretInfo.deny({
@@ -17,9 +36,9 @@ SecretInfo.schema = new SimpleSchema({
     type: String,
     regEx: SimpleSchema.RegEx.Id,
   },
-  playerId: {  // This ID should just be the user ID.
+  uniqueId: {
     type: String,
-    regEx: SimpleSchema.RegEx.Id,
+    custom: secretInfoUniqueIdValidation,
   },
   roleName: String,
   roleInfo: String,

@@ -144,21 +144,19 @@ var removeUserIdFromRoom = function(userId, roomId) {
   }
   GameRooms.update(
     {_id: roomId},
-    { $pull: { players: {_id: userId} } },
-    { multi: true }
+    { $pull: { players: {_id: userId} } }
   );
 
   // If the room became empty, we can delete the room. Otherwise,
   // arbitrarily choose a new owner.
   // TODO(neemazad): Give players a way of passing room ownership as well.
-  gameRoom = GameRooms.findOne({_id: roomId}); //updated
-  var players = gameRoom.players;
-  if (players.length === 0) {
-    // Last player in the room just left.
+  gameRoom = GameRooms.findOne({_id: roomId});  // updated
+
+  // New owner -- if they exist -- is the first not-gone player.
+  const newOwner = gameRoom.players.find(player => !player.gone);
+  if (!newOwner) {
     GameRooms.remove({_id: roomId});
   } else {
-    // Otherwise, choose a new owner.
-    var newOwner = players[0];
     var newOwnerInfo = {
       ownerId: newOwner._id,
       author: newOwner.username

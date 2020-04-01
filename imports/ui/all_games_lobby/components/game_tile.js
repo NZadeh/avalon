@@ -25,6 +25,7 @@ Template.gameTile.helpers({
         return {
             playerNotLoggedIn: !instance.data.playerLoggedIn,
             playerAlreadyInside: instance.data.playerAlreadyInside,
+            playerLeftButCanReturn: instance.data.playerLeftButCanReturn,
             gameInProgress: !instance.data.open,
             playerInsideAnotherGame: instance.data.playerInsideAnotherGame,
             roomId: instance.data._id,

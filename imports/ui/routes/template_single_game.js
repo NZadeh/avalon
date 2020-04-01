@@ -5,32 +5,19 @@ import { Meteor } from 'meteor/meteor';
 import { Template } from 'meteor/templating';
 
 import { GameRooms } from '/imports/collections/game_rooms/game_rooms';
-import { SecretInfo } from '/imports/collections/game_rooms/secret_info';
+import { SecretInfo, secretInfoUniqueId } from '/imports/collections/game_rooms/secret_info';
 import { HelperMethods } from '/imports/collections/game_rooms/methods_helper';
 import { Permissions } from '/imports/utils/permissions';
 
 import '/imports/ui/single_game/game_lobby.js';
 import '/imports/ui/single_game/in_game.js';
 
-// TODO(neemazad): Leaving the game while the game is in progress breaks the game.
-// The data isn't available I guess, and not even the "back to lobby" button shows
-// for the owner. Everyone just has to leave the room one by one.
-//
-// The fix should be tracking a bit whether a player is in the game or not in
-// GameRoom. If the gameroom is closed (in progress) when the player leaves,
-// update that bit. When the gameroom opens, trigger cleaning up/removing all
-// players with that bit.
-//
-// This will enable us to allow players to rejoin as well, since we keep their
-// id and info in the room. If so, we need also need to trigger cleaning up/removing
-// player info from old room when they join a new room...
 
 Template.Template_singleGame.onCreated(function singleGameOnCreated() {
   this.getRoomId = () => FlowRouter.getParam('_id');
 
   this.autorun(() => {
     this.subscribe('singleGameRoom', this.getRoomId());
-    this.subscribe('playerSecretInfo');
   });
 });
 
@@ -89,9 +76,18 @@ Template.Template_singleGame.helpers({
     var player = gameRoom.players.find(function(player) {
       return player._id === Meteor.userId();
     });
-    if (!player) { return { inGameReady: false }; }
+    if (!player) { 
+      // If the player is not in the room and they have all the data,
+      // they're not a player in the game and should be redirected home.
+      if (instance.subscriptionsReady()) {
+        FlowRouter.go('home');
+      }
+      return { inGameReady: false };
+    }
 
-    const secretInfo = SecretInfo.findOne({ playerId: player._id });
+    const secretInfo = SecretInfo.findOne({
+        uniqueId: secretInfoUniqueId(player._id, gameRoom._id)
+    });
     if (!secretInfo) { return { inGameReady: false }; }
 
     const inGameInfo = gameRoom.inGameInfo();
@@ -102,6 +98,10 @@ Template.Template_singleGame.helpers({
         .sort((player1, player2) => 
                 seatingOrderMap.get(player1._id) - seatingOrderMap.get(player2._id))
         .map(player => player.username);
+    const absentNames = gameRoom.players
+        .filter(player => player.gone)
+        .map(player => player.username);
+
     const currentlyProposed = inGameInfo.selectedOnMission.map(id => gameRoom.idToName(id));
 
     const voteIdToPlayerIdMap = new Map(
@@ -120,9 +120,6 @@ Template.Template_singleGame.helpers({
       nameToVotesMap.set(playerName, missions);
     });
 
-    // TODO(neemazad): probably change idToName to return a map, and pass that
-    // map in to in_game.js. Then we can move a bunch of this computation into
-    // re-useable code there?
     const waitingOnNames = inGameInfo.playersNeedingToAct()
         .map(id => gameRoom.idToName(id));
 
@@ -141,6 +138,8 @@ Template.Template_singleGame.helpers({
       return names;
     })();
 
+    // TODO(neemazad): I think the way names are passed in can probably be better.
+    // Maybe unify a map of name to [bits about that name].
     return {
       inGameReady: instance.subscriptionsReady(),
       title: gameRoom.title,
@@ -152,6 +151,7 @@ Template.Template_singleGame.helpers({
         info: secretInfo.roleInfo,
       },
       playerNames: properlyOrderedPlayerNames,
+      absentNames: absentNames,
       nameToVotesMap: nameToVotesMap,
       roleNames: HelperMethods.roleNamesForNPlayerGame(gameRoom.players.length),
       isRoomOwner: Permissions.isRoomOwner(gameRoom),

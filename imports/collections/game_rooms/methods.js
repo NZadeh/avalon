@@ -86,22 +86,37 @@ export const joinRoom = new ValidatedMethod({
     }
 
     const gameRoom = GameRooms.findOne({_id: roomId});
-    if (gameRoom.players.length >= HelperConstants.kMaxPlayers) {
-      return { isAtCapacity: true };
-    } else if (!gameRoom.open) {
-      return { alreadyStarted: true };
-    } else if (gameRoom.passwordProtected && password !== gameRoom.password) {
-      return { wrongPassword: true };
-    }
+    const rejoining = user.previousGameRoomIds &&
+                      user.previousGameRoomIds.includes(roomId);
 
-    GameRooms.update({_id: roomId}, {
-      $addToSet: {
-        players: {
-          _id: Meteor.userId(),
-          username: Meteor.user().username
-        }
+    if (rejoining) {
+      // Handle the "rejoin" case first.
+      GameRooms.update(
+        {
+          _id: roomId,
+          players: { $elemMatch: { _id: user._id } },
+        },
+        { $set: { "players.$.gone": false } }
+      );
+    } else {
+      // Then handle the normal join case.
+      if (gameRoom.players.length >= HelperConstants.kMaxPlayers) {
+        return { isAtCapacity: true };
+      } else if (!gameRoom.open) {
+        return { alreadyStarted: true };
+      } else if (gameRoom.passwordProtected && password !== gameRoom.password) {
+        return { wrongPassword: true };
       }
-    });
+
+      GameRooms.update({_id: roomId}, {
+        $addToSet: {
+          players: {
+            _id: Meteor.userId(),
+            username: Meteor.user().username
+          }
+        }
+      });
+    }
 
     return { success: true };
   },
@@ -143,7 +158,7 @@ export const startGame = new ValidatedMethod({
 
     const { ServerSecrets } =
         require('/imports/collections/game_rooms/server/secret_code.js');
-    ServerSecrets.assignRoles(inRoomPlayers);
+    ServerSecrets.assignRoles(inRoomPlayers, roomId);
 
     const inGameInfo = HelperMethods.generateStartingInGameInfo(inRoomPlayers);
     const inGameId = InGameInfo.insert(inGameInfo);
@@ -206,7 +221,7 @@ export const backToLobby = new ValidatedMethod({
     if (!this.isSimulation) {
       const { ServerSecrets } =
         require('/imports/collections/game_rooms/server/secret_code.js');
-      ServerSecrets.clearRoles(room.players);
+      ServerSecrets.clearRoles(room.players, room._id);
     }
 
     // Consider unifying the code with hooks.js `afterRemoveRooms`. It's mostly
@@ -418,7 +433,7 @@ export const voteOnMission = new ValidatedMethod({
     const { ServerSecrets } =
         require('/imports/collections/game_rooms/server/secret_code.js');
     if (vote === false &&
-        ServerSecrets.playerAlignment(voterId) != HelperConstants.kSpy) {
+        ServerSecrets.playerAlignment(voterId, roomId) != HelperConstants.kSpy) {
       return { cantFail: true };
     }
 

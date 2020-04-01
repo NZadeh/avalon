@@ -36,6 +36,10 @@
                 Leave game
             {{/wideDangerButton}}
         {{/if}}
+    {{else if playerLeftButCanReturn}}
+        {{#wideButton additionalClasses="join"}}
+            Rejoin existing game
+        {{/wideButton}}
     {{else if gameInProgress}}
         {{#wideButton additionalClasses="join disabled"}}
             In progress

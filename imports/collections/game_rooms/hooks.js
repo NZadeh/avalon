@@ -2,8 +2,9 @@ import { Meteor } from 'meteor/meteor';
 import { _ } from 'meteor/underscore';
 
 import { HelperConstants } from '/imports/collections/game_rooms/constants';
-import { SecretInfo } from '/imports/collections/game_rooms/secret_info';
+import { GameRooms } from '/imports/collections/game_rooms/game_rooms';
 import { InGameInfo, VoteHistory } from '/imports/collections/game_rooms/in_game_info.js';
+import { SecretInfo, secretInfoUniqueId } from '/imports/collections/game_rooms/secret_info';
 
 const setPlayerInRoom = function(playerId, newRoomId) {
   Meteor.users.update({_id: playerId}, {
@@ -13,13 +14,44 @@ const setPlayerInRoom = function(playerId, newRoomId) {
   });
 };
 
+const setPlayerPrevRoom = function(playerId, prevRoomId) {
+  Meteor.users.update({_id: playerId}, {
+    $addToSet: {
+      previousGameRoomIds: prevRoomId,
+    }
+  });
+};
+
 const addPlayerRoomInfo = function(playerId, newRoomId) {
   setPlayerInRoom(playerId, newRoomId);
 };
 
-const removePlayerRoomInfo = function(playerId) {
+const removePreviousRoomInfo = function(playerId, roomId) {
+  Meteor.users.update({_id: playerId}, {
+    $pull: {
+      previousGameRoomIds: roomId,
+    }
+  });
+};
+
+const playerRejoins = function(playerId, roomId) {
+  addPlayerRoomInfo(playerId, roomId);
+  removePreviousRoomInfo(playerId, roomId);
+};
+
+const markPlayerAsRemovedFromRoom = function(playerId, roomId) {
   setPlayerInRoom(playerId, HelperConstants.kNoRoomId);
-  SecretInfo.remove({ playerId: playerId });  // Deletes if present.
+  if (roomId) {
+    setPlayerPrevRoom(playerId, roomId);
+  }
+};
+
+const removePlayerRoomInfoForGood = function(playerId, roomId) {
+  markPlayerAsRemovedFromRoom(playerId);
+  // This room no longer is viable for a player to re-join.
+  removePreviousRoomInfo(playerId, roomId);
+  // Deletes if present.
+  SecretInfo.remove({ uniqueId: secretInfoUniqueId(playerId, roomId) });
 };
 
 export const GameRoomHooks = {
@@ -27,6 +59,37 @@ export const GameRoomHooks = {
     room.players.forEach(function(player) {
       addPlayerRoomInfo(player._id, newRoomId);
     });
+  },
+
+  beforeUpdateRoom(selector, modifier) {
+    if (_.has(modifier, "$pull") &&
+        _.has(modifier.$pull, "players") &&
+        _.has(modifier.$pull.players, "_id")) {
+      const playerId = modifier.$pull.players._id;
+      const room = GameRooms.findOne(selector);
+      if (room.open) {
+        // Continue with the removal as planned.
+        return true;
+      }
+
+      const roomId = room._id;
+      // Otherwise, we mark the player as absent and clean up later.
+      // NOTE: see the branch in `afterUpdateRoom` that cleans up
+      // if all players are gone.
+      GameRooms.update(
+        {
+          _id: roomId,
+          players: { $elemMatch: { _id: playerId } },
+        },
+        { $set: { "players.$.gone": true } }
+      );
+      markPlayerAsRemovedFromRoom(playerId, roomId);
+
+      return false;
+    }
+
+    // By default... continue updating.
+    return true;
   },
 
   afterUpdateRoom(selector, modifier) {
@@ -38,16 +101,58 @@ export const GameRoomHooks = {
       const roomId = selector._id;
       addPlayerRoomInfo(playerId, roomId);
     }
-    if (_.has(modifier, "$pull") && _.has(modifier.$pull, "players")) {
+
+    if (_.has(modifier, "$pull") &&
+        _.has(modifier.$pull, "players") &&
+        _.has(modifier.$pull.players, "_id")) {
+      check(selector._id, String); // If we start updating based on not the id, this code needs to change.
+
       // Note, players is just a player update "object" here, not an array of players.
       const playerId = modifier.$pull.players._id;
-      removePlayerRoomInfo(playerId);
+      const roomId = selector._id;
+      removePlayerRoomInfoForGood(playerId, roomId);
+    }
+
+    if (_.has(modifier, "$set")) {
+      if (_.has(modifier.$set, "open") && modifier.$set.open) {
+        check(selector._id, String); // If we start updating based on not the id, this code needs to change.
+
+        // Previously, we delayed removing these players from the GameRoom while the game
+        // was in progress. Now we can clean up all players who are "gone" from the room.
+        const roomId = selector._id;
+        const room = GameRooms.findOne({_id: roomId});
+
+        room.players.forEach(function(player) {
+          if (player.gone) {
+            removePlayerRoomInfoForGood(player._id, room._id);
+          }
+        });
+
+        GameRooms.update(
+          {_id: roomId},
+          { $pull: { players: { gone: true } } },
+          { multi: true }
+        );
+      } else if (_.has(modifier.$set, "players.$.gone")) {
+        if (modifier.$set["players.$.gone"] === false) {
+          const roomId = selector._id;
+          const playerId = selector.players.$elemMatch._id;
+
+          check(roomId, String);
+          check(playerId, String);
+
+          // Player is returning...!
+          playerRejoins(playerId, roomId);
+        }
+      }
     }
   },
 
   afterRemoveRooms(rooms) {
-    rooms.forEach(function (room) {
-      room.players.forEach(player => removePlayerRoomInfo(player._id));
+    rooms.forEach(function(room) {
+      room.players.forEach(
+        player => removePlayerRoomInfoForGood(player._id, room._id)
+      );
       InGameInfo.remove({_id: room.inGameInfoId});
     });
   },

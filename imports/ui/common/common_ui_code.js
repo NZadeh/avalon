@@ -6,9 +6,8 @@ export const CommonUiCode = {
       uniqueId: "leave-game-modal",
       buttonName: "Leave Game",
       modalHeader: "Leave Game?",
-      modalText: "Leaving while the game is in progress will " +
-                 "probably break the rest of the game. " +
-                 "You will not be able to rejoin the same game.",
+      modalText: "You can return after leaving, but the game " +
+                 "cannot progress while you are gone.",
       modalResponseButtons: [
         {text: "Leave", addlButtonClasses: event_handler_class},
         {text: "Never mind"},

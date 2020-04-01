@@ -12,6 +12,13 @@ class GameRoomCollection extends Mongo.Collection {
   }
 
   update(selector, modifier) {
+    const continueWithUpdate =
+      GameRoomHooks.beforeUpdateRoom(selector, modifier);
+
+    if (!continueWithUpdate) {
+      return false;
+    }
+
     const result = super.update(selector, modifier);
     GameRoomHooks.afterUpdateRoom(selector, modifier);
     return result;
@@ -80,6 +87,11 @@ GameRooms.schema = new SimpleSchema({
   'players.$': Object,
   'players.$._id': String,
   'players.$.username': String,
+  'players.$.gone': {
+    // Track whether a player in a closed room left.
+    type: Boolean,
+    defaultValue: false,
+  },
 
   inGameInfoId: {
     type: String,
@@ -94,7 +106,8 @@ GameRooms.attachSchema(GameRooms.schema);
 GameRooms.helpers({
   includesUserId(userId) {
     return this.players.reduce(
-      (alreadyContains, player) => alreadyContains || player._id == userId,
+      (alreadyContains, player) => alreadyContains || 
+                                   (player._id === userId && !player.gone),
       /*initialValue=*/false
     );
   },
