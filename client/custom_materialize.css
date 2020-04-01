@@ -49,7 +49,7 @@ button.avalon-half {
   width:100px;
 }
 .disabled-avalon {
-  opacity:50%;
+  opacity:0.5;
 }
 
 .avalon-clickable {
