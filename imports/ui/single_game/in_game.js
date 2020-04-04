@@ -160,8 +160,11 @@ Template.inGame.helpers({
 
       const allVotes = capturedThis.nameToVotesMap.get(name);
       const prevVoteObj = lastElemOfLastArray(allVotes);
-      const prevVote = prevVoteObj ? prevVoteObj.vote : undefined;
-      const hasVote = prevVote != undefined;
+      const prevState = {
+        hasPrevVote: prevVoteObj != undefined,
+        prevVote: prevVoteObj ? prevVoteObj.vote : undefined,
+        onPrevProposal: prevVoteObj ? prevVoteObj.wasOnProposal : undefined,
+      };
       const remainingProposerNames = capturedThis.remainingProposerNames;
 
       return {
@@ -173,8 +176,7 @@ Template.inGame.helpers({
         onProposal: onProposal,
         absent: isAbsent,
         materializeFormatting: formatting,
-        hasPrevVote: hasVote,
-        prevVote: prevVote,
+        prevState: prevState,
         needsToAct: capturedThis.waitingOnNames.includes(name),
       };
     });

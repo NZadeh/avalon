@@ -114,8 +114,7 @@ This templates requires the following data:
                                 isProposer=player.proposing
                                 onProposal=player.onProposal
                                 absent=player.absent
-                                hasPreviousVote=player.hasPrevVote
-                                previousVote=player.prevVote
+                                prevState=player.prevState
                                 needsToAct=player.needsToAct}}
                     {{/each}}
                 </ul>
@@ -238,8 +237,13 @@ This templates requires the following data:
         <span class="username center-align">
             {{username}}
         </span>
-        {{#if hasPreviousVote}}
-            {{> yesNoVoteResult yes=previousVote positioning="right"}}
+        {{> showIfOnProposal
+                onProposal=prevState.onPrevProposal
+                positioning="right"}}
+        {{#if prevState.hasPrevVote}}
+            {{> yesNoVoteResult
+                    yes=prevState.prevVote
+                    positioning="right"}}
         {{/if}}
         {{#if onProposal}}
             <span class="secondary-content btn-floating pulse">
@@ -284,9 +288,7 @@ This templates requires the following data:
                                         <i class="material-icons tiny">event_seat</i>
                                     {{/showIf}}
                                     {{> yesNoVoteResult yes=vote.vote}}
-                                    {{#showIf condition=vote.wasOnProposal}}
-                                        <i class="material-icons tiny">security</i>
-                                    {{/showIf}}
+                                    {{> showIfOnProposal onProposal=vote.wasOnProposal}}
                                 </td>
                             {{/if}}
                         {{/each}}
@@ -316,10 +318,16 @@ reactive materialize table where it reshapes super dynamically.
  -->
 <template name="showIf">
     {{#if condition}}
-        <span>{{> Template.contentBlock}}</span>
+        <span class="{{positioning}}">{{> Template.contentBlock}}</span>
     {{else}}
-        <span style="visibility:hidden">{{> Template.contentBlock}}</span>
+        <span class="{{positioning}} avalon-hidden">{{> Template.contentBlock}}</span>
     {{/if}}
+</template>
+
+<template name="showIfOnProposal">
+    {{#showIf condition=onProposal positioning=positioning}}
+        <i class="material-icons tiny">security</i>
+    {{/showIf}}
 </template>
 
 <!-- Thumbs up or thumbs down! If positioning is set, can position. -->

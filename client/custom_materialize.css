@@ -56,6 +56,10 @@ button.avalon-half {
   cursor:pointer;
 }
 
+.avalon-hidden {
+  visibility:hidden;
+}
+
 div.game-history-table {
   overflow:scroll;
   overflow-y:scroll;
