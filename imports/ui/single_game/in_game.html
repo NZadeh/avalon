@@ -57,20 +57,9 @@ This templates requires the following data:
                 <h4>Gameplay</h4> 
             </div>
             {{#unless isGameOver}}
-                <div class="col s12 flow-text">
-                    <h5>Decreer: <b>{{currentProposer}}</b></h5>
-                </div>
-                {{> avalonTokenRow outcomesToRender=previousMissionOutcomes}}
-                <div class="col s6 flow-text">
-                    <h5>
-                        <b>{{numRequiredOnMission}}</b> players
-                    </h5>
-                </div>
-                <div class="col s6 flow-text">
-                    <h5>
-                        <b>{{numFailsRequired}}</b> to fail
-                    </h5>
-                </div>
+                {{> avalonTokenRow
+                        outcomesToRender=previousMissionOutcomes
+                        missionCounts=computeMissionCounts}}
             {{else}}
                 <h5><b>{{gameStateText}}</b></h5>
                 {{> avalonTokenRow outcomesToRender=previousMissionOutcomes}}
@@ -91,6 +80,8 @@ This templates requires the following data:
                     {{/if}}
                 {{else}}
                     {{#if isProposer}}
+                        <!-- TODO add modal here with pop-up text like what's below
+                             can probably use onRendered inside this block -->
                         <div class="col s12 flow-text">
                             <i>
                                 Tap on the players below to select your
@@ -165,30 +156,38 @@ This templates requires the following data:
     </li>
 </template>
 
+<!-- Note that `missionCounts` is an optional argument to this template. -->
 <template name="avalonTokenRow">
     <!-- This makes the width smaller on large screens by adding dummy columns.
          Be careful making changes here... test them in game and look at
          all window sizes to check for weird row-collapsing bugs. -->
     <div class="col s1 m1 l2"></div>
     <div class="col s10 m10 l8 flow-text">
-        {{#each outcome in (padToFive outcomesToRender)}}
-            {{#if (success outcome)}}
-                <img src="/avalon_success_small.png"
-                     alt="Mission Success"
-                     class="avalon-row-token"/>
-            {{else if (failure outcome)}}
-                <img src="/avalon_failure_small.png" 
-                     alt="Mission Fail"
-                     class="avalon-row-token"/>
-            {{else if (currentMission outcome)}}
-                <img src="/avalon_success_small.png"
-                     alt="Mission Not Yet Run"
-                     class="avalon-row-token token-not-finalized token-current-mission"/>
-            {{else}}
-                <img src="/avalon_success_small.png"
-                     alt="Mission Not Yet Run"
-                     class="avalon-row-token token-not-finalized"/>
-            {{/if}}
+        {{#each outcome in (padToFive outcomesToRender missionCounts)}}
+            <div class="avalon-row-token-with-text">
+                {{#if (success outcome.outcome)}}
+                    <img src="/avalon_success_small.png"
+                         alt="Mission Success"
+                         class="avalon-row-image"/>
+                {{else if (failure outcome.outcome)}}
+                    <img src="/avalon_failure_small.png" 
+                         alt="Mission Fail"
+                         class="avalon-row-image"/>
+                {{else if (currentMission outcome.outcome)}}
+                    <img src="/avalon_success_small.png"
+                         alt="Mission Not Yet Run"
+                         class="avalon-row-image token-not-finalized token-current-mission"/>
+                {{else}}
+                    <img src="/avalon_success_small.png"
+                         alt="Mission Not Yet Run"
+                         class="avalon-row-image token-not-finalized"/>
+                {{/if}}
+                <div class="avalon-row-token-text {{outcome.class}}">
+                    {{tokenTextString
+                            outcome.missionCount
+                            outcome.needsTwoFails}}
+                </div>
+            </div>
         {{/each}}
     </div>
     <div class="col s1 m1 l2"></div>

@@ -261,6 +261,14 @@ export const HelperMethods = {
     };
   },
 
+  numFailsRequired: function(numPlayers, currentMission) {
+    if (numPlayers >= 7 && currentMission === 4) return 2;
+    // For testing ...
+    if (numPlayers === 3 && currentMission === 4) return 2;
+    // ... :)
+    return 1;
+  },
+
   /**
    * Returns an array of role-names for an `n` player game of Avalon.
    */

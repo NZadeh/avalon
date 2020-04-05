@@ -2,6 +2,7 @@ import './in_game.html';
 
 import { GameRooms } from '/imports/collections/game_rooms/game_rooms';
 import { HelperConstants } from '/imports/collections/game_rooms/constants';
+import { HelperMethods } from '/imports/collections/game_rooms/methods_helper';
 import { Callbacks } from '/imports/utils/callbacks';
 import { CommonUiCode } from '/imports/ui/common/common_ui_code';
 
@@ -101,6 +102,20 @@ Template.inGame.helpers({
     const number = this.inGameInfo.numFailsRequired();
     const plural = number != 1 ? "s" : "";
     return `${number} fail${plural}`;
+  },
+
+  computeMissionCounts: function() {
+    const playerCount = this.inGameInfo.playersInGame.length;
+
+    return this.inGameInfo.missionCounts.map(function(count, index) {
+      let mission = index + 1;
+      let needsTwoFails =
+          HelperMethods.numFailsRequired(playerCount, mission) >= 2;
+      return {
+        count: count,
+        needsTwoFails: needsTwoFails,
+      };
+    });
   },
 
   previousMissionOutcomes: function() {
@@ -448,12 +463,35 @@ Template.inGame.events({
 });
 
 Template.avalonTokenRow.helpers({
-  padToFive(outcomes) {
-    var stringOutcomes = outcomes.map(outcome => outcome ? "success" : "fail")
+  // NOTE: `missionCounts` is optional, and can be undefined.
+  padToFive(outcomes, missionCounts) {
+    var stringOutcomes = outcomes.map(outcome => outcome ? "success" : "fail");
+    // e.g. If 2 missions have outcomes, then the last mission was the 2nd.
+    const lastMission = stringOutcomes.length;
     for (let i = 0; i < 5 - outcomes.length; ++i) {
       stringOutcomes.push(`${i}`);
     }
-    return stringOutcomes;
+
+    return stringOutcomes.map(function(outcome, index) {
+      let missionToRender = index + 1;
+      return {
+        outcome: outcome,
+        missionCount: (missionCounts ?
+                          missionCounts[index].count :
+                          undefined),
+        needsTwoFails: (missionCounts ? 
+                            missionCounts[index].needsTwoFails :
+                            undefined),
+        class: (missionToRender <= lastMission ? "past-mission" : ""),
+      };
+    });
+  },
+
+  // NOTE: either argument can be undefined. (See above.)
+  tokenTextString(count, doubleFail) {
+    if (count === undefined || doubleFail === undefined) return undefined;
+    if (doubleFail) return `${count}*`;
+    return `${count}`;
   },
 
   success(outcome) {

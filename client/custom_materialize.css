@@ -31,14 +31,49 @@ button.avalon-half {
   font-style:italic;
 }
 
-.avalon-row-token {
+div.avalon-row-token-with-text {
+  display:inline-block;
+  position:relative;
+  text-align:center;
+  vertical-align:middle;
+  color:#666; /* grayish */
+  /* There are 5 tokens. Roughly 100/5 with some buffer. */
   width:18%;
   height:18%;
 }
-.avalon-row-token.token-not-finalized {
+/* Override the text color on missions that already passed. */
+div.avalon-row-token-with-text > div.past-mission {
+  color:#ddd; /* off-white */
+}
+/* Attempt to center the text relative to the container which contains both
+ * the token image and the text. */
+div.avalon-row-token-with-text > div.avalon-row-token-text {
+  display:inline-block;
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%, -55%);
+  font-size:10vw;
+  font-weight:600;
+}
+/* For large screen widths, the columns resize, the images become smaller, and
+ * the text becomes too large. Make the font smaller to compensate. 
+ * 993 comes from https://materializecss.com/grid.html for the "l" class. */
+@media only screen and (min-width: 993px) {
+  div.avalon-row-token-with-text > div.avalon-row-token-text {
+    font-size:7vw;
+  }
+}
+/* These images are inside the avalon-row-token-with-text, which controls
+ * their size. Make sure the images take up 100% of what's given. */
+.avalon-row-image {
+  width:100%;
+  height:100%;
+}
+.token-not-finalized {
   opacity:0.15;
 }
-.avalon-row-token.token-not-finalized.token-current-mission {
+.token-not-finalized.token-current-mission {
   opacity:0.3;
 }
 

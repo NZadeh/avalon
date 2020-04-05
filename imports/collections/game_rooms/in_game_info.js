@@ -1,6 +1,7 @@
 import { Mongo } from 'meteor/mongo';
 import SimpleSchema from 'simpl-schema';
 
+import { HelperMethods } from '/imports/collections/game_rooms/methods_helper';
 import { InGameInfoHooks } from '/imports/collections/game_rooms/hooks.js';
 
 class InGameInfoCollection extends Mongo.Collection {
@@ -218,9 +219,9 @@ InGameInfo.helpers({
   },
 
   numFailsRequired() {
-    if (this.playersInGame.length >= 7 && 
-        this.currentMissionNumber === 4) return 2;
-    return 1;
+    return HelperMethods.numFailsRequired(
+        this.playersInGame.length,
+        this.currentMissionNumber);
   },
 
   missionSuccessFailCounts() {
