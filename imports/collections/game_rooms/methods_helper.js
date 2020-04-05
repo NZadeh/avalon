@@ -2,7 +2,7 @@ import { GameRooms } from '/imports/collections/game_rooms/game_rooms';
 import { HelperConstants } from '/imports/collections/game_rooms/constants';
 import { InGameInfo } from '/imports/collections/game_rooms/in_game_info.js';
 
-const kMerlin = "Merlin";
+const kMerlin = HelperConstants.kMerlin;
 const kPercival = "Percival";
 const kMorgana = "Morgana";
 const kAssassin = "Assassin";
@@ -166,6 +166,23 @@ var removeUserIdFromRoom = function(userId, roomId) {
   }
 };
 
+/**
+ * Updates the input array playerIds to swap previousMerlinId with the ID
+ * at index 0.
+ *
+ * Note that the input `playerIds` is an array of Objects {_id: playerId}.
+ */
+var maybeMoveMerlinToFront = function(playerIds, previousMerlinId) {
+  if (!previousMerlinId) return playerIds;
+  const merlinIndex = playerIds.findIndex(
+      player => player._id === previousMerlinId
+  );
+  // Swap previous Merlin with front of line.
+  [playerIds[0], playerIds[merlinIndex]] =
+      [playerIds[merlinIndex], playerIds[0]];
+  return playerIds;
+};
+
 export const HelperMethods = {
   /**
    * Returns a map that, for each player in `players`, is keyed by player id and
@@ -280,15 +297,16 @@ export const HelperMethods = {
   /**
    * Return value should be directly insertible into the InGameInfo collection.
    */
-  generateStartingInGameInfo(inRoomPlayers) {
+  generateStartingInGameInfo(inRoomPlayers, previousMerlinId) {
     const playerIds = inRoomPlayers.map(function(player) {
       // NOTE: Vote info initialization is handled by InGameInfo collection.
       return {_id: player._id};
     });
-    const shuffledIds = shuffleArray(playerIds);
-    // Since the array of seating order is shuffled, just choose the first
-    // person in "seating order".
-    // TODO(neemazad): Track previous Merlin (in backToLobby).
+    const shuffledIds = maybeMoveMerlinToFront(
+        shuffleArray(playerIds),
+        previousMerlinId);
+    // Since the array of seating order is shuffled (taking into account
+    // previous Merlin), just choose the first person in "seating order".
     const proposerId = shuffledIds[0]._id;
 
     return {

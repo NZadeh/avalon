@@ -158,9 +158,10 @@ export const startGame = new ValidatedMethod({
 
     const { ServerSecrets } =
         require('/imports/collections/game_rooms/server/secret_code.js');
-    ServerSecrets.assignRoles(inRoomPlayers, roomId);
+    const previousMerlinId = ServerSecrets.assignRoles(inRoomPlayers, roomId);
 
-    const inGameInfo = HelperMethods.generateStartingInGameInfo(inRoomPlayers);
+    const inGameInfo = HelperMethods.generateStartingInGameInfo(
+        inRoomPlayers, previousMerlinId);
     const inGameId = InGameInfo.insert(inGameInfo);
     GameRooms.update({_id: roomId}, { $set: { inGameInfoId: inGameId } });
     return { success: true };
@@ -227,7 +228,10 @@ export const backToLobby = new ValidatedMethod({
     // Consider unifying the code with hooks.js `afterRemoveRooms`. It's mostly
     // the same (clear roles and delete in game info, but slightly different.)
     InGameInfo.remove({_id: room.inGameInfoId});
-    GameRooms.update({_id: roomId}, { $set: { open: true } });
+    GameRooms.update({_id: roomId}, {
+      $set: { open: true },
+      $unset: { inGameInfoId: "" },  // "" is an unused placeholder
+    });
     return { success: true };
   },
 });

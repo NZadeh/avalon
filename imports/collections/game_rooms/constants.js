@@ -8,6 +8,7 @@ export const HelperConstants = {
   // The possible "values" for kAlignment.
   kResistance: "Resistance",
   kSpy: "Spy",
+  kMerlin: "Merlin",
 
   kMinPlayers: 2,   // The minimum number of players required to start a game.
   kMaxPlayers: 10,  // The maximum number of players allowed in a game.

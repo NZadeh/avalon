@@ -7,6 +7,9 @@ export const SecretInfo = new Mongo.Collection('SecretInfo');
 export const secretInfoUniqueId = function(playerId, roomId) {
   return `${playerId}_${roomId}`;
 };
+export const secretInfoUniqueIdToPlayerId = function(uniqueId) {
+  return uniqueId.split("_", 2)[0];
+};
 
 const uniqueIdValidator = new SimpleSchema({
   id: {
