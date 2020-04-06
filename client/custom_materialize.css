@@ -62,7 +62,7 @@ div.avalon-row-token-with-text > div.avalon-row-token-text {
 }
 /* Override for missions that already passed. */
 div.avalon-row-token-with-text > div.avalon-row-token-text.past-mission {
-  opacity:0.7;
+  opacity:0.9;
   color:white;
   font-weight:400;
 }
