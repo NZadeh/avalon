@@ -486,14 +486,11 @@ Template.avalonTokenRow.helpers({
   // NOTE: `missionCounts` is optional, and can be undefined.
   padToFive(outcomes, missionCounts) {
     var stringOutcomes = outcomes.map(outcome => outcome ? "success" : "fail");
-    // e.g. If 2 missions have outcomes, then the last mission was the 2nd.
-    const lastMission = stringOutcomes.length;
     for (let i = 0; i < 5 - outcomes.length; ++i) {
       stringOutcomes.push(`${i}`);
     }
 
     return stringOutcomes.map(function(outcome, index) {
-      let missionToRender = index + 1;
       return {
         outcome: outcome,
         missionCount: (missionCounts ?
@@ -502,7 +499,6 @@ Template.avalonTokenRow.helpers({
         needsTwoFails: (missionCounts ? 
                             missionCounts[index].needsTwoFails :
                             undefined),
-        class: (missionToRender <= lastMission ? "past-mission" : ""),
       };
     });
   },
@@ -526,6 +522,12 @@ Template.avalonTokenRow.helpers({
   // instead of special casing the current mission and all other missions.
   currentMission(outcome) {
     return outcome === "0";
+  },
+
+  textStyle(outcome) {
+    if (outcome === "0") return "";
+    if (outcome === "success" || outcome === "fail") return "past-mission";
+    return "future-mission";
   },
 });
 

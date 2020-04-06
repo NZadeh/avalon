@@ -175,7 +175,7 @@ This templates requires the following data:
                          alt="Mission Not Yet Run"
                          class="avalon-row-image token-not-finalized"/>
                 {{/if}}
-                <div class="avalon-row-token-text {{outcome.class}}">
+                <div class="avalon-row-token-text {{textStyle outcome.outcome}}">
                     {{tokenTextString
                             outcome.missionCount
                             outcome.needsTwoFails}}
