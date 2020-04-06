@@ -85,9 +85,13 @@ const flatten = function(nestedArray, insertAtArrayBoundary) {
   return flattened;
 };
 
+const numRequiredOnMission = function(inGameInfo) {
+  return inGameInfo.numShouldBeOnProposal();
+};
+
 Template.inGame.helpers({
   numRequiredOnMission: function() {
-    return this.inGameInfo.numShouldBeOnProposal();
+    return numRequiredOnMission(this.inGameInfo);
   },
 
   conditionallyDisabled: function(existingClasses) {
@@ -264,6 +268,22 @@ Template.inGame.helpers({
   shouldShowMissionButton: function() {
     return this.inGameInfo.missionInProgress &&
            this.namesOnProposal.includes(this.known.name);
+  },
+
+  proposerPopupArgs: function() {
+    const num = numRequiredOnMission(this.inGameInfo);
+    return {
+      modalArgs: {
+        uniqueId: "proposer-popup-modal",
+        modalHeader: "You're the proposer!",
+        modalText: `Tap on ${num} player names to add them to your mission ` +
+                   "proposal, then hit the 'Propose' button to let " +
+                   "everyone vote on it.",
+        modalResponseButtons: [
+          { text: "Dismiss" },
+        ],
+      },
+    };
   },
   
   missionButtonArgs: function() {
@@ -507,6 +527,14 @@ Template.avalonTokenRow.helpers({
   currentMission(outcome) {
     return outcome === "0";
   },
+});
+
+Template.proposerPopup.onRendered(function() {
+  // Note, the `triggeredModal` sub-template has already been initialized
+  // by this point. Here we can just open the modal without re-initializing.
+  const modalHtml = document.querySelector(`#${this.data.modalArgs.uniqueId}`);
+  var modal = M.Modal.getInstance(modalHtml);
+  modal.open();
 });
 
 Template.missionVote.onRendered(function() {

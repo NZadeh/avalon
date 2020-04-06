@@ -80,16 +80,9 @@ This templates requires the following data:
                     {{/if}}
                 {{else}}
                     {{#if isProposer}}
-                        <!-- TODO add modal here with pop-up text like what's below
-                             can probably use onRendered inside this block -->
-                        <div class="col s12 flow-text">
-                            <i>
-                                Tap on the players below to select your
-                                mission. Hit "For Arthur!" when done.
-                            </i>
-                        </div>
+                        {{> proposerPopup (proposerPopupArgs) }}
                         {{#wideButton additionalClasses=(conditionallyDisabled "propose")}}
-                            For Arthur! ({{numRequiredOnMission}})
+                            Propose! (Tap {{numRequiredOnMission}})
                         {{/wideButton}}
                     {{/if}}
                 {{/if}}
@@ -191,6 +184,11 @@ This templates requires the following data:
         {{/each}}
     </div>
     <div class="col s1 m1 l2"></div>
+</template>
+
+<!-- A wrapper around triggeredModal. -->
+<template name="proposerPopup">
+    {{> triggeredModal modalArgs }}
 </template>
 
 <!-- A wrapper around `yesNoVote` to allow customizing.
