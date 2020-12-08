@@ -258,6 +258,11 @@ export const InGameInfoHooks = {
   },
 
   afterUpdateInfo(selector, modifier) {
+    // TODO(neemazad): Real life race condition here...
+    // if two updates happen at the same time and both come into this block
+    // thinking they're the final vote or the final mission-play, it can
+    // register proposal votes twice (e.g. "fail" proposals 1.2 and 1.3 in
+    // one go) or pass/fail 2 missions in one go...
     if (_.has(modifier, "$addToSet") && _.has(modifier.$addToSet, "liveVoteTally")) {
       // Use the same selector for the `update` call to find the updated vote tally.
       const updatedInfo = InGameInfo.findOne(selector);

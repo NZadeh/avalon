@@ -96,7 +96,8 @@ explained in the [Materialize documentation](https://materializecss.com/getting-
 
 ## Release process
 I've been using Galaxy to deploy the Meteor app with minimal configuration.
-I separately set up a MongoDB database using mLab's free tier quota.
+I separately set up a MongoDB database using https://cloud.mongodb.com/ free
+tier quota.
 
 There are decent instructions [online](http://galaxy-guide.meteor.com/deploy-quickstart.html),
 but the gist of it is:
@@ -105,12 +106,12 @@ Run `meteor` in the project directory so that the app is built and you can tell 
 you need any other dependencies.
 
 Add a tuple in `<project-directory>/settings.json` so that Meteor can connect to MongoDB using the URL
-that mLab shows, filling in the necessary fields, e.g.:
+that the Atlas database UI shows, filling in the necessary fields, e.g.:
 ```
 {
   "galaxy.meteor.com": {
     "env": {
-      "MONGO_URL": "mongodb://<username>:<password>@<mlab-provided-domain>:<port>/<database-name>"
+      "MONGO_URL": "mongodb+srv://<username>:<password>@<atlas-provided-domain>/<dbname>?retryWrites=true&w=majority"
     }
   }
 }

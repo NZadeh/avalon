@@ -93,50 +93,58 @@ Template.Template_singleGame.helpers({
     const inGameInfo = gameRoom.inGameInfo();
     if (!inGameInfo) { return { inGameReady: false }; }
 
-    const seatingOrderMap = gameRoom.seatingOrderMap();
-    const properlyOrderedPlayerNames = gameRoom.players
+    const seatingOrderMap = inGameInfo.seatingOrderMap();
+    const properlyOrderedPlayers = gameRoom.players
         .sort((player1, player2) => 
-                seatingOrderMap.get(player1._id) - seatingOrderMap.get(player2._id))
-        .map(player => player.username);
-    const absentNames = gameRoom.players
-        .filter(player => player.gone)
-        .map(player => player.username);
+                seatingOrderMap.get(player1._id) - seatingOrderMap.get(player2._id));
 
-    const currentlyProposed = inGameInfo.selectedOnMission.map(id => gameRoom.idToName(id));
+    var playerIdToAllInfoMap = new Map();
+    gameRoom.players.forEach(player => {
+      playerIdToAllInfoMap.set(player._id, /* empty for now */{});
+    });
 
+    // All players on proposal
+    inGameInfo.selectedOnMission.forEach(id => {
+      playerIdToAllInfoMap.get(id).onProposal = true;
+    });
+    // All absent players
+    gameRoom.players.filter(player => player.gone).forEach(player => {
+      playerIdToAllInfoMap.get(player._id).absent = true;
+    })
+    // Mark self (for special rendering)
+    playerIdToAllInfoMap.get(Meteor.userId()).isSelf = true;
+    // Mark proposer
+    playerIdToAllInfoMap.get(inGameInfo.proposer).isProposer = true;
+    // All remaining proposers (including current) + proposal position
+    inGameInfo.remainingProposersForMission().forEach(
+      ({id, proposalNum}) => {
+        var playerInMap = playerIdToAllInfoMap.get(id);
+        playerInMap.mightProposeThisMission = true;
+        playerInMap.proposalPosition = proposalNum;
+    });
+    // All players still needing to act
+    inGameInfo.playersNeedingToAct().forEach(id => {
+      playerIdToAllInfoMap.get(id).isBlocking = true
+    });
+    // Player vote history
     const voteIdToPlayerIdMap = new Map(
           // Invert this map.
           Array.from(inGameInfo.playerIdToVoteHistoryIdMap(),
                      a => a.reverse()));
-    var nameToVotesMap = new Map(); // Fill in a map of string name to vote history arrays.
-
     const allVoteObjects = inGameInfo.allPlayerVoteHistoryCursor().fetch();
     allVoteObjects.forEach(function(voteObject) {
       const voteId = voteObject._id;
       const playerId = voteIdToPlayerIdMap.get(voteId);
-      const playerName = gameRoom.idToName(playerId);
       const missions = voteObject.missions;
 
-      nameToVotesMap.set(playerName, missions);
+      playerIdToAllInfoMap.get(playerId).allVotes = missions;
     });
 
-    const waitingOnNames = inGameInfo.playersNeedingToAct()
-        .map(id => gameRoom.idToName(id));
-
-    const remainingProposerNames = (function() {
-      const players = inGameInfo.playersInGame;
-      const currProposerIndex = players.findIndex(
-          player => player._id == inGameInfo.proposer);
-
-      var names = [];
-      for (let i = currProposerIndex;
-           i <= currProposerIndex + 5 - inGameInfo.currentProposalNumber;
-           ++i) {
-        let index = i % players.length;
-        names.push(gameRoom.idToName(players[index]._id));
-      }
-      return names;
-    })();
+    var orderedNameToAllInfoMap = new Map();
+    properlyOrderedPlayers.forEach(function(player) {
+      const info = playerIdToAllInfoMap.get(player._id);
+      orderedNameToAllInfoMap.set(player.username, info);
+    })
 
     // TODO(neemazad): I think the way names are passed in can probably be better.
     // Maybe unify a map of name to [bits about that name].
@@ -145,21 +153,15 @@ Template.Template_singleGame.helpers({
       title: gameRoom.title,
       ownerId: gameRoom.ownerId,
       roomId: gameRoom._id,
+      isRoomOwner: Permissions.isRoomOwner(gameRoom),
+      isProposer: Meteor.userId() === inGameInfo.proposer,
       known: {
         name: player.username,
         role: secretInfo.roleName,
         info: secretInfo.roleInfo,
       },
-      playerNames: properlyOrderedPlayerNames,
-      absentNames: absentNames,
-      nameToVotesMap: nameToVotesMap,
       roleNames: HelperMethods.roleNamesForNPlayerGame(gameRoom.players.length),
-      isRoomOwner: Permissions.isRoomOwner(gameRoom),
-      isProposer: Meteor.userId() === inGameInfo.proposer,
-      currentProposer: gameRoom.idToName(inGameInfo.proposer),
-      remainingProposerNames: remainingProposerNames,
-      namesOnProposal: currentlyProposed,
-      waitingOnNames: waitingOnNames,
+      orderedNameToAllInfoMap: orderedNameToAllInfoMap,
       // TODO(neemazad): Look to see whether we should pass in specific
       // inGameInfo fields instead of this object, as we're partially doing
       // that already.

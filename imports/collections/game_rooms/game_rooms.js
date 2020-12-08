@@ -117,26 +117,9 @@ GameRooms.helpers({
     return found._id;
   },
 
-  idToName(playerId) {
-    const found = this.players.find(player => player._id == playerId);
-    return found.username;
-  },
-
   inGameInfo() {
     return InGameInfo.findOne({_id: this.inGameInfoId});
   },
-
-  seatingOrderMap() {
-    const gameInfo = this.inGameInfo();
-    if (!gameInfo) { console.log("seatingOrderMap called before inGameInfo was available."); }
-
-    var ordering = new Map();
-    var seatingPosition = 0;
-    gameInfo.playersInGame.map(function(player) {
-      ordering.set(player._id, seatingPosition++);
-    });
-    return ordering;
-  },  
 });
 
 

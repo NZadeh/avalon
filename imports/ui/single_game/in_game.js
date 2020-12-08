@@ -102,12 +102,6 @@ Template.inGame.helpers({
             " disabled");
   },
 
-  numFailsRequired: function() {
-    const number = this.inGameInfo.numFailsRequired();
-    const plural = number != 1 ? "s" : "";
-    return `${number} fail${plural}`;
-  },
-
   computeMissionCounts: function() {
     const playerCount = this.inGameInfo.playersInGame.length;
 
@@ -127,6 +121,7 @@ Template.inGame.helpers({
   },
 
   isGameOver: function() {
+    // TODO: Change to exclude Assassination phase probs... 
     return this.inGameInfo.isGameOverState();
   },
 
@@ -139,8 +134,6 @@ Template.inGame.helpers({
   },
 
   playersList: function() {
-    const capturedThis = this;
-
     const cellBackgroundColor = function(onProposal, renderingSelf) {
       if (onProposal) return "green lighten-4";
       return "grey lighten-4";
@@ -165,11 +158,11 @@ Template.inGame.helpers({
       return "";
     };
 
-    // Name order information is controlled from above. Keep it.
-    return this.playerNames.map(function(name) {
-      const onProposal = capturedThis.namesOnProposal.includes(name);
-      const isAbsent = capturedThis.absentNames.includes(name);
-      const renderingSelf = name === capturedThis.known.name; 
+    // Name order information is controlled by the order in this map.
+    return Array.from(this.orderedNameToAllInfoMap, ([name, nameInfo]) => {
+      const onProposal = nameInfo.onProposal;
+      const isAbsent = nameInfo.absent;
+      const renderingSelf = nameInfo.isSelf;
       const cellColor = cellBackgroundColor(onProposal, renderingSelf);
       const textColor = cellTextColor(onProposal, renderingSelf);
       const textEmphasis = cellTextEmphasis(onProposal, renderingSelf);
@@ -177,26 +170,24 @@ Template.inGame.helpers({
 
       const formatting = `${cellColor} ${textColor} ${textEmphasis} ${zDepth}`;
 
-      const allVotes = capturedThis.nameToVotesMap.get(name);
+      const allVotes = nameInfo.allVotes;
       const prevVoteObj = lastElemOfLastArray(allVotes);
       const prevState = {
         hasPrevVote: prevVoteObj != undefined,
         prevVote: prevVoteObj ? prevVoteObj.vote : undefined,
         onPrevProposal: prevVoteObj ? prevVoteObj.wasOnProposal : undefined,
       };
-      const remainingProposerNames = capturedThis.remainingProposerNames;
 
       return {
         name: name,
-        proposing: name === capturedThis.currentProposer,
-        mightProposeThisMission: remainingProposerNames.includes(name),
-        proposalPosition: capturedThis.inGameInfo.currentProposalNumber +
-                          remainingProposerNames.indexOf(name),
+        proposing: nameInfo.isProposer,
+        mightProposeThisMission: nameInfo.mightProposeThisMission,
+        proposalPosition: nameInfo.proposalPosition,
         onProposal: onProposal,
         absent: isAbsent,
         materializeFormatting: formatting,
         prevState: prevState,
-        needsToAct: capturedThis.waitingOnNames.includes(name),
+        needsToAct: nameInfo.isBlocking,
       };
     });
   },
@@ -207,9 +198,9 @@ Template.inGame.helpers({
   },
 
   gameHistoryArgs: function() {
-    // TODO(neemazad): Implement collapsing vote history... (to show
-    // only finished missions and current mission proposals)
-    const exampleVoteHistory = this.nameToVotesMap.values().next().value;
+    // TODO(neemazad): For fairness, maybe only show a collapsed vote history:
+    // only finished missions and current mission proposals
+    const exampleVoteHistory = this.orderedNameToAllInfoMap.values().next().value.allVotes;
     // We are going to "insert" fake "votes" that signify mission outcomes.
     const voteLikeSuccessesFails = this.inGameInfo.missionOutcomes.map(
         outcome => ({
@@ -229,19 +220,13 @@ Template.inGame.helpers({
         deduceNecessaryHeaders(exampleVoteHistory, voteLikeSuccessesFails));
     
     var rows = [];
-    const capturedNameToVotesMap = this.nameToVotesMap;
-    const currentProposalNumber = this.inGameInfo.currentProposalNumber;
-    const remainingProposerNames = this.remainingProposerNames;
-
     // Render history in player order.
-    this.playerNames.forEach(function(name) {
-      const voteHistory = capturedNameToVotesMap.get(name);
-
+    this.orderedNameToAllInfoMap.forEach(function(allInfo, name) {
       rows.push({
         username: name,
-        mightProposeThisMission: remainingProposerNames.includes(name),
-        proposalPosition: currentProposalNumber + remainingProposerNames.indexOf(name),
-        flattenedVoteHistory: flatten(voteHistory, voteLikeSuccessesFails),
+        mightProposeThisMission: allInfo.mightProposeThisMission,
+        proposalPosition: allInfo.proposalPosition,
+        flattenedVoteHistory: flatten(allInfo.allVotes, voteLikeSuccessesFails),
       });
     });
     return {
@@ -252,7 +237,7 @@ Template.inGame.helpers({
 
   proposalButtonArgs: function() {
     var additionalClasses = "vote-proposal";
-    if (!this.waitingOnNames.includes(this.known.name)) {
+    if (!this.orderedNameToAllInfoMap.get(this.known.name).isBlocking) {
       additionalClasses += ` ${HelperConstants.kDisabledButtonClass}`;
     }
 
@@ -267,7 +252,7 @@ Template.inGame.helpers({
 
   shouldShowMissionButton: function() {
     return this.inGameInfo.missionInProgress &&
-           this.namesOnProposal.includes(this.known.name);
+           this.orderedNameToAllInfoMap.get(this.known.name).onProposal;
   },
 
   proposerPopupArgs: function() {
@@ -288,7 +273,7 @@ Template.inGame.helpers({
   
   missionButtonArgs: function() {
     var additionalClasses = "mission-proposal";
-    if (!this.waitingOnNames.includes(this.known.name)) {
+    if (!this.orderedNameToAllInfoMap.get(this.known.name).isBlocking) {
       additionalClasses += ` ${HelperConstants.kDisabledButtonClass}`;
     }
 
@@ -362,6 +347,9 @@ Template.inGame.events({
 
     var roomId = tmpl.data.roomId;
     var listTemplate = e.currentTarget;
+    // TODO(neemazad): There could be some weirdness here if a player
+    // edits the HTML via developer console... (shouldn't be able to
+    // break the game, though, I don't think...)
     var playerName = listTemplate.getElementsByClassName("username")[0].innerText;
 
     // Return early if this is not the proposer.

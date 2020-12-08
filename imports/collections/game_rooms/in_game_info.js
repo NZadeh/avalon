@@ -11,6 +11,12 @@ class InGameInfoCollection extends Mongo.Collection {
   }
 
   update(selector, modifier) {
+    // TODO(neemazad): Can we atomically check the update hook condition here?
+    // Or add a reveal button when everyone has voted to bring a slow human
+    // into the loop after the client sees everyone has voted on a proposal
+    // or put in their mission success/fails...
+    // (Otherwise, there is a race condition where we might update proposal
+    // or mission progress twice.)
     const result = super.update(selector, modifier);
     InGameInfoHooks.afterUpdateInfo(selector, modifier);
     return result;
@@ -222,6 +228,43 @@ InGameInfo.helpers({
     return HelperMethods.numFailsRequired(
         this.playersInGame.length,
         this.currentMissionNumber);
+  },
+
+  // ASSUMPTION: The player order in the database is the player order for
+  // the game.
+  seatingOrderMap() {
+    var ordering = new Map();
+    var seatingPosition = 0;
+    this.playersInGame.map(function(player) {
+      ordering.set(player._id, seatingPosition++);
+    });
+    return ordering;
+  },  
+
+  // Returns an array of { id: playerId, proposalNum : proposalNumber }
+  // objects, where the playerIds belong to the players who are
+  // proposing/might still propose for this current mission.
+  //
+  // ASSUMPTION: The player order in the database is the player order for
+  // the game. (Matches `seatingOrderMap()`'s logic)
+  remainingProposersForMission() {
+    // Assumption is that player order in `this` is the ground truth for
+    // player order.
+    const players = this.playersInGame;
+    const currProposerIndex = players.findIndex(
+        player => player._id == this.proposer);
+
+    var ids = [];
+    for (let i = currProposerIndex;
+         (i <= currProposerIndex + 5 - this.currentProposalNumber) &&
+         (i < currProposerIndex + players.length);
+         ++i) {
+      let proposer = players[i % players.length];
+      let proposalNumber = this.currentProposalNumber + ids.length;
+
+      ids.push({ id: proposer._id, proposalNum: proposalNumber });
+    }
+    return ids;
   },
 
   missionSuccessFailCounts() {
