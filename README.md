@@ -19,7 +19,7 @@ starts.
 There's a simple registration system. Users type in
 a unique username and (hopefully unique :) password to log in.
 
-NOTE: Currently, accounts are wiped after 6 days.
+NOTE: Currently, accounts are wiped 6 days after creation.
 
 ### Game Rooms
 Game rooms are either password protected or they're not. In order to
@@ -31,7 +31,7 @@ gives them the power to start the game and delete the game room. If they
 leave the game room, another user is randomly chosen to be the room's
 owner.
 
-NOTE: Game rooms are wiped after 4 hours.
+NOTE: Game rooms are wiped 12 hours after creation.
 
 ## Game Play
 Once the room owner starts the game, everyone will receive a role based
