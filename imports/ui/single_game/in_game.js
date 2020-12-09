@@ -34,17 +34,26 @@ const lastElemOfLastArray = function(nestedArray) {
   return undefined;
 };
 
-// Anonymous helper to create ["1.1", "1.2", ..., "3.4"].
+// Anonymous helper to create ["1.4", "2.2", "3.1", "3.2", "3.3", "3.4"]
+// if the game has had two missions pass (1 @ proposal 4, 2 @ proposal 2)
+// and is 4 proposals into mission 3.
 const deduceNecessaryHeaders = function(voteHistory, successesFails) {
   var headers = [];
-  var mission = 1;
-  voteHistory.forEach(function(proposalVotes) {
-    for (let proposalNum = 1; proposalNum <= proposalVotes.length; ++proposalNum) {
-      headers.push(`${mission}.${proposalNum}`);
+  voteHistory.forEach(function(proposalVotes, index, voteHistory) {
+    mission = index + 1;  // 1-based counting for mission numbers.
+
+    if (index < voteHistory.length - 1) {
+      headers.push(`${mission}.${proposalVotes.length}`);
+    } else {
+      for (let proposalNum = 1;
+           proposalNum <= proposalVotes.length;
+           ++proposalNum) {
+        headers.push(`${mission}.${proposalNum}`);
+      }
     }
+
     // A header for the mission result.
-    if (successesFails.length > mission - 1) headers.push(`${mission}.*`);
-    mission++;
+    if (index < successesFails.length) headers.push(`${mission}.*`);
   });
   return headers;
 };
@@ -55,33 +64,25 @@ const booleanArrayOf = function(numTrue, numFalse) {
              .fill(false, numTrue, numTrue + numFalse);
 };
 
-const flatten = function(nestedArray, insertAtArrayBoundary) {
-  function flattenHelper(nestedArray, insertAtArrayBoundary, output) {
-    // Base case
-    if (!(nestedArray instanceof Array)) {
-      output.push(nestedArray);
-      return;
-    }
-
-    // Still unnesting
-    nestedArray.forEach(function(maybeNestedArray, index) {
-      flattenHelper(
-        maybeNestedArray,
-        insertAtArrayBoundary ? insertAtArrayBoundary[index] : undefined,
-        output);
-    });
-
-    // "1-level-above-base-case" where we need to append an element after
-    // unnesting and calling all of the single-element base cases on a flat
-    // array.
-    if (insertAtArrayBoundary != undefined && 
-        !(insertAtArrayBoundary instanceof Array)) {
-      output.push(insertAtArrayBoundary);
-    }
-  };
-
+// NOTE: Needs to stay in sync with deduceNecessaryHeaders.
+// Grabs the last element of each array that isn't the last.
+// Consecutively inserts an element of the second array between each.
+// Appends all the elements of the last array.
+const collapsedVoteHistory = function(arrOfArr, insertAtArrayBoundary) {
   var flattened = [];
-  flattenHelper(nestedArray, insertAtArrayBoundary, flattened);
+
+  arrOfArr.forEach(function(arr, index, arrOfArr) {
+    if (index < arrOfArr.length - 1) {
+      flattened.push(arr[arr.length - 1]);
+    } else {
+      flattened.push(...arr);
+    }
+
+    if (index < insertAtArrayBoundary.length) {
+      flattened.push(insertAtArrayBoundary[index])
+    }
+  });
+
   return flattened;
 };
 
@@ -198,8 +199,6 @@ Template.inGame.helpers({
   },
 
   gameHistoryArgs: function() {
-    // TODO(neemazad): For fairness, maybe only show a collapsed vote history:
-    // only finished missions and current mission proposals
     const exampleVoteHistory = this.orderedNameToAllInfoMap.values().next().value.allVotes;
     // We are going to "insert" fake "votes" that signify mission outcomes.
     const voteLikeSuccessesFails = this.inGameInfo.missionOutcomes.map(
@@ -226,7 +225,8 @@ Template.inGame.helpers({
         username: name,
         mightProposeThisMission: allInfo.mightProposeThisMission,
         proposalPosition: allInfo.proposalPosition,
-        flattenedVoteHistory: flatten(allInfo.allVotes, voteLikeSuccessesFails),
+        flattenedVoteHistory: collapsedVoteHistory(allInfo.allVotes,
+                                                   voteLikeSuccessesFails),
       });
     });
     return {
