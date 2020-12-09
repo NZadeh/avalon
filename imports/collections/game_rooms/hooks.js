@@ -257,14 +257,11 @@ export const InGameInfoHooks = {
     return inGameInfo;
   },
 
-  afterUpdateInfo(selector, modifier) {
-    // TODO(neemazad): Real life race condition here...
-    // if two updates happen at the same time and both come into this block
-    // thinking they're the final vote or the final mission-play, it can
-    // register proposal votes twice (e.g. "fail" proposals 1.2 and 1.3 in
-    // one go) or pass/fail 2 missions in one go...
-    if (_.has(modifier, "$addToSet") && _.has(modifier.$addToSet, "liveVoteTally")) {
-      // Use the same selector for the `update` call to find the updated vote tally.
+  afterUpdateInfo(selector, modifier, preUpdateData) {
+    if (_.has(modifier, "$addToSet") &&
+        _.has(modifier.$addToSet, "liveVoteTally")) {
+      // Use the same selector for the `update` call to find the updated
+      // proposal vote tally.
       const updatedInfo = InGameInfo.findOne(selector);
       if (updatedInfo.liveVoteTally.length >= updatedInfo.playersInGame.length) {
         const updates = calculateConditionalProposalUpdates(updatedInfo);
@@ -284,17 +281,32 @@ export const InGameInfoHooks = {
           InGameInfo.update(selector, { $set: { gamePhase: "spiesWin" } });
         } else {
           // Proposal passes on to the next person...
-          InGameInfo.update(selector, {
-            $inc: { currentProposalNumber: 1 },
-            $set: { 
-              proposer: updates.nextProposerId,
-              selectedOnMission: [/*cleared*/],
+          // NOTE: this is a non-idempotent operation -- we need to make sure
+          // that the document being updated matches the expected criteria to
+          // avoid a race condition where we run the operation twice.
+          // (The `update` itself is guaranteed atomic by MongoDB).
+          //
+          // NOTE: for this operation, we know we are updating only a single
+          // InGameInfo, so we grab the first (and only) preUpdateData.
+          InGameInfo.update(
+            {
+              ...selector,
+              ...{ currentProposalNumber: preUpdateData[0].proposalNum },
             },
-          });
+            {
+              $inc: { currentProposalNumber: 1 },
+              $set: { 
+                proposer: updates.nextProposerId,
+                selectedOnMission: [/*cleared*/],
+              },
+            }
+          );
         }
       }
-    } else if (_.has(modifier, "$addToSet") && _.has(modifier.$addToSet, "liveMissionTally")) {
-      // Use the same selector for the `update` call to find the updated vote tally.
+    } else if (_.has(modifier, "$addToSet") &&
+               _.has(modifier.$addToSet, "liveMissionTally")) {
+      // Use the same selector for the `update` call to find the updated
+      // mission vote tally.
       const updatedInfo = InGameInfo.findOne(selector);
       if (updatedInfo.liveMissionTally.length >= updatedInfo.numShouldBeOnProposal()) {
         const updates = calculateConditionalMissionUpdates(updatedInfo);
@@ -304,43 +316,68 @@ export const InGameInfoHooks = {
           fails: updates.numFails,
           playerIdsOnMission: updates.playerIdsOnMission,
         };
+        const playersInGame = updatedInfo.playersInGame;
+
+        // NOTE: all operations below this line are non-idempotent -- we need
+        // to make sure that the document being updated matches the expected
+        // criteria to avoid a race condition where we run the operation twice.
+        // (The `update` itself is guaranteed atomic by MongoDB).
 
         // Always update these, whether the game is over or not.
-        InGameInfo.update(selector, {
-          $push: { missionOutcomes: missionOutcomeUpdate},
-          $set: {
-            selectedOnMission: [/*cleared*/],
-            missionInProgress: false,
-            liveMissionTally: [/*cleared*/],
-            gamePhase: updates.newPhase,
+        InGameInfo.update(
+          {
+            ...selector,
+            ...{ missionInProgress: true },
           },
-        });
+          {
+            $push: { missionOutcomes: missionOutcomeUpdate},
+            $set: {
+              selectedOnMission: [/*cleared*/],
+              missionInProgress: false,
+              liveMissionTally: [/*cleared*/],
+              gamePhase: updates.newPhase,
+            },
+          }
+        );
 
         if (updates.newPhase === "inProgress") {
-          InGameInfo.update(selector, {
-            $inc: { currentMissionNumber: 1 },
-            // Note that this set should also trigger the branch below to
-            // update VoteHistory as need be...
-            $set: {
-              currentProposalNumber: 1,
-              proposer: updates.nextProposerId,
+          // NOTE: for this operation, we know we are updating only a single
+          // InGameInfo, so we grab the first (and only) preUpdateData.
+          const numMatched = InGameInfo.update(
+            {
+              ...selector,
+              ...{ currentMissionNumber: preUpdateData[0].missionNum },
             },
-          });
+            {
+              $inc: { currentMissionNumber: 1 },
+              $set: {
+                currentProposalNumber: 1,
+                proposer: updates.nextProposerId,
+              },
+            }
+          );
+          
+          // RACE CONDITION!
+          //
+          // numMatched > 0 implies that the update selector found the
+          // InGameInfo to update, with the correct mission number.
+          //
+          // numMatched === 0 implies that the update selector did not find
+          // any docs, which implies that a previous run of the code already
+          // incremented the mission number.
+          //
+          // In the latter case, we prevent a duplicate-run of this code with
+          // this matched-check.
+          if (numMatched > 0) {
+            // Prepare the vote history for the new mission.
+            playersInGame.forEach(player => {
+              VoteHistory.update({_id: player.voteHistoryId}, {
+                $push: {missions: []}, 
+              });
+            });
+          }
         }
       }
-    } else if (_.has(modifier, "$set") &&
-               _.has(modifier.$set, "currentProposalNumber") &&
-               modifier.$set.currentProposalNumber === 1) {
-      const updatedInfo = InGameInfo.findOne(selector);
-      // Note: the assumption here is that whenever the proposal number is set
-      // to 1, we need to create a "mission" array for VoteHistory...
-      // Note: when the game is created, `beforeInsertInfo` handles creating
-      // the first empty "mission" array.
-      updatedInfo.playersInGame.map(function(player) {
-        VoteHistory.update({_id: player.voteHistoryId}, {
-          $push: {missions: []}, 
-        });
-      });
     }
   },
 

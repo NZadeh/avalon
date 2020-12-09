@@ -4,6 +4,17 @@ import SimpleSchema from 'simpl-schema';
 import { HelperMethods } from '/imports/collections/game_rooms/methods_helper';
 import { InGameInfoHooks } from '/imports/collections/game_rooms/hooks.js';
 
+// Returns an array of some attributes of the InGameInfo objects that can be
+// added to the query selector to make sure that, if the database is updated
+// by another thread/client in the interim, the query will no longer match and
+// will *not* duplicate a non-idempotent operation.
+const raceConditionPrevention = function(inGameInfos) {
+  return inGameInfos.map(info => ({
+    proposalNum: info.currentProposalNumber,
+    missionNum: info.currentMissionNumber,
+  }));
+};
+
 class InGameInfoCollection extends Mongo.Collection {
   insert(inGameInfo, callback) {
     const updatedInfo = InGameInfoHooks.beforeInsertInfo(inGameInfo);
@@ -11,14 +22,10 @@ class InGameInfoCollection extends Mongo.Collection {
   }
 
   update(selector, modifier) {
-    // TODO(neemazad): Can we atomically check the update hook condition here?
-    // Or add a reveal button when everyone has voted to bring a slow human
-    // into the loop after the client sees everyone has voted on a proposal
-    // or put in their mission success/fails...
-    // (Otherwise, there is a race condition where we might update proposal
-    // or mission progress twice.)
+    const infos = this.find(selector).fetch();
+    const preUpdateData = raceConditionPrevention(infos);
     const result = super.update(selector, modifier);
-    InGameInfoHooks.afterUpdateInfo(selector, modifier);
+    InGameInfoHooks.afterUpdateInfo(selector, modifier, preUpdateData);
     return result;
   }
 
