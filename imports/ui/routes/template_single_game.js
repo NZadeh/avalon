@@ -146,8 +146,6 @@ Template.Template_singleGame.helpers({
       orderedNameToAllInfoMap.set(player.username, info);
     })
 
-    // TODO(neemazad): I think the way names are passed in can probably be better.
-    // Maybe unify a map of name to [bits about that name].
     return {
       inGameReady: instance.subscriptionsReady(),
       title: gameRoom.title,
