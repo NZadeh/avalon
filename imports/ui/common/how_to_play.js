@@ -1,5 +1,7 @@
 import './how_to_play.html';
 
+import { HelperConstants } from '/imports/collections/game_rooms/constants';
+
 const kHowToPlayModalId = "how-to-play-modal";
 const kHowToPlayModalName = "Role Info";
 
@@ -45,7 +47,6 @@ Template.howToPlayTabs.helpers({
   },
 
   tabs() {
-    // TODO(neemazad): Use names from methods_helper.js instead of hard-coding...?
     return [
       {
         name: "Basics",
@@ -68,7 +69,7 @@ Template.howToPlayTabs.helpers({
       },
 
       {
-        name: "Merlin",
+        name: HelperConstants.kMerlin,
         color: "blue lighten-5",
         content: {
           introduction: "Merlin is a Loyal Servant (on the Resistance).",
@@ -90,7 +91,7 @@ Template.howToPlayTabs.helpers({
       },
 
       {
-        name: "Percival",
+        name: HelperConstants.kPercival,
         color: "blue lighten-5",
         content: {
           introduction: "Percival is a Loyal Servant (on the Resistance).",
@@ -107,7 +108,7 @@ Template.howToPlayTabs.helpers({
       },
 
       {
-        name: "Morgana",
+        name: HelperConstants.kMorgana,
         color: "red lighten-5",
         content: {
           introduction: "Morgana is a Minion of Mordred (a Spy).",
@@ -124,7 +125,7 @@ Template.howToPlayTabs.helpers({
       },
 
       {
-        name: "Assassin",
+        name: HelperConstants.kAssassin,
         color: "red lighten-5",
         content: {
           introduction: "Assassin is a Minion of Mordred (a Spy).",
@@ -139,7 +140,7 @@ Template.howToPlayTabs.helpers({
       },
 
       {
-        name: "Loyal Servant",
+        name: HelperConstants.kLoyal,
         color: "blue lighten-5",
         content: {
           introduction: "Loyal Servant is... a Loyal Servant (on the Resistance).",
@@ -155,7 +156,7 @@ Template.howToPlayTabs.helpers({
       },
 
       {
-        name: "Oberon",
+        name: HelperConstants.kOberon,
         color: "red lighten-5",
         content: {
           introduction: "Oberon is a Minion of Mordred (a Spy).",
@@ -168,7 +169,7 @@ Template.howToPlayTabs.helpers({
       },
 
       {
-        name: "Minion of Mordred",
+        name: HelperConstants.kMinion,
         color: "red lighten-5",
         content: {
           introduction: "Minion of Mordred is... a Minion of Mordred (a Spy).",

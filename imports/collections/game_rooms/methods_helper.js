@@ -3,12 +3,12 @@ import { HelperConstants } from '/imports/collections/game_rooms/constants';
 import { InGameInfo } from '/imports/collections/game_rooms/in_game_info.js';
 
 const kMerlin = HelperConstants.kMerlin;
-const kPercival = "Percival";
-const kMorgana = "Morgana";
-const kAssassin = "Assassin";
-const kLoyal = "Loyal Servant";
-const kOberon = "Oberon";
-const kMinion = "Minion of Mordred";
+const kPercival = HelperConstants.kPercival;
+const kMorgana = HelperConstants.kMorgana;
+const kAssassin = HelperConstants.kAssassin;
+const kLoyal = HelperConstants.kLoyal;
+const kOberon = HelperConstants.kOberon;
+const kMinion = HelperConstants.kMinion;
 
 const kResistance = HelperConstants.kResistance;
 const kSpies = HelperConstants.kSpy;
@@ -73,10 +73,10 @@ class Oberon extends Spy {
 // size increases.
 const kOrderedRolesArray = [
   new Merlin(),
-  new Percival(),
-  new Morgana(),
   new Assassin(),
+  new Percival(),
   new Resistance(),
+  new Morgana(),
   new Resistance(),
   new Oberon(),
   new Resistance(),
@@ -297,7 +297,7 @@ export const HelperMethods = {
   /**
    * Return value should be directly insertible into the InGameInfo collection.
    */
-  generateStartingInGameInfo(inRoomPlayers, previousMerlinId) {
+  generateStartingInGameInfo(inRoomPlayers, previousMerlinId, roomId) {
     const playerIds = inRoomPlayers.map(function(player) {
       // NOTE: Vote info initialization is handled by InGameInfo collection.
       return {_id: player._id};
@@ -310,18 +310,18 @@ export const HelperMethods = {
     const proposerId = shuffledIds[0]._id;
 
     return {
+        gameRoomId: roomId,
         playersInGame: shuffledIds,
         missionCounts: missionCountsForNPlayers(inRoomPlayers.length),
         currentMissionNumber: 1,
         currentProposalNumber: 1,
         proposer: proposerId,
         selectedOnMission: [/*nobody yet*/],
-        proposalVoteInProgress: /*no proposal yet*/false,
+        selectedForAssassination: [/*nobody yet*/],
         liveVoteTally: [/*starts empty*/],
-        missionInProgress: /*no mission yet*/false,
         liveMissionTally: [/*starts empty*/],
         missionOutcomes: [/*none yet*/],
-        gamePhase: "inProgress",
+        gamePhase: "proposalInProgress",
     };
   },
 };

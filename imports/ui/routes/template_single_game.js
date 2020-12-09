@@ -107,6 +107,10 @@ Template.Template_singleGame.helpers({
     inGameInfo.selectedOnMission.forEach(id => {
       playerIdToAllInfoMap.get(id).onProposal = true;
     });
+    // All players on assassination list
+    inGameInfo.selectedForAssassination.forEach(id => {
+      playerIdToAllInfoMap.get(id).onAssassinationList = true;
+    });
     // All absent players
     gameRoom.players.filter(player => player.gone).forEach(player => {
       playerIdToAllInfoMap.get(player._id).absent = true;
@@ -153,6 +157,7 @@ Template.Template_singleGame.helpers({
       roomId: gameRoom._id,
       isRoomOwner: Permissions.isRoomOwner(gameRoom),
       isProposer: Meteor.userId() === inGameInfo.proposer,
+      isAssassin: inGameInfo.isKnownAssassin(Meteor.userId()),
       known: {
         name: player.username,
         role: secretInfo.roleName,

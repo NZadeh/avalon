@@ -161,7 +161,7 @@ export const startGame = new ValidatedMethod({
     const previousMerlinId = ServerSecrets.assignRoles(inRoomPlayers, roomId);
 
     const inGameInfo = HelperMethods.generateStartingInGameInfo(
-        inRoomPlayers, previousMerlinId);
+        inRoomPlayers, previousMerlinId, roomId);
     const inGameId = InGameInfo.insert(inGameInfo);
     GameRooms.update({_id: roomId}, { $set: { inGameInfoId: inGameId } });
     return { success: true };
@@ -256,17 +256,17 @@ export const toggleOnProposal = new ValidatedMethod({
     const playerId = room.nameToId(playerName);
 
     if (existingInfo.isGameOverState()) {
-      return { gameOver: true};
+      return { gameOver: true };
     }
 
     // this.userId is the ID of the method's caller.
     if (this.userId != existingInfo.proposer) {
-      return { notProposer: true};
+      return { notProposer: true };
     }
     if (!room.includesUserId(playerId)) {
       return { playerNotInRoom: true };
     }
-    if (existingInfo.missionInProgress) {
+    if (existingInfo.gamePhase === "missionInProgress") {
       return { missionAlreadyInProgress: true };
     }
 
@@ -275,10 +275,10 @@ export const toggleOnProposal = new ValidatedMethod({
     // way for now...
     if (existingInfo.selectedOnMission.includes(playerId)) {
       InGameInfo.update({_id: room.inGameInfoId},
-        { $pull: { selectedOnMission: playerId }});
+        { $pull: { selectedOnMission: playerId } });
     } else {
       InGameInfo.update({_id: room.inGameInfoId},
-        { $addToSet: { selectedOnMission: playerId }});
+        { $addToSet: { selectedOnMission: playerId } });
     }
 
     return { success: true };
@@ -307,7 +307,7 @@ export const finalizeProposal = new ValidatedMethod({
     if (this.userId != existingInfo.proposer) {
       return { notProposer: true};
     }
-    if (existingInfo.proposalVoteInProgress) {
+    if (existingInfo.gamePhase === "proposalVoteInProgress") {
       return { voteAlreadyInProgress: true };
     }
 
@@ -319,7 +319,7 @@ export const finalizeProposal = new ValidatedMethod({
     }
 
     InGameInfo.update({_id: room.inGameInfoId},
-      { $set: { proposalVoteInProgress: true }});
+      { $set: { gamePhase: "proposalVoteInProgress" }});
 
     return { success: true };
   },
@@ -349,7 +349,7 @@ export const voteOnProposal = new ValidatedMethod({
       return { playerNotInRoom: true };
     }
 
-    if (!existingInfo.proposalVoteInProgress) {
+    if (existingInfo.gamePhase !== "proposalVoteInProgress") {
       return { proposalNotFinalized: true };
     }
 
@@ -404,7 +404,7 @@ export const voteOnMission = new ValidatedMethod({
       return { playerNotInRoom: true };
     }
 
-    if (!existingInfo.missionInProgress) {
+    if (existingInfo.gamePhase !== "missionInProgress") {
       return { missionNotFinalized: true };
     }
 
@@ -449,6 +449,91 @@ export const voteOnMission = new ValidatedMethod({
     // so we don't need to handle that here.
 
     return { success: true };  // TODO(neemazad): maybe return vote as read from db?
+  },
+});
+
+export const toggleOnAssassinationList = new ValidatedMethod({
+  name: 'avalon.toggleOnAssassinationList',
+
+  validate: new SimpleSchema({
+    roomId: {
+      type: String,
+      regEx: SimpleSchema.RegEx.Id,
+    },
+    playerName: String,
+  }).validator(),
+
+  run({ roomId, playerName }) {
+    const room = GameRooms.findOne(roomId);
+    const existingInfo = room.inGameInfo();
+    const playerId = room.nameToId(playerName);
+
+    if (existingInfo.isGameOverState()) {
+      return { gameOver: true };
+    }
+
+    // this.userId is the ID of the method's caller.
+    if (!existingInfo.isKnownAssassin(this.userId)) {
+      return { notAssassin: true };
+    }
+    if (!room.includesUserId(playerId)) {
+      return { playerNotInRoom: true };
+    }
+    if (existingInfo.gamePhase !== "assassinationPhase") {
+      return { notAssassinationPhase: true };
+    }
+
+    // There might be a more concise phrasing where we can conditionally
+    // give the selector $pull or $push, but not sure how. Do the long form
+    // way for now...
+    if (existingInfo.selectedForAssassination.includes(playerId)) {
+      InGameInfo.update({_id: room.inGameInfoId},
+        { $pull: { selectedForAssassination: playerId } });
+    } else {
+      InGameInfo.update({_id: room.inGameInfoId},
+        { $addToSet: { selectedForAssassination: playerId } });
+    }
+
+    return { success: true };
+  },
+});
+
+export const finalizeAssassination = new ValidatedMethod({
+  name: 'avalon.finalizeAssassination',
+
+  validate: new SimpleSchema({
+    roomId: {
+      type: String,
+      regEx: SimpleSchema.RegEx.Id,
+    },
+  }).validator(),
+
+  run({ roomId }) {
+    const room = GameRooms.findOne(roomId);
+    const existingInfo = room.inGameInfo();
+
+    if (existingInfo.isGameOverState()) {
+      return { gameOver: true};
+    }
+
+    // this.userId is the ID of the method's caller.
+    if (!existingInfo.isKnownAssassin(this.userId)) {
+      return { notAssassin: true };
+    }
+    if (existingInfo.gamePhase !== "assassinationPhase") {
+      return { notAssassinationPhase: true };
+    }
+
+    const numOnList = existingInfo.numCurrentlyOnAssassinationList();
+    if (numOnList !== 1) {
+      return { incorrectNumPlayers: numOnList, needs: 1};
+    }
+
+    // Let the database code handle the implementation of this logic... :)
+    InGameInfo.update({_id: room.inGameInfoId},
+      { $set: { gamePhase: "resolveAssassination" }});
+
+    return { success: true };
   },
 });
 

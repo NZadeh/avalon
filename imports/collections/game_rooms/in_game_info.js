@@ -1,6 +1,7 @@
 import { Mongo } from 'meteor/mongo';
 import SimpleSchema from 'simpl-schema';
 
+import { HelperConstants } from '/imports/collections/game_rooms/constants';
 import { HelperMethods } from '/imports/collections/game_rooms/methods_helper';
 import { InGameInfoHooks } from '/imports/collections/game_rooms/hooks.js';
 
@@ -50,7 +51,11 @@ InGameInfo.schema = new SimpleSchema({
   _id: {
     type: String,
     regEx: SimpleSchema.RegEx.Id,
-  },  
+  },
+  gameRoomId: {
+    type: String,
+    regEx: SimpleSchema.RegEx.Id,
+  },
 
   // Note that the order here, as opposed to in GameRooms, is what dicatates
   // the seating order.
@@ -67,6 +72,11 @@ InGameInfo.schema = new SimpleSchema({
   'playersInGame.$.voteHistoryId': {
     type: String,
     regEx: SimpleSchema.RegEx.Id,
+  },
+  'playersInGame.$.roleIfRevealed': {
+    optional: true,
+    type: String,
+    allowedValues: HelperConstants.kAllowedRoleNames,
   },
   
   missionCounts: {
@@ -99,8 +109,6 @@ InGameInfo.schema = new SimpleSchema({
 
   selectedOnMission: {
     type: Array,
-    minCount: 0,  // A proposal starts empty...
-    maxCount: 5,  // and can contain up to 5.
   },
   'selectedOnMission.$': {
     // should be a subset of playersInGame ids.
@@ -108,9 +116,15 @@ InGameInfo.schema = new SimpleSchema({
     regEx: SimpleSchema.RegEx.Id,
   },
 
-  // True iff a proposal has been finalized and everyone is in the process
-  // of voting approve/reject.
-  proposalVoteInProgress: Boolean,
+  selectedForAssassination: {
+    type: Array,
+  },
+  'selectedForAssassination.$': {
+    // should be a subset of playersInGame ids.
+    type: String,
+    regEx: SimpleSchema.RegEx.Id,
+  },
+
   // Cleared after each round when written to individual player history.
   // Used to determine when voting is done...
   // TODO(neemazad): Hide the votes field in the subscription, somehow.
@@ -129,9 +143,6 @@ InGameInfo.schema = new SimpleSchema({
   },
   'liveVoteTally.$.vote': Boolean,
 
-  // True iff a proposal got the necessary votes (approves > rejects),
-  // and we are still waiting for on-mission people to play success/fail.
-  missionInProgress: Boolean,
   // Cleared after each mission when written to history.
   // Used to determine when succeeding/failing is done...
   // TODO(neemazad): Hide the votes field in the subscription, somehow.
@@ -171,13 +182,18 @@ InGameInfo.schema = new SimpleSchema({
     regEx: SimpleSchema.RegEx.Id,
   },
 
-  // TODO(neemazad): Collapse mission/vote in progress into this "enum"
+  // TODO(neemazad): Make these "enum values" constants. Replace string
+  // literals everywhere with those constants.
   gamePhase: {
     type: String,
     allowedValues: [
-      'inProgress',
-      'spiesWin',
+      'proposalInProgress',
+      'proposalVoteInProgress',
+      'missionInProgress',
+      'spiesWinOnFails',
       'assassinationPhase',
+      'resolveAssassination',  // internal-only phase
+      'spiesWinInAssassination',
       'resistanceWin',
     ],
   },
@@ -188,6 +204,15 @@ InGameInfo.attachSchema(InGameInfo.schema);
 // Returns arrayA - arrayB.
 const setDifference = function(arrayA, arrayB) {
   return arrayA.filter(elem => !arrayB.includes(elem));
+};
+
+const assassinIdOrUndefined = function(inGameInfo) {
+  const maybeAssassin =
+      inGameInfo.playersInGame.find(
+          player => player.roleIfRevealed === HelperConstants.kAssassin);
+
+  if (!maybeAssassin) return undefined;
+  return maybeAssassin._id;
 };
 
 // See https://guide.meteor.com/collections.html#collection-helpers for info.
@@ -205,22 +230,31 @@ InGameInfo.helpers({
   },
 
   playersNeedingToAct() {
-    if (this.proposalVoteInProgress) {
+    if (this.gamePhase === "proposalInProgress") {
+      return [this.proposer]; // Array with one-element.
+    } else if (this.gamePhase === "proposalVoteInProgress") {
       // If the vote is in progress, this should be everyone in the room
       // minus folks who have voted in liveVoteTally.
       return setDifference(
           this.playersInGame.map(player => player._id),
           this.liveVoteTally.map(talliedVote => talliedVote.playerId));
-    } else if (this.missionInProgress) {
+    } else if (this.gamePhase === "missionInProgress") {
       // If the mission is in progress, this should be everyone selected
       // on mission minus the folks who have voted in liveMissionTally.
       return setDifference(
           this.selectedOnMission,
           this.liveMissionTally.map(talliedVote => talliedVote.playerId));
-    } else {
-      // No vote and no mission means the proposer needs to act.
-      return [this.proposer]; // Array with one-element.
+    } else if (this.gamePhase === "assassinationPhase") {
+      // We shouldn't return "undefined" from this function.
+      // Replace with the proposer id as a default if Assassin isn't
+      // yet revealed on a client (until that client catches up).
+      maybeId = assassinIdOrUndefined(this);
+      if (!maybeId) maybeId = this.proposer;
+      return [maybeId]; // Array with one element.
     }
+
+    // The game is over.
+    return [/*no-one*/];
   },
 
   numShouldBeOnProposal() {
@@ -229,6 +263,10 @@ InGameInfo.helpers({
 
   numCurrentlyOnProposal() {
     return this.selectedOnMission.length;
+  },
+
+  numCurrentlyOnAssassinationList() {
+    return this.selectedForAssassination.length;
   },
 
   numFailsRequired() {
@@ -289,8 +327,13 @@ InGameInfo.helpers({
   },
 
   isGameOverState() {
-    return ['spiesWin', 'assassinationPhase', 'resistanceWin'].includes(
-               this.gamePhase);
+    return ["spiesWinOnFails",
+            "spiesWinInAssassination",
+            "resistanceWin"].includes(this.gamePhase);
+  },
+
+  isKnownAssassin(playerId) {
+    return assassinIdOrUndefined(this) === playerId;
   },
 });
 

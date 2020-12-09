@@ -1,3 +1,12 @@
+// Unified source of truth -- not directly exported.
+const kMerlin = "Merlin";
+const kPercival = "Percival";
+const kMorgana = "Morgana";
+const kAssassin = "Assassin";
+const kLoyal = "Loyal Servant";
+const kOberon = "Oberon";
+const kMinion = "Minion of Mordred";
+
 export const HelperConstants = {
   // NOTE: These values are set to match `GameRooms.schema` field names.
   kRoleField: 'role',           // The key used for the object containing the fields below.
@@ -6,9 +15,26 @@ export const HelperConstants = {
   kAlignment: 'alignment',      // The key mapping to the player's alignment (e.g. "spies").
 
   // The possible "values" for kAlignment.
-  kResistance: "Resistance",
-  kSpy: "Spy",
-  kMerlin: "Merlin",
+  kResistance: 'Resistance',
+  kSpy: 'Spy',
+
+  kMerlin: kMerlin,
+  kPercival: kPercival,
+  kMorgana: kMorgana,
+  kAssassin: kAssassin,
+  kLoyal: kLoyal,
+  kOberon: kOberon,
+  kMinion: kMinion,
+
+  kAllowedRoleNames: [
+    kMerlin,
+    kPercival,
+    kMorgana,
+    kAssassin,
+    kLoyal,
+    kOberon,
+    kMinion,
+  ],
 
   kMinPlayers: 2,   // The minimum number of players required to start a game.
   kMaxPlayers: 10,  // The maximum number of players allowed in a game.

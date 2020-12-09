@@ -13,6 +13,8 @@ import {
   finalizeProposal,
   voteOnProposal,
   voteOnMission,
+  toggleOnAssassinationList,
+  finalizeAssassination,
 } from '/imports/collections/game_rooms/methods';
 
 import '/imports/ui/common/button.js';
@@ -103,6 +105,13 @@ Template.inGame.helpers({
             " disabled");
   },
 
+  conditionallyDisabledAssassination: function(existingClasses) {
+    return existingClasses +
+        (this.inGameInfo.numCurrentlyOnAssassinationList() === 1 ?
+            "" :
+            " disabled");
+  },
+
   computeMissionCounts: function() {
     const playerCount = this.inGameInfo.playersInGame.length;
 
@@ -126,35 +135,59 @@ Template.inGame.helpers({
     return this.inGameInfo.isGameOverState();
   },
 
+  proposalVoteInProgress: function() {
+    return this.inGameInfo.gamePhase === "proposalVoteInProgress";
+  },
+
+  missionInProgress: function() {
+    return this.inGameInfo.gamePhase === "missionInProgress";
+  },
+
+  assassinationPhase: function() {
+    return this.inGameInfo.gamePhase === "assassinationPhase";
+  },
+
   gameStateText: function() {
     const phase = this.inGameInfo.gamePhase;
-    if (phase === 'spiesWin') return "Spies win on fails.";
-    if (phase === 'assassinationPhase') return "Assassin reveal; Spies find Merlin.";
+    if (phase === 'proposalInProgress') return "(A proposal is in progress.)";
+    if (phase === 'proposalVoteInProgress') return "(Everyone must vote on this proposal.)";
+    if (phase === 'missionInProgress') return "(A mission is in progress.)";
+    if (phase === 'spiesWinOnFails') return "Spies win on fails.";
+    if (phase === 'assassinationPhase') return "The Assassin reveals; Spies find Merlin.";
+    if (phase === 'spiesWinInAssassination') return "Spies found Merlin and win.";
     if (phase === 'resistanceWin') return "Resistance win with Merlin hidden.";
-    return "Game in progress..."; // Unused...
+    return "(Game in progress...)"; // Unused...
   },
 
   playersList: function() {
-    const cellBackgroundColor = function(onProposal, renderingSelf) {
+    const cellBackgroundColor = function(
+        onProposal, onAssassinationList, renderingSelf) {
       if (onProposal) return "green lighten-4";
+      if (onAssassinationList) return "black accent-1";
       return "grey lighten-4";
     };
 
-    const cellTextColor = function(onProposal, renderingSelf) {
+    const cellTextColor = function(
+        onProposal, onAssassinationList, renderingSelf) {
       if (onProposal && renderingSelf) return "grey-text text-darken-4";
       if (onProposal) return "grey-text text-darken-3";
+      if (onAssassinationList) return "red-text text-darken-4";
       if (renderingSelf) return "grey-text text-darken-2";
       return "grey-text text-darken-1";
     };
 
-    const cellTextEmphasis = function(onProposal, renderingSelf) {
+    const cellTextEmphasis = function(
+        onProposal, onAssassinationList, renderingSelf) {
       if (onProposal) return "avalon-text-bold";
+      if (onAssassinationList) return "avalon-text-strikethrough";
+       
       return "avalon-text-italic";
     };
 
-    const cellZDepth = function(onProposal, renderingSelf) {
+    const cellZDepth = function(
+        onProposal, onAssassinationList, renderingSelf) {
       if (onProposal && renderingSelf) return "z-depth-5";
-      if (onProposal) return "z-depth-4";
+      if (onProposal || onAssassinationList) return "z-depth-4";
       if (renderingSelf) return "z-depth-2";
       return "";
     };
@@ -162,12 +195,17 @@ Template.inGame.helpers({
     // Name order information is controlled by the order in this map.
     return Array.from(this.orderedNameToAllInfoMap, ([name, nameInfo]) => {
       const onProposal = nameInfo.onProposal;
+      const onAssassinationList = nameInfo.onAssassinationList;
       const isAbsent = nameInfo.absent;
       const renderingSelf = nameInfo.isSelf;
-      const cellColor = cellBackgroundColor(onProposal, renderingSelf);
-      const textColor = cellTextColor(onProposal, renderingSelf);
-      const textEmphasis = cellTextEmphasis(onProposal, renderingSelf);
-      const zDepth = cellZDepth(onProposal, renderingSelf);
+      const cellColor = cellBackgroundColor(
+          onProposal, onAssassinationList, renderingSelf);
+      const textColor = cellTextColor(
+          onProposal, onAssassinationList, renderingSelf);
+      const textEmphasis = cellTextEmphasis(
+          onProposal, onAssassinationList, renderingSelf);
+      const zDepth = cellZDepth(
+          onProposal, onAssassinationList, renderingSelf);
 
       const formatting = `${cellColor} ${textColor} ${textEmphasis} ${zDepth}`;
 
@@ -185,6 +223,7 @@ Template.inGame.helpers({
         mightProposeThisMission: nameInfo.mightProposeThisMission,
         proposalPosition: nameInfo.proposalPosition,
         onProposal: onProposal,
+        onAssassinationList: onAssassinationList,
         absent: isAbsent,
         materializeFormatting: formatting,
         prevState: prevState,
@@ -251,7 +290,7 @@ Template.inGame.helpers({
   },
 
   shouldShowMissionButton: function() {
-    return this.inGameInfo.missionInProgress &&
+    return this.inGameInfo.gamePhase === "missionInProgress" &&
            this.orderedNameToAllInfoMap.get(this.known.name).onProposal;
   },
 
@@ -266,6 +305,21 @@ Template.inGame.helpers({
                    "everyone vote on it.",
         modalResponseButtons: [
           { text: "Dismiss" },
+        ],
+      },
+    };
+  },
+
+  assassinationPopupArgs: function() {
+    return {
+      modalArgs: {
+        uniqueId: "assassination-popup-modal",
+        modalHeader: "You're the Assassin!",
+        modalText: "Discuss with your team who you think Merlin is, " +
+                   "click on that player's name, then hit the 'Assassinate!' " +
+                   "when you have finalized your choice.",
+        modalResponseButtons: [
+          { text: "(Merlin's as good as dead.)" },
         ],
       },
     };
@@ -354,10 +408,8 @@ Template.inGame.events({
 
     // Return early if this is not the proposer.
     if (!tmpl.data.isProposer) return;
-    // Also return early if the proposal has been finalized already.
-    if (tmpl.data.inGameInfo.proposalVoteInProgress) return;
-    // Also return early if the mission is in progress.
-    if (tmpl.data.inGameInfo.missionInProgress) return;
+    // Also return early if it's not proposal time.
+    if (tmpl.data.inGameInfo.gamePhase !== "proposalInProgress") return;
 
     toggleOnProposal.call({ roomId, playerName }, (err, result) => {
       if (err) {
@@ -468,6 +520,66 @@ Template.inGame.events({
       } */
     });
   },
+
+  'click .assassinatable': function(e, tmpl) {
+    e.preventDefault();
+
+    var roomId = tmpl.data.roomId;
+    var listTemplate = e.currentTarget;
+    // TODO(neemazad): There could be some weirdness here if a player
+    // edits the HTML via developer console... (shouldn't be able to
+    // break the game, though, I don't think...)
+    var playerName = listTemplate.getElementsByClassName("username")[0].innerText;
+
+    // Return early if this is not the proposer.
+    if (!tmpl.data.isAssassin) return;
+    // Also return early if it's not proposal time.
+    if (tmpl.data.inGameInfo.gamePhase !== "assassinationPhase") return;
+
+    toggleOnAssassinationList.call({ roomId, playerName }, (err, result) => {
+      if (err) {
+        M.toast({html: err, displayLength: 3000, classes: 'error-toast'});
+        return;
+      }
+
+      if (result.notAssassin) {
+        M.toast({html: 'You\'re not the Assassin.', displayLength: 3000, classes: 'error-toast'});
+        return;
+      } else if (result.playerNotInRoom) {
+        M.toast({html: 'That player is not in the game.', displayLength: 3000, classes: 'error-toast'});
+        return;
+      } else if (result.notAssassinationPhase) {
+        M.toast({html: 'It is too early to assassinate...', displayLength: 3000, classes: 'error-toast'});
+        return;
+      } /* else if (result.success) {
+        // Updates in the collection should reactively change what renders
+        // in `template_single_game`. In particular, we do not need to re-route.
+      } */
+    });
+  },
+
+  'click .assassinate': function(e, tmpl) {
+    e.preventDefault();
+
+    var roomId = tmpl.data.roomId;
+    finalizeAssassination.call({ roomId }, (err, result) => {
+      if (err) {
+        M.toast({html: err, displayLength: 3000, classes: 'error-toast'});
+        return;
+      }
+
+      if (result.notAssassin) {
+        M.toast({html: 'You\'re not the Assassin.', displayLength: 3000, classes: 'error-toast'});
+        return;
+      } else if (result.notAssassinationPhase) {
+        M.toast({html: 'It is too early to assassinate...', displayLength: 3000, classes: 'error-toast'});
+        return;
+      } /* else if (result.success) {
+        // Updates in the collection should reactively change what renders
+        // in `template_single_game`. In particular, we do not need to re-route.
+      } */
+    });
+  },
 });
 
 Template.avalonTokenRow.helpers({
@@ -519,6 +631,7 @@ Template.avalonTokenRow.helpers({
   },
 });
 
+// TODO(neemazad): Maybe make these all the same...? why have 3 of these?
 Template.proposerPopup.onRendered(function() {
   // Note, the `triggeredModal` sub-template has already been initialized
   // by this point. Here we can just open the modal without re-initializing.
@@ -528,6 +641,14 @@ Template.proposerPopup.onRendered(function() {
 });
 
 Template.missionVote.onRendered(function() {
+  // Note, the `triggeredModal` sub-template has already been initialized
+  // by this point. Here we can just open the modal without re-initializing.
+  const modalHtml = document.querySelector(`#${this.data.modalArgs.uniqueId}`);
+  var modal = M.Modal.getInstance(modalHtml);
+  modal.open();
+});
+
+Template.assassinationPopup.onRendered(function() {
   // Note, the `triggeredModal` sub-template has already been initialized
   // by this point. Here we can just open the modal without re-initializing.
   const modalHtml = document.querySelector(`#${this.data.modalArgs.uniqueId}`);

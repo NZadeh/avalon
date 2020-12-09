@@ -61,22 +61,33 @@ This templates requires the following data:
                         outcomesToRender=previousMissionOutcomes
                         missionCounts=computeMissionCounts}}
             {{else}}
-                <h5><b>{{gameStateText}}</b></h5>
                 {{> avalonTokenRow outcomesToRender=previousMissionOutcomes}}
             {{/unless}}
+            <div class="col s12 flow-text">
+                <h5><i>{{gameStateText}}</i></h5>
+            </div>
         </div>
         <div class="row">
             <div class="col s12 flow-text">
                 <h4>Players</h4>
             </div>
             {{#unless isGameOver}}
-                {{#if inGameInfo.proposalVoteInProgress}}
+                {{#if proposalVoteInProgress}}
                     {{> proposalVote (proposalButtonArgs) }}
-                {{else if inGameInfo.missionInProgress}}
+                {{else if missionInProgress}}
                     {{#if shouldShowMissionButton}}
                         {{> missionVote (missionButtonArgs) }}
                     {{else}}
                         <h5>Mission voting in progress...</h5>
+                    {{/if}}
+                {{else if assassinationPhase}}
+                    {{#if isAssassin}}
+                        {{> assassinationPopup (assassinationPopupArgs) }}
+                        {{#wideButton additionalClasses=(conditionallyDisabledAssassination "assassinate red accent-4")}}
+                            Assassinate! (Tap 1)
+                        {{/wideButton}}
+                    {{else}}
+                        <h5>Waiting for the Assassin to choose...</h5>
                     {{/if}}
                 {{else}}
                     {{#if isProposer}}
@@ -97,6 +108,7 @@ This templates requires the following data:
                                 proposalPosition=player.proposalPosition
                                 isProposer=player.proposing
                                 onProposal=player.onProposal
+                                onAssassinationList=player.onAssassinationList
                                 absent=player.absent
                                 prevState=player.prevState
                                 needsToAct=player.needsToAct}}
@@ -207,8 +219,13 @@ This templates requires the following data:
     {{> triggeredModal modalArgs }}
 </template>
 
+<!-- A wrapper around triggeredModal. -->
+<template name="assassinationPopup">
+    {{> triggeredModal modalArgs }}
+</template>
+
 <template name="listPlayer">
-    <li class="collection-item proposable {{formattingClasses}}">
+    <li class="collection-item proposable assassinatable {{formattingClasses}}">
         {{#if absent}}
             <span class="secondary-content left">
                 <i class="material-icons">cloud_off</i>
@@ -247,6 +264,13 @@ This templates requires the following data:
                 <i class="material-icons">verified_user</i>
             </span>
         {{/if}}
+        {{#if onAssassinationList}}
+            <span class="secondary-content btn-floating red accent-4 pulse">
+                <!-- "get dunked, Merlin" -->
+                <i class="material-icons">sports_handball</i>
+            </span>
+        {{/if}}
+        
     </li>
 </template>
 

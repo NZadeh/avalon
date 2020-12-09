@@ -31,6 +31,12 @@ button.avalon-half {
   font-style:italic;
 }
 
+.avalon-text-strikethrough {
+  font-weight:bold;
+  font-style:italic;
+  text-decoration: line-through;
+}
+
 div.avalon-row-token-with-text {
   display:inline-block;
   position:relative;

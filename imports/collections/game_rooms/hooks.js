@@ -4,7 +4,8 @@ import { _ } from 'meteor/underscore';
 import { HelperConstants } from '/imports/collections/game_rooms/constants';
 import { GameRooms } from '/imports/collections/game_rooms/game_rooms';
 import { InGameInfo, VoteHistory } from '/imports/collections/game_rooms/in_game_info.js';
-import { SecretInfo, secretInfoUniqueId } from '/imports/collections/game_rooms/secret_info';
+import { SecretInfo, secretInfoUniqueId, secretInfoUniqueIdToPlayerId }
+                            from '/imports/collections/game_rooms/secret_info';
 
 const setPlayerInRoom = function(playerId, newRoomId) {
   Meteor.users.update({_id: playerId}, {
@@ -52,6 +53,43 @@ const removePlayerRoomInfoForGood = function(playerId, roomId) {
   removePreviousRoomInfo(playerId, roomId);
   // Deletes if present.
   SecretInfo.remove({ uniqueId: secretInfoUniqueId(playerId, roomId) });
+};
+
+// TODO(neemazad): Move this into SecretInfo / somewhere more generic?
+const playerIdOfRole = function(roomId, roleName) {
+  const role = SecretInfo.findOne(
+    // Query
+    { $and:
+      [
+        { roleName: { $regex: `${roleName}` } },
+        { uniqueId: { $regex: `${roomId}` }},
+      ]
+    },
+    // Projection (only need one field)
+    {
+      uniqueId: 1
+    }
+  );
+  // The role might not be in this game...!
+  if (!role) return undefined;
+  return secretInfoUniqueIdToPlayerId(role.uniqueId);
+}
+
+const revealInRoom = function(roomId, inGameInfoId, roleName) {
+  const roleId = playerIdOfRole(roomId, roleName);
+  // Skip if role is not in this game...
+  if (!roleId) return;
+  InGameInfo.update(
+    { 
+      _id: inGameInfoId,
+      "playersInGame._id": roleId,
+    },
+    {
+      $set: {
+        "playersInGame.$.roleIfRevealed": roleName
+      }
+    },
+  );
 };
 
 export const GameRoomHooks = {
@@ -231,9 +269,9 @@ const calculateConditionalMissionUpdates = function(inGameInfo) {
   const assassinationPhase = missionsSucceeded >= 2 && thisMissionSucceeded;
 
   const newGamePhase =
-      spiesWin ? "spiesWin" :
+      spiesWin ? "spiesWinOnFails" :
       (assassinationPhase ? "assassinationPhase" :
-                            "inProgress");                
+                            "proposalInProgress");
 
   return {
     succeeded: thisMissionSucceeded,
@@ -270,15 +308,14 @@ export const InGameInfoHooks = {
         // modifier won't match.
         InGameInfo.update(selector, { 
           $set: {
-            proposalVoteInProgress: false,  // everyone voted, so we're done.
             liveVoteTally: [/*cleared*/],
           },
         });
 
         if (updates.proposalPassed) {
-          InGameInfo.update(selector, { $set: { missionInProgress: true } });
+          InGameInfo.update(selector, { $set: { gamePhase: "missionInProgress" } });
         } else if (updates.rejectedFifth) {
-          InGameInfo.update(selector, { $set: { gamePhase: "spiesWin" } });
+          InGameInfo.update(selector, { $set: { gamePhase: "spiesWinOnFails" } });
         } else {
           // Proposal passes on to the next person...
           // NOTE: this is a non-idempotent operation -- we need to make sure
@@ -295,9 +332,10 @@ export const InGameInfoHooks = {
             },
             {
               $inc: { currentProposalNumber: 1 },
-              $set: { 
+              $set: {
                 proposer: updates.nextProposerId,
                 selectedOnMission: [/*cleared*/],
+                gamePhase: "proposalInProgress",
               },
             }
           );
@@ -327,20 +365,19 @@ export const InGameInfoHooks = {
         InGameInfo.update(
           {
             ...selector,
-            ...{ missionInProgress: true },
+            ...{ gamePhase: "missionInProgress" },
           },
           {
             $push: { missionOutcomes: missionOutcomeUpdate},
             $set: {
               selectedOnMission: [/*cleared*/],
-              missionInProgress: false,
               liveMissionTally: [/*cleared*/],
               gamePhase: updates.newPhase,
             },
           }
         );
 
-        if (updates.newPhase === "inProgress") {
+        if (updates.newPhase === "proposalInProgress") {
           // NOTE: for this operation, we know we are updating only a single
           // InGameInfo, so we grab the first (and only) preUpdateData.
           const numMatched = InGameInfo.update(
@@ -376,6 +413,51 @@ export const InGameInfoHooks = {
               });
             });
           }
+        }
+      }
+    } else if (_.has(modifier, "$set") && _.has(modifier.$set, "gamePhase")) {
+      const newPhase = modifier.$set.gamePhase;
+      // Hope that the selector has the room id...
+      // We can't rely on the selector finding a room, necessarily, since
+      // the room may have since been updated not to match the selector.
+      // (e.g. the gamePhase was specified in the selector, changed, and then
+      // this code is being called).
+      //
+      // If we start updating based on not the id, this code needs to change.
+      check(selector._id, String);
+      const inGameInfoId = selector._id;
+      const roomId = InGameInfo.findOne(
+        {_id: inGameInfoId}, /*projection=*/{gameRoomId: 1}
+      ).gameRoomId;
+
+      if (newPhase === 'assassinationPhase') {
+        revealInRoom(roomId, inGameInfoId, HelperConstants.kAssassin);
+      } else if (newPhase === 'resolveAssassination') {
+        // Reveal everyone's roles... (a bit janky but whatever...)
+        // TODO(neemazad): use this data in some UI? otherwise this is unused.
+        HelperConstants.kAllowedRoleNames.forEach(name => {
+          revealInRoom(roomId, inGameInfoId, name);
+        });
+        
+        // TODO(neemazad): Go through everything and add projections to make
+        // sure we only request the data we are going to use.
+        //
+        // Get a fresh copy here since we've just revealed everything.
+        const inGameInfo = InGameInfo.findOne({_id: inGameInfoId});
+
+        // We expect that this phase was set after due-diligence checking of
+        // the conditions for assassination (c.f. `finalizeAssassination`).
+        const targetId = inGameInfo.selectedForAssassination[0];
+        const merlinId = playerIdOfRole(roomId, HelperConstants.kMerlin);
+
+        if (targetId === merlinId) {
+          InGameInfo.update({_id: inGameInfo._id},
+            { $set: { gamePhase: "spiesWinInAssassination" }}
+          );
+        } else {
+          InGameInfo.update({_id: inGameInfo._id},
+            { $set: { gamePhase: "resistanceWin" }}
+          );
         }
       }
     }
