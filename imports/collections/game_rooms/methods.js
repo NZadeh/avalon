@@ -56,7 +56,7 @@ export const deleteGameRoom = new ValidatedMethod({
   }).validator(),
 
   run({ roomId }) {
-    const room = GameRooms.findOne(roomId);
+    const room = GameRooms.findOne(roomId, {fields: {ownerId: 1}});
     if (!Permissions.isRoomOwner(room)) {
       return { notRoomOwner: true };
     }
@@ -85,7 +85,17 @@ export const joinRoom = new ValidatedMethod({
       return { alreadyInRoom: true };
     }
 
-    const gameRoom = GameRooms.findOne({_id: roomId});
+    const gameRoom = GameRooms.findOne(
+        { _id: roomId },
+        { fields:
+          {
+            players: 1,
+            open: 1,
+            passwordProtected: 1,
+            password: 1,
+          }
+        },
+    );
     const rejoining = user.previousGameRoomIds &&
                       user.previousGameRoomIds.includes(roomId);
 
@@ -130,7 +140,10 @@ export const startGame = new ValidatedMethod({
   }).validator(),
 
   run({ roomId }) {
-    const room = GameRooms.findOne(roomId);
+    const room = GameRooms.findOne(
+        roomId,
+        { fields: { ownerId: 1, players: 1} },
+    );
     if (!Permissions.isRoomOwner(room)) {
       return { notRoomOwner: true };
     }
@@ -214,7 +227,10 @@ export const backToLobby = new ValidatedMethod({
   }).validator(),
 
   run({ roomId }) {
-    const room = GameRooms.findOne(roomId);
+    const room = GameRooms.findOne(
+        roomId,
+        { fields: { ownerId: 1, players: 1, inGameInfoId: 1 } },
+    );
     if (!Permissions.isRoomOwner(room)) {
       return { notRoomOwner: true };
     }
@@ -251,8 +267,15 @@ export const toggleOnProposal = new ValidatedMethod({
   }).validator(),
 
   run({ roomId, playerName }) {
-    const room = GameRooms.findOne(roomId);
-    const existingInfo = room.inGameInfo();
+    const room = GameRooms.findOne(
+        roomId,
+        { fields: { inGameInfoId: 1, players: 1 } },
+    );
+    const existingInfo = room.inGameInfo({fields: {
+      proposer: 1,
+      gamePhase: 1,
+      selectedOnMission: 1,
+    }});
     const playerId = room.nameToId(playerName);
 
     if (existingInfo.isGameOverState()) {
@@ -296,8 +319,19 @@ export const finalizeProposal = new ValidatedMethod({
   }).validator(),
 
   run({ roomId }) {
-    const room = GameRooms.findOne(roomId);
-    const existingInfo = room.inGameInfo();
+    const room = GameRooms.findOne(roomId, {fields: {inGameInfoId: 1}});
+    const existingInfo = room.inGameInfo({fields: {
+      proposer: 1,
+      gamePhase: 1,
+      selectedOnMission: 1,
+      // TODO(neemazad): Figure out a better way of "exporting"
+      // this... maybe each function call should also export
+      // what fields it needs in an object, and we can `...unpack``
+      // it into this object.
+      missionCounts: 1,
+      currentMissionNumber: 1,
+      selectedOnMission: 1,
+    }});
 
     if (existingInfo.isGameOverState()) {
       return { gameOver: true};
@@ -337,8 +371,14 @@ export const voteOnProposal = new ValidatedMethod({
   }).validator(),
 
   run({ roomId, vote }) {
-    const room = GameRooms.findOne(roomId);
-    const existingInfo = room.inGameInfo();
+    const room = GameRooms.findOne(
+        roomId,
+        { fields: { inGameInfoId: 1, players: 1 } },
+    );
+    const existingInfo = room.inGameInfo({fields: {
+      gamePhase: 1,
+      liveVoteTally: 1,
+    }});
     const voterId = this.userId;
 
     if (existingInfo.isGameOverState()) {
@@ -392,8 +432,16 @@ export const voteOnMission = new ValidatedMethod({
 
   // TODO(neemazad): Near-dup of voteOnProposal -- consider unifying.
   run({ roomId, vote }) {
-    const room = GameRooms.findOne(roomId);
-    const existingInfo = room.inGameInfo();
+    const room = GameRooms.findOne(
+        roomId,
+        { fields: { inGameInfoId: 1, players: 1 } },
+    );
+    const existingInfo = room.inGameInfo({fields: {
+      gamePhase: 1,
+      selectedOnMission: 1,
+      liveMissionTally: 1,
+    }});
+
     const voterId = this.userId;
 
     if (existingInfo.isGameOverState()) {
@@ -464,8 +512,15 @@ export const toggleOnAssassinationList = new ValidatedMethod({
   }).validator(),
 
   run({ roomId, playerName }) {
-    const room = GameRooms.findOne(roomId);
-    const existingInfo = room.inGameInfo();
+    const room = GameRooms.findOne(
+        roomId,
+        { fields: { inGameInfoId: 1, players: 1 } },
+    );
+    const existingInfo = room.inGameInfo({fields: {
+      gamePhase: 1,
+      playersInGame: 1,  // for isKnownAssassin (TODO(neemazad): get from function?)
+      selectedForAssassination: 1,
+    }});
     const playerId = room.nameToId(playerName);
 
     if (existingInfo.isGameOverState()) {
@@ -509,8 +564,15 @@ export const finalizeAssassination = new ValidatedMethod({
   }).validator(),
 
   run({ roomId }) {
-    const room = GameRooms.findOne(roomId);
-    const existingInfo = room.inGameInfo();
+    const room = GameRooms.findOne(
+        roomId,
+        { fields: { inGameInfoId: 1 } },
+    );
+    const existingInfo = room.inGameInfo({fields: {
+      gamePhase: 1,
+      playersInGame: 1,  // for isKnownAssassin (TODO(neemazad): get from function?)
+      selectedForAssassination: 1,
+    }});
 
     if (existingInfo.isGameOverState()) {
       return { gameOver: true};

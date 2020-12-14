@@ -118,6 +118,11 @@ Template.Template_singleGame.helpers({
     // Mark self (for special rendering)
     playerIdToAllInfoMap.get(Meteor.userId()).isSelf = true;
     // Mark proposer
+    // TODO(neemazad): Maybe check game phase here instead of unconditional true?
+    // There are weird "pop-up" artifacts presumably from the proposer template
+    // being rendered and unrendered quickly, both after Assassination and after missions.
+    // Is this a client-optimistic UI thing or an actual bug?
+    // WARNING: We still probably want the proposer to be marked as such during missions?
     playerIdToAllInfoMap.get(inGameInfo.proposer).isProposer = true;
     // All remaining proposers (including current) + proposal position
     inGameInfo.remainingProposersForMission().forEach(
@@ -135,7 +140,7 @@ Template.Template_singleGame.helpers({
           // Invert this map.
           Array.from(inGameInfo.playerIdToVoteHistoryIdMap(),
                      a => a.reverse()));
-    const allVoteObjects = inGameInfo.allPlayerVoteHistoryCursor().fetch();
+    const allVoteObjects = inGameInfo.allPlayerVoteHistoryCursor();
     allVoteObjects.forEach(function(voteObject) {
       const voteId = voteObject._id;
       const playerId = voteIdToPlayerIdMap.get(voteId);
@@ -146,8 +151,9 @@ Template.Template_singleGame.helpers({
 
     var orderedNameToAllInfoMap = new Map();
     properlyOrderedPlayers.forEach(function(player) {
-      const info = playerIdToAllInfoMap.get(player._id);
-      orderedNameToAllInfoMap.set(player.username, info);
+      orderedNameToAllInfoMap.set(
+          player.username,
+          playerIdToAllInfoMap.get(player._id));
     })
 
     return {

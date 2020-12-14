@@ -8,17 +8,19 @@ import { SecretInfo, secretInfoUniqueId } from '/imports/collections/game_rooms/
 
 // Publish our extended Meteor.users info for use by client-code.
 Meteor.publish('userData', function() {
-    return Meteor.users.find({_id: this.userId}, {
-        fields: { 
-            currentGameRoomId: 1,
-            previousGameRoomIds: 1,
-        }
-    });
+    return Meteor.users.find(
+        { _id: this.userId },
+        { fields:
+            {
+                currentGameRoomId: 1,
+                previousGameRoomIds: 1,
+            }
+        },
+    );
 });
 
 Meteor.publish('gameRooms', function() {
-    // TODO(neemazad): Limit this data to what is needed to render the tiles?
-    return GameRooms.find({});
+    return GameRooms.find({/*all*/}, {fields: {inGameInfoId: 0}});
 });
 
 // https://atmospherejs.com/reywood/publish-composite

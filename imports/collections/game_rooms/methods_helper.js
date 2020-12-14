@@ -138,8 +138,7 @@ var appendToMapForKey = function(map, key, value) {
  * voting history and other in-game data.
  */
 var removeUserIdFromRoom = function(userId, roomId) {
-  var gameRoom = GameRooms.findOne(roomId);
-  if (!gameRoom) {
+  if (!GameRooms.findOne(roomId, {fields: {/*none*/}})) {
     return;  // Somehow, the room doesn't exist...
   }
   GameRooms.update(
@@ -150,7 +149,10 @@ var removeUserIdFromRoom = function(userId, roomId) {
   // If the room became empty, we can delete the room. Otherwise,
   // arbitrarily choose a new owner.
   // TODO(neemazad): Give players a way of passing room ownership as well.
-  gameRoom = GameRooms.findOne({_id: roomId});  // updated
+  const gameRoom = GameRooms.findOne(
+      { _id: roomId },
+      { fields: {players: 1} },
+  );
 
   // New owner -- if they exist -- is the first not-gone player.
   const newOwner = gameRoom.players.find(player => !player.gone);

@@ -69,18 +69,12 @@ const playerIdsOfRole = function(roomId, roleName) {
         { uniqueId: { $regex: `${roomId}` }},
       ]
     },
-    // TODO(neemazad): Meteor syntax requires setting a "fields" object:
-    // https://docs.meteor.com/api/collections.html#Mongo-Collection-find
-    // Projection (only need one field)
-    {
-      uniqueId: 1
-    }
+    { fields: { uniqueId: 1 } },
   );
 
   return roleCursor.map(secretInfo => {
-    console.log(secretInfo);
     return secretInfoUniqueIdToPlayerId(secretInfo.uniqueId);
-  })
+  });
 }
 
 const revealInRoom = function(roomId, inGameInfoId, roleName) {
@@ -114,7 +108,10 @@ export const GameRoomHooks = {
         _.has(modifier.$pull, "players") &&
         _.has(modifier.$pull.players, "_id")) {
       const playerId = modifier.$pull.players._id;
-      const room = GameRooms.findOne(selector);
+      const room = GameRooms.findOne(
+          selector,
+          { fields: { open: 1 } },
+      );
       if (room.open) {
         // Continue with the removal as planned.
         return true;
@@ -123,7 +120,7 @@ export const GameRoomHooks = {
       const roomId = room._id;
       // Otherwise, we mark the player as absent and clean up later.
       // NOTE: see the branch in `afterUpdateRoom` that cleans up
-      // if all players are gone.
+      // once the room opens up again.
       GameRooms.update(
         {
           _id: roomId,
@@ -168,7 +165,10 @@ export const GameRoomHooks = {
         // Previously, we delayed removing these players from the GameRoom while the game
         // was in progress. Now we can clean up all players who are "gone" from the room.
         const roomId = selector._id;
-        const room = GameRooms.findOne({_id: roomId});
+        const room = GameRooms.findOne(
+            {_id: roomId},
+            { fields: { players: 1 } },
+        );
 
         room.players.forEach(function(player) {
           if (player.gone) {
@@ -255,7 +255,10 @@ const copyVoteTallyInfoToPersonalHistory = function(updatedInfo) {
     }
     const voteHistoryId = map.get(playerId);
 
-    const voteHistory = VoteHistory.findOne({_id: voteHistoryId});
+    const voteHistory = VoteHistory.findOne(
+        { _id: voteHistoryId },
+        { fields: { missions: 1 } },
+    );
     console.assert(!!voteHistory, "Could not find valid vote history.");
 
     const missionIndexToUpdate = voteHistory.missions.length - 1;
@@ -264,7 +267,8 @@ const copyVoteTallyInfoToPersonalHistory = function(updatedInfo) {
     // { $push: { `missions.${missionIndexToUpdate}` : voteUpdate} }
     var update = { $push: {} };
     update.$push[`missions.${missionIndexToUpdate}`] = voteUpdate;
-    VoteHistory.update({_id: voteHistoryId}, update,
+    VoteHistory.update({_id: voteHistoryId},
+                       update,
                        HelperConstants.emptyOptions,
                        HelperConstants.makeAsyncCallback);
   });
@@ -312,7 +316,12 @@ export const InGameInfoHooks = {
         _.has(modifier.$addToSet, "liveVoteTally")) {
       // Use the same selector for the `update` call to find the updated
       // proposal vote tally.
-      const updatedInfo = InGameInfo.findOne(selector);
+      const updatedInfo = InGameInfo.findOne(
+          selector,
+          // Most fields are needed, but missionOutcomes is a rather large
+          // object that we don't need at all here.
+          { fields: { missionOutcomes: 0 } },
+      );
       if (updatedInfo.liveVoteTally.length >= updatedInfo.playersInGame.length) {
         const updates = calculateConditionalProposalUpdates(updatedInfo);
         copyVoteTallyInfoToPersonalHistory(updatedInfo);
@@ -357,6 +366,7 @@ export const InGameInfoHooks = {
                _.has(modifier.$addToSet, "liveMissionTally")) {
       // Use the same selector for the `update` call to find the updated
       // mission vote tally.
+      // Note that most large fields are needed here, so we cannot limit the fields.
       const updatedInfo = InGameInfo.findOne(selector);
       if (updatedInfo.liveMissionTally.length >= updatedInfo.numShouldBeOnProposal()) {
         const updates = calculateConditionalMissionUpdates(updatedInfo);
@@ -440,7 +450,8 @@ export const InGameInfoHooks = {
       check(selector._id, String);
       const inGameInfoId = selector._id;
       const roomId = InGameInfo.findOne(
-        {_id: inGameInfoId}, /*projection=*/{gameRoomId: 1}
+          { _id: inGameInfoId },
+          { fields: {gameRoomId: 1} },
       ).gameRoomId;
 
       if (newPhase === 'assassinationPhase') {
@@ -452,11 +463,11 @@ export const InGameInfoHooks = {
           revealInRoom(roomId, inGameInfoId, name);
         });
         
-        // TODO(neemazad): Go through everything and add projections to make
-        // sure we only request the data we are going to use.
-        //
         // Get a fresh copy here since we've just revealed everything.
-        const inGameInfo = InGameInfo.findOne({_id: inGameInfoId});
+        const inGameInfo = InGameInfo.findOne(
+            { _id: inGameInfoId },
+            { fields: {selectedForAssassination: 1} },
+        );
 
         // We expect that this phase was set after due-diligence checking of
         // the conditions for assassination (c.f. `finalizeAssassination`).

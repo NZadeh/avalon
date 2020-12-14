@@ -9,7 +9,12 @@ import { InGameInfoHooks } from '/imports/collections/game_rooms/hooks.js';
 // added to the query selector to make sure that, if the database is updated
 // by another thread/client in the interim, the query will no longer match and
 // will *not* duplicate a non-idempotent operation.
-const raceConditionPrevention = function(inGameInfos) {
+const raceConditionPrevention = function(collection, selector) {
+  const inGameInfos = collection.find(
+      selector,
+      { fields: { currentProposalNumber: 1, currentMissionNumber: 1 } },
+  );
+
   return inGameInfos.map(info => ({
     proposalNum: info.currentProposalNumber,
     missionNum: info.currentMissionNumber,
@@ -23,8 +28,7 @@ class InGameInfoCollection extends Mongo.Collection {
   }
 
   update(selector, modifier) {
-    const infos = this.find(selector).fetch();
-    const preUpdateData = raceConditionPrevention(infos);
+    const preUpdateData = raceConditionPrevention(this, selector);
     const result = super.update(selector, modifier);
     InGameInfoHooks.afterUpdateInfo(selector, modifier, preUpdateData);
     return result;
@@ -223,10 +227,10 @@ InGameInfo.helpers({
     return map;
   },
 
-  allPlayerVoteHistoryCursor() {
+  allPlayerVoteHistoryCursor(options = {}) {
     const voteHistoryIds =
         this.playersInGame.map(player => player.voteHistoryId);
-    return VoteHistory.find({_id: {$in: voteHistoryIds}});
+    return VoteHistory.find({_id: {$in: voteHistoryIds}}, options);
   },
 
   playersNeedingToAct() {

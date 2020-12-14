@@ -117,8 +117,8 @@ GameRooms.helpers({
     return found._id;
   },
 
-  inGameInfo() {
-    return InGameInfo.findOne({_id: this.inGameInfoId});
+  inGameInfo(options = {}) {
+    return InGameInfo.findOne({_id: this.inGameInfoId}, options);
   },
 });
 

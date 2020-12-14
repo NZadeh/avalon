@@ -13,9 +13,7 @@ const storePreviousMerlin = function(roomId) {
       ]
     },
     // Projection (only need one field)
-    {
-      uniqueId: 1
-    }
+    { fields: {uniqueId: 1} },
   );
   const merlinId = secretInfoUniqueIdToPlayerId(previousMerlin.uniqueId);
   Meteor.users.update({_id: merlinId}, {$set: {previousMerlinRoom: roomId}});
@@ -79,8 +77,9 @@ export const ServerSecrets = {
   },
 
   playerAlignment(playerId, roomId) {
-    return SecretInfo.findOne({ 
-        uniqueId: secretInfoUniqueId(playerId, roomId)
-    }).alignment;
+    return SecretInfo.findOne(
+      { uniqueId: secretInfoUniqueId(playerId, roomId) },
+      { fields: {alignment: 1} },
+    ).alignment;
   },
 }
