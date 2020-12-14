@@ -42,4 +42,14 @@ export const HelperConstants = {
   kNoRoomId: false,  // Using "false" to represent the room ID of not being in a room
 
   kDisabledButtonClass: "disabled-avalon",  // Specified in custom_materialize.css
+
+
+  // An empty function to be passed as callbacks to Meteor.Collection
+  // operations that do not require blocking. (Optimization.)
+  // See `callback` argument here:
+  // https://docs.meteor.com/api/collections.html#Mongo-Collection-update
+  makeAsyncCallback: function(unusedErr, unusedId) {/* do nothing*/},
+  // Can be required to reach the "callback" parameter in some
+  // Meteor.Collection function calls.
+  emptyOptions: {},
 };

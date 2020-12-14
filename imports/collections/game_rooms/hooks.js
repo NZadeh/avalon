@@ -32,7 +32,9 @@ const removePreviousRoomInfo = function(playerId, roomId) {
     $pull: {
       previousGameRoomIds: roomId,
     }
-  });
+  },
+  HelperConstants.emptyOptions,
+  HelperConstants.makeAsyncCallback);
 };
 
 const playerRejoins = function(playerId, roomId) {
@@ -52,12 +54,14 @@ const removePlayerRoomInfoForGood = function(playerId, roomId) {
   // This room no longer is viable for a player to re-join.
   removePreviousRoomInfo(playerId, roomId);
   // Deletes if present.
-  SecretInfo.remove({ uniqueId: secretInfoUniqueId(playerId, roomId) });
+  SecretInfo.remove({ uniqueId: secretInfoUniqueId(playerId, roomId) },
+                    HelperConstants.makeAsyncCallback);
 };
 
-// TODO(neemazad): Move this into SecretInfo / somewhere more generic?
-const playerIdOfRole = function(roomId, roleName) {
-  const role = SecretInfo.findOne(
+// TODO(neemazad): Move this into SecretInfo / ServerSecrets / somewhere more generic?
+// TODO(neemazad): Maybe reveal by player ids instead of by rolename...?
+const playerIdsOfRole = function(roomId, roleName) {
+  const roleCursor = SecretInfo.find(
     // Query
     { $and:
       [
@@ -65,29 +69,35 @@ const playerIdOfRole = function(roomId, roleName) {
         { uniqueId: { $regex: `${roomId}` }},
       ]
     },
+    // TODO(neemazad): Meteor syntax requires setting a "fields" object:
+    // https://docs.meteor.com/api/collections.html#Mongo-Collection-find
     // Projection (only need one field)
     {
       uniqueId: 1
     }
   );
-  // The role might not be in this game...!
-  if (!role) return undefined;
-  return secretInfoUniqueIdToPlayerId(role.uniqueId);
+
+  return roleCursor.map(secretInfo => {
+    console.log(secretInfo);
+    return secretInfoUniqueIdToPlayerId(secretInfo.uniqueId);
+  })
 }
 
 const revealInRoom = function(roomId, inGameInfoId, roleName) {
-  const roleId = playerIdOfRole(roomId, roleName);
-  // Skip if role is not in this game...
-  if (!roleId) return;
+  // Some roles (Loyal Servant) may have more than one player.
+  const roleIds = playerIdsOfRole(roomId, roleName);
   InGameInfo.update(
     { 
       _id: inGameInfoId,
-      "playersInGame._id": roleId,
+      "playersInGame._id": { $in: roleIds },
     },
     {
       $set: {
         "playersInGame.$.roleIfRevealed": roleName
       }
+    },
+    {
+      multi: true  // could be multiple of roleName in the game
     },
   );
 };
@@ -254,7 +264,9 @@ const copyVoteTallyInfoToPersonalHistory = function(updatedInfo) {
     // { $push: { `missions.${missionIndexToUpdate}` : voteUpdate} }
     var update = { $push: {} };
     update.$push[`missions.${missionIndexToUpdate}`] = voteUpdate;
-    VoteHistory.update({_id: voteHistoryId}, update);
+    VoteHistory.update({_id: voteHistoryId}, update,
+                       HelperConstants.emptyOptions,
+                       HelperConstants.makeAsyncCallback);
   });
 };
 
@@ -408,9 +420,10 @@ export const InGameInfoHooks = {
           if (numMatched > 0) {
             // Prepare the vote history for the new mission.
             playersInGame.forEach(player => {
-              VoteHistory.update({_id: player.voteHistoryId}, {
-                $push: {missions: []}, 
-              });
+              VoteHistory.update({_id: player.voteHistoryId},
+                                 { $push: {missions: []} },
+                                 HelperConstants.emptyOptions,
+                                 HelperConstants.makeAsyncCallback);
             });
           }
         }
@@ -448,7 +461,7 @@ export const InGameInfoHooks = {
         // We expect that this phase was set after due-diligence checking of
         // the conditions for assassination (c.f. `finalizeAssassination`).
         const targetId = inGameInfo.selectedForAssassination[0];
-        const merlinId = playerIdOfRole(roomId, HelperConstants.kMerlin);
+        const merlinId = playerIdsOfRole(roomId, HelperConstants.kMerlin)[0];
 
         if (targetId === merlinId) {
           InGameInfo.update({_id: inGameInfo._id},

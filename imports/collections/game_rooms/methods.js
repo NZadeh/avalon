@@ -529,6 +529,15 @@ export const finalizeAssassination = new ValidatedMethod({
       return { incorrectNumPlayers: numOnList, needs: 1};
     }
 
+    // The code after this point relies on information that is unknown to the
+    // Assassin's client. In particular, the Assassin's client cannot
+    // role-reveal Merlin's role, so the optimistic UI calculation incorrectly
+    // shows "Merlin is hidden" regardless of target. It is better to just make
+    // the Assassin wait for the server, like everyone else.
+    if (this.isSimulation) {
+      return { waitingForServer: true };
+    } 
+
     // Let the database code handle the implementation of this logic... :)
     InGameInfo.update({_id: room.inGameInfoId},
       { $set: { gamePhase: "resolveAssassination" }});
