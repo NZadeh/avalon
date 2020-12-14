@@ -49,7 +49,12 @@ button.avalon-half {
 .avalon-text-strikethrough {
   font-weight:bold;
   font-style:italic;
-  text-decoration: line-through;
+  text-decoration:line-through;
+}
+
+/* Necessary to inherit line-through in sub-elements. */
+.avalon-inherit-decoration {
+  text-decoration: inherit;
 }
 
 li.pointer-icon:before {

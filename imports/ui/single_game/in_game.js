@@ -232,11 +232,6 @@ Template.inGame.helpers({
     });
   },
 
-  roleList: function() {
-    // Sorted to remove any order information.
-    return this.roleNames.map(role => role).sort();
-  },
-
   gameHistoryArgs: function() {
     const exampleVoteHistory = this.orderedNameToAllInfoMap.values().next().value.allVotes;
     // We are going to "insert" fake "votes" that signify mission outcomes.

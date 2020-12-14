@@ -176,7 +176,10 @@ This templates requires the following data:
 
 <template name="listRole">
     <li class="collection-item">
-        {{role}}
+        {{role.role}}
+        {{#if role.name}}
+            -- <b>{{role.name}}</b>
+        {{/if}}
     </li>
 </template>
 
@@ -338,7 +341,7 @@ This templates requires the following data:
 </template>
 
 <template name="nameWithTooltip">
-    <span class="username center-align avalon-truncate tooltipped"
+    <span class="username center-align avalon-truncate tooltipped avalon-inherit-decoration"
           data-position="top" data-tooltip="{{name}}">
         {{name}}
     </span>

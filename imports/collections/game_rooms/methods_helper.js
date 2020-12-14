@@ -307,11 +307,14 @@ export const HelperMethods = {
   },
 
   /**
-   * Returns an array of role-names for an `n` player game of Avalon.
+   * Returns an array of role-name objects for an `n` player game of Avalon.
    */
   roleNamesForNPlayerGame(n) {
     n = Math.min(n, kOrderedRolesArray.length);
-    return kOrderedRolesArray.slice(0, n).map(role => role.nameTeam());
+    return kOrderedRolesArray.slice(0, n).map(role => ({
+      role: role.name(),
+      roleNameTeam: role.nameTeam(),
+    }));
   },
 
   /**

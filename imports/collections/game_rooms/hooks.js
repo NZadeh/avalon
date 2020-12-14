@@ -439,7 +439,6 @@ export const InGameInfoHooks = {
         }
       }
     } else if (_.has(modifier, "$set") && _.has(modifier.$set, "gamePhase")) {
-      const newPhase = modifier.$set.gamePhase;
       // Hope that the selector has the room id...
       // We can't rely on the selector finding a room, necessarily, since
       // the room may have since been updated not to match the selector.
@@ -449,37 +448,41 @@ export const InGameInfoHooks = {
       // If we start updating based on not the id, this code needs to change.
       check(selector._id, String);
       const inGameInfoId = selector._id;
-      const roomId = InGameInfo.findOne(
+      const game = InGameInfo.findOne(
           { _id: inGameInfoId },
-          { fields: {gameRoomId: 1} },
-      ).gameRoomId;
+          { fields: {gameRoomId: 1, gamePhase: 1} },
+      );
+      const roomId = game.gameRoomId;
+      const newPhase = game.gamePhase;
 
-      if (newPhase === 'assassinationPhase') {
-        revealInRoom(roomId, inGameInfoId, HelperConstants.kAssassin);
-      } else if (newPhase === 'resolveAssassination') {
+      if (newPhase === 'resolveAssassination' || game.isGameOverState()) {
         // Reveal everyone's roles... (a bit janky but whatever...)
         // TODO(neemazad): use this data in some UI? otherwise this is unused.
         HelperConstants.kAllowedRoleNames.forEach(name => {
           revealInRoom(roomId, inGameInfoId, name);
         });
-        
+      }
+
+      if (newPhase === 'assassinationPhase') {
+        revealInRoom(roomId, inGameInfoId, HelperConstants.kAssassin);
+      } else if (newPhase === 'resolveAssassination') {
         // Get a fresh copy here since we've just revealed everything.
-        const inGameInfo = InGameInfo.findOne(
+        const selected = InGameInfo.findOne(
             { _id: inGameInfoId },
             { fields: {selectedForAssassination: 1} },
-        );
+        ).selectedForAssassination;
 
         // We expect that this phase was set after due-diligence checking of
         // the conditions for assassination (c.f. `finalizeAssassination`).
-        const targetId = inGameInfo.selectedForAssassination[0];
+        const targetId = selected[0];
         const merlinId = playerIdsOfRole(roomId, HelperConstants.kMerlin)[0];
 
         if (targetId === merlinId) {
-          InGameInfo.update({_id: inGameInfo._id},
+          InGameInfo.update({_id: inGameInfoId},
             { $set: { gamePhase: "spiesWinInAssassination" }}
           );
         } else {
-          InGameInfo.update({_id: inGameInfo._id},
+          InGameInfo.update({_id: inGameInfoId},
             { $set: { gamePhase: "resistanceWin" }}
           );
         }

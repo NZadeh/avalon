@@ -146,11 +146,57 @@ Template.Template_singleGame.helpers({
     });
 
     var orderedNameToAllInfoMap = new Map();
+    var idToUsername = new Map();  // "grab this" for use later
     properlyOrderedPlayers.forEach(function(player) {
       orderedNameToAllInfoMap.set(
           player.username,
           playerIdToAllInfoMap.get(player._id));
-    })
+      // While we already have this data, grab it for use below later.
+      idToUsername.set(player._id, player.username);
+    });
+
+    // NOTE: We *cannot* use maps for the task below, since the roles are not
+    // unique. This is the cost of annotating role names with players, rather
+    // than doing it the other way around.
+    const sortByRole = (a,b) => (a.role < b.role)
+                                  ? -1
+                                  : ((a.role > b.role) ? 1 : 0);
+    const rolesAndTeams = 
+        HelperMethods.roleNamesForNPlayerGame(gameRoom.players.length)
+                     .sort(sortByRole);
+
+    var roleList = [];
+
+    if (inGameInfo.isProposerState()) {
+      // We just need "role" fields until roles are revealed.
+      roleList = rolesAndTeams.map(
+        ({unusedRole, roleNameTeam}) => ({role: roleNameTeam})
+      );
+    } else {
+      // Once the proposals are done, we should have some revealed roles to
+      // display. Note that the Assassin might be revealed alone, first.
+      const rolesAndNames = inGameInfo.playersInGame.map(player => ({
+        role: player.roleIfRevealed,
+        name: idToUsername.get(player._id),
+        attributed: false, // since roles are not unique, attribute 1 at a time
+      }));
+
+      roleList = rolesAndTeams.map(({role, roleNameTeam}) => {
+        const index = rolesAndNames.findIndex(
+            elem => !elem.attributed && elem.role === role);
+
+        var name = undefined;
+        if (index >= 0) {
+          rolesAndNames[index].attributed = true;
+          name = rolesAndNames[index].name;
+        }
+        
+        return {
+          role: roleNameTeam,
+          name: name,
+        };
+      });
+    }
 
     return {
       inGameReady: instance.subscriptionsReady(),
@@ -168,7 +214,7 @@ Template.Template_singleGame.helpers({
         role: secretInfo.roleName,
         info: secretInfo.roleInfo,
       },
-      roleNames: HelperMethods.roleNamesForNPlayerGame(gameRoom.players.length),
+      roleList: roleList,
       orderedNameToAllInfoMap: orderedNameToAllInfoMap,
       // TODO(neemazad): Look to see whether we should pass in specific
       // inGameInfo fields instead of this object, as we're partially doing
