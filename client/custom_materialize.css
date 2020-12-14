@@ -27,6 +27,16 @@ button.avalon-half {
   font-size: 1.15rem;
 }
 
+.avalon-truncate {
+  /* Up to: 3 icons on the left, 1 shield, and 2 small icons on the right. */
+  max-width:calc(100% - 3 * 24px - 40px - 2*14px);
+  display:inline-block; /* keep "span"-like properties */
+  white-space:nowrap; /* prevent wrapping... */
+  overflow:hidden; /* ...so that there is overflow to hide */
+  text-overflow:ellipsis;
+  line-height:normal; /* prevent cutting off of char-bottoms */
+}
+
 /* For when <i> and <b> tags are suboptimal. */
 .avalon-text-bold {
   font-weight:bold;

@@ -662,6 +662,12 @@ Template.maybeTagProposer.helpers({
   },
 });
 
+Template.nameWithTooltip.onRendered(function() {
+  var elems = document.querySelectorAll('.tooltipped');
+  var instances = M.Tooltip.init(
+      elems, {enterDelay: 1500, outDuration: 100});
+});
+
 Template.listPlayer.helpers({
   // Just for fun :)
   customizeProposerIcon(username) {

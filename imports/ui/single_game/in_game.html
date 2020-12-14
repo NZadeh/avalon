@@ -267,9 +267,7 @@ This templates requires the following data:
                 <i class="material-icons">{{customizeProposerIcon username}}</i>
             </span>
         {{/if}}
-        <span class="username center-align">
-            {{username}}
-        </span>
+        {{> nameWithTooltip name=username}}
         {{> showIfOnProposal
                 onProposal=prevState.onPrevProposal
                 positioning="right"}}
@@ -337,6 +335,13 @@ This templates requires the following data:
             </tbody>
         </table>
     </div>
+</template>
+
+<template name="nameWithTooltip">
+    <span class="username center-align avalon-truncate tooltipped"
+          data-position="top" data-tooltip="{{name}}">
+        {{name}}
+    </span>
 </template>
 
 <template name="maybeTagProposer">
