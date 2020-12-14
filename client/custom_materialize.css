@@ -22,6 +22,11 @@ button.avalon-half {
   width:45%;
 }
 
+/* For when flow-text is too big. */
+.slightly-larger-text {
+  font-size: 1.15rem;
+}
+
 /* For when <i> and <b> tags are suboptimal. */
 .avalon-text-bold {
   font-weight:bold;
@@ -35,6 +40,10 @@ button.avalon-half {
   font-weight:bold;
   font-style:italic;
   text-decoration: line-through;
+}
+
+li.pointer-icon:before {
+  content: '\261b'; /* ☛ */
 }
 
 div.avalon-row-token-with-text {

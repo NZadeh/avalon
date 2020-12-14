@@ -56,7 +56,19 @@ SecretInfo.schema = new SimpleSchema({
     type: String,
     regEx: nameContainsAllowedRoleNames,
   },
-  roleInfo: String,
+  roleInfo: Object,
+  'roleInfo.knowsText': String,
+  'roleInfo.knowsPlayerNames': {
+    type: Array,
+    minCount: 0,
+    maxCount: 4,
+  },
+  'roleInfo.knowsPlayerNames.$': String,
+  'roleInfo.additionalText': {
+    optional: true,
+    type: String,
+  },
+
   alignment: {
     type: String,
     allowedValues: [

@@ -31,7 +31,7 @@ This templates requires the following data:
                 <h4>Your information</h4>
             </div>
             <div class="col s12">
-                <ul class="collection">
+                <ul class="collection slightly-larger-text">
                     {{#with known}}
                         {{> knownInfo}}
                      {{/with}}   
@@ -161,9 +161,17 @@ This templates requires the following data:
 </template>
 
 <template name="knownInfo">
-    <li class="collection-item">Your username is: <i>{{name}}</i></li>
-    <li class="collection-item">Your role is: <b>{{role}}</b></li>
-    <li class="collection-item">You know: <b>{{info}}</b></li>
+    <li class="collection-item">Your username is <i>{{name}}</i></li>
+    <li class="collection-item">Your role is <b>{{role}}</b></li>
+    <li class="collection-item">
+        You know <i>{{info.knowsText}}</i>
+        <ul>
+            {{#each name in info.knowsPlayerNames}}
+                <li class="pointer-icon"><b>{{name}}</b></li>
+            {{/each}}
+        </ul>
+        <i>{{info.additionalText}}</i>
+    </li>
 </template>
 
 <template name="listRole">

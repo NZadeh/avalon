@@ -13,14 +13,19 @@ const kMinion = HelperConstants.kMinion;
 const kResistance = HelperConstants.kResistance;
 const kSpies = HelperConstants.kSpy;
 
-const kDefaultKnowNothing = "Nothing about other players.";
+const kDefaultKnowNothing = "nothing about other players.";
 
 class AvalonRole {
   name() { return "no-name"; }
   team() { return "no-team-specified"; }
   nameTeam() { return this.name() + " (" + this.team() + ")"; }
   knows() { return []; }
-  formatPlayerKnowledge(playerNames) { return kDefaultKnowNothing; }
+  formatPlayerKnowledge(playerNames) {
+    return {
+      knowsText: kDefaultKnowNothing,
+      knowsPlayerNames: [],
+    };
+  }
 }
 
 class Resistance extends AvalonRole {
@@ -33,8 +38,10 @@ class Spy extends AvalonRole {
   team() { return kSpies; }
   knows() { return [kMorgana, kAssassin, kMinion]; }
   formatPlayerKnowledge(playerNames) { 
-    return "Your fellow (non-Oberon) spies are "
-      + playerNames.join(", ");
+    return {
+      knowsText: "your fellow (non-Oberon) spies are:",
+      knowsPlayerNames: playerNames,
+    };
   }
 }
 
@@ -42,7 +49,10 @@ class Merlin extends Resistance {
   name() { return kMerlin; }
   knows() { return [kMorgana, kAssassin, kMinion, kOberon]; }
   formatPlayerKnowledge(playerNames) { 
-    return "The spies are " + playerNames.join(", ");
+    return {
+      knowsText: "the spies are:",
+      knowsPlayerNames: playerNames,
+    };
   }
 }
 
@@ -50,8 +60,11 @@ class Percival extends Resistance {
   name() { return kPercival; }
   knows() { return [kMorgana, kMerlin]; }
   formatPlayerKnowledge(playerNames) { 
-    return "Merlin and Morgana are " + playerNames.join(" and ")
-      + ". (Who is who? You got this, Percy!)";
+    return {
+      knowsText: "Merlin and Morgana are:",
+      knowsPlayerNames: playerNames,
+      additionalText: "(Who is who? You got this, Percy!)",
+    };
   }
 }
 
@@ -66,7 +79,12 @@ class Assassin extends Spy {
 class Oberon extends Spy {
   name() { return kOberon; }
   knows() { return []; }
-  formatPlayerKnowledge(playerNames) { return kDefaultKnowNothing; }
+  formatPlayerKnowledge(playerNames) {
+    return {
+      knowsText: kDefaultKnowNothing,
+      knowsPlayerNames: [],
+    };
+  }
 }
 
 // The ordering of roles is what determines which roles are added as the game
@@ -75,8 +93,8 @@ const kOrderedRolesArray = [
   new Merlin(),
   new Assassin(),
   new Percival(),
-  new Resistance(),
   new Morgana(),
+  new Resistance(),
   new Resistance(),
   new Oberon(),
   new Resistance(),
