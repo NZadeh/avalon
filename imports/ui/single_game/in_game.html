@@ -72,6 +72,18 @@ This templates requires the following data:
                 <h4>Players</h4>
             </div>
             {{#unless isGameOver}}
+                <!--
+                Always render this pop-up template for the proposer.
+                This helps avoid rendering bugs that seem to occur in the
+                fraction of a second between moving between phases
+                and changing the proposer. Note that once someone is the
+                proposer, they will continue to be until they are not, so
+                this will render once per person per time-proposing.
+                -->
+                {{#if isProposer}}
+                    {{> proposerPopup (proposerPopupArgs) }}
+                {{/if}}
+
                 {{#if proposalVoteInProgress}}
                     {{> proposalVote (proposalButtonArgs) }}
                 {{else if missionInProgress}}
@@ -91,7 +103,6 @@ This templates requires the following data:
                     {{/if}}
                 {{else}}
                     {{#if isProposer}}
-                        {{> proposerPopup (proposerPopupArgs) }}
                         {{#wideButton additionalClasses=(conditionallyDisabled "propose")}}
                             Propose! (Tap {{numRequiredOnMission}})
                         {{/wideButton}}

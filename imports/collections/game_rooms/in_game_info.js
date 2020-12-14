@@ -336,6 +336,12 @@ InGameInfo.helpers({
             "resistanceWin"].includes(this.gamePhase);
   },
 
+  isProposerState() {
+    return ["proposalInProgress",
+            "proposalVoteInProgress",
+            "missionInProgress"].includes(this.gamePhase);
+  },
+
   isKnownAssassin(playerId) {
     return assassinIdOrUndefined(this) === playerId;
   },

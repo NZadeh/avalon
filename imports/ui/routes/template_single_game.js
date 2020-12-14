@@ -118,12 +118,8 @@ Template.Template_singleGame.helpers({
     // Mark self (for special rendering)
     playerIdToAllInfoMap.get(Meteor.userId()).isSelf = true;
     // Mark proposer
-    // TODO(neemazad): Maybe check game phase here instead of unconditional true?
-    // There are weird "pop-up" artifacts presumably from the proposer template
-    // being rendered and unrendered quickly, both after Assassination and after missions.
-    // Is this a client-optimistic UI thing or an actual bug?
-    // WARNING: We still probably want the proposer to be marked as such during missions?
-    playerIdToAllInfoMap.get(inGameInfo.proposer).isProposer = true;
+    playerIdToAllInfoMap.get(inGameInfo.proposer).isProposer =
+        inGameInfo.isProposerState();
     // All remaining proposers (including current) + proposal position
     inGameInfo.remainingProposersForMission().forEach(
       ({id, proposalNum}) => {
@@ -162,7 +158,10 @@ Template.Template_singleGame.helpers({
       ownerId: gameRoom.ownerId,
       roomId: gameRoom._id,
       isRoomOwner: Permissions.isRoomOwner(gameRoom),
-      isProposer: Meteor.userId() === inGameInfo.proposer,
+      isProposer: Meteor.userId() === inGameInfo.proposer &&
+                  // Prevent refreshes during non-proposer times
+                  // from triggering the proposer pop-up
+                  inGameInfo.isProposerState(),
       isAssassin: inGameInfo.isKnownAssassin(Meteor.userId()),
       known: {
         name: player.username,
