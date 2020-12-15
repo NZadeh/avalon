@@ -186,19 +186,17 @@ InGameInfo.schema = new SimpleSchema({
     regEx: SimpleSchema.RegEx.Id,
   },
 
-  // TODO(neemazad): Make these "enum values" constants. Replace string
-  // literals everywhere with those constants.
   gamePhase: {
     type: String,
     allowedValues: [
-      'proposalInProgress',
-      'proposalVoteInProgress',
-      'missionInProgress',
-      'spiesWinOnFails',
-      'assassinationPhase',
-      'resolveAssassination',  // internal-only phase
-      'spiesWinInAssassination',
-      'resistanceWin',
+      HelperConstants.kPhaseProposal,
+      HelperConstants.kPhaseProposalVote,
+      HelperConstants.kPhaseMission,
+      HelperConstants.kPhaseSpiesFail,
+      HelperConstants.kPhaseAssassination,
+      HelperConstants.kPhaseResolveAssassination,  // internal-only phase
+      HelperConstants.kPhaseAssassinated,
+      HelperConstants.kPhaseResistanceWin,
     ],
   },
 });
@@ -234,21 +232,21 @@ InGameInfo.helpers({
   },
 
   playersNeedingToAct() {
-    if (this.gamePhase === "proposalInProgress") {
+    if (this.gamePhase === HelperConstants.kPhaseProposal) {
       return [this.proposer]; // Array with one-element.
-    } else if (this.gamePhase === "proposalVoteInProgress") {
+    } else if (this.gamePhase === HelperConstants.kPhaseProposalVote) {
       // If the vote is in progress, this should be everyone in the room
       // minus folks who have voted in liveVoteTally.
       return setDifference(
           this.playersInGame.map(player => player._id),
           this.liveVoteTally.map(talliedVote => talliedVote.playerId));
-    } else if (this.gamePhase === "missionInProgress") {
+    } else if (this.gamePhase === HelperConstants.kPhaseMission) {
       // If the mission is in progress, this should be everyone selected
       // on mission minus the folks who have voted in liveMissionTally.
       return setDifference(
           this.selectedOnMission,
           this.liveMissionTally.map(talliedVote => talliedVote.playerId));
-    } else if (this.gamePhase === "assassinationPhase") {
+    } else if (this.gamePhase === HelperConstants.kPhaseAssassination) {
       // We shouldn't return "undefined" from this function.
       // Replace with the proposer id as a default if Assassin isn't
       // yet revealed on a client (until that client catches up).
@@ -331,15 +329,15 @@ InGameInfo.helpers({
   },
 
   isGameOverState() {
-    return ["spiesWinOnFails",
-            "spiesWinInAssassination",
-            "resistanceWin"].includes(this.gamePhase);
+    return [HelperConstants.kPhaseSpiesFail,
+            HelperConstants.kPhaseAssassinated,
+            HelperConstants.kPhaseResistanceWin].includes(this.gamePhase);
   },
 
   isProposerState() {
-    return ["proposalInProgress",
-            "proposalVoteInProgress",
-            "missionInProgress"].includes(this.gamePhase);
+    return [HelperConstants.kPhaseProposal,
+            HelperConstants.kPhaseProposalVote,
+            HelperConstants.kPhaseMission].includes(this.gamePhase);
   },
 
   isKnownAssassin(playerId) {

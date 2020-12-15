@@ -344,7 +344,7 @@ export const HelperMethods = {
         liveVoteTally: [/*starts empty*/],
         liveMissionTally: [/*starts empty*/],
         missionOutcomes: [/*none yet*/],
-        gamePhase: "proposalInProgress",
+        gamePhase: HelperConstants.kPhaseProposal,
     };
   },
 };

@@ -136,26 +136,27 @@ Template.inGame.helpers({
   },
 
   proposalVoteInProgress: function() {
-    return this.inGameInfo.gamePhase === "proposalVoteInProgress";
+    return this.inGameInfo.gamePhase === HelperConstants.kPhaseProposalVote;
   },
 
   missionInProgress: function() {
-    return this.inGameInfo.gamePhase === "missionInProgress";
+    return this.inGameInfo.gamePhase === HelperConstants.kPhaseMission;
   },
 
   assassinationPhase: function() {
-    return this.inGameInfo.gamePhase === "assassinationPhase";
+    return this.inGameInfo.gamePhase === HelperConstants.kPhaseAssassination;
   },
 
   gameStateText: function() {
     const phase = this.inGameInfo.gamePhase;
-    if (phase === 'proposalInProgress') return "(A proposal is in progress.)";
-    if (phase === 'proposalVoteInProgress') return "(Everyone must vote on this proposal.)";
-    if (phase === 'missionInProgress') return "(A mission is in progress.)";
-    if (phase === 'spiesWinOnFails') return "Spies win on fails.";
-    if (phase === 'assassinationPhase') return "The Assassin reveals; Spies find Merlin.";
-    if (phase === 'spiesWinInAssassination') return "Spies found Merlin and win.";
-    if (phase === 'resistanceWin') return "Resistance win with Merlin hidden.";
+    if (phase === HelperConstants.kPhaseProposal) return "(A proposal is in progress.)";
+    if (phase === HelperConstants.kPhaseProposalVote) return "(Everyone must vote on this proposal.)";
+    if (phase === HelperConstants.kPhaseMission) return "(A mission is in progress.)";
+    if (phase === HelperConstants.kPhaseSpiesFail) return "Spies win on fails.";
+    if (phase === HelperConstants.kPhaseAssassination) return "The Assassin reveals; Spies find Merlin.";
+    if (phase === HelperConstants.kPhaseResolveAssassination) return "(Finding Merlin...)";
+    if (phase === HelperConstants.kPhaseAssassinated) return "Spies found Merlin and win.";
+    if (phase === HelperConstants.kPhaseResistanceWin) return "Resistance win with Merlin hidden.";
     return "(Game in progress...)"; // Unused...
   },
 
@@ -285,7 +286,7 @@ Template.inGame.helpers({
   },
 
   shouldShowMissionButton: function() {
-    return this.inGameInfo.gamePhase === "missionInProgress" &&
+    return this.inGameInfo.gamePhase === HelperConstants.kPhaseMission &&
            this.orderedNameToAllInfoMap.get(this.known.name).onProposal;
   },
 
@@ -404,7 +405,7 @@ Template.inGame.events({
     // Return early if this is not the proposer.
     if (!tmpl.data.isProposer) return;
     // Also return early if it's not proposal time.
-    if (tmpl.data.inGameInfo.gamePhase !== "proposalInProgress") return;
+    if (tmpl.data.inGameInfo.gamePhase !== HelperConstants.kPhaseProposal) return;
 
     toggleOnProposal.call({ roomId, playerName }, (err, result) => {
       if (err) {
@@ -529,7 +530,7 @@ Template.inGame.events({
     // Return early if this is not the proposer.
     if (!tmpl.data.isAssassin) return;
     // Also return early if it's not proposal time.
-    if (tmpl.data.inGameInfo.gamePhase !== "assassinationPhase") return;
+    if (tmpl.data.inGameInfo.gamePhase !== HelperConstants.kPhaseAssassination) return;
 
     toggleOnAssassinationList.call({ roomId, playerName }, (err, result) => {
       if (err) {

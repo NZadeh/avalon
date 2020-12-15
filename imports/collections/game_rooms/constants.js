@@ -43,6 +43,16 @@ export const HelperConstants = {
 
   kDisabledButtonClass: "disabled-avalon",  // Specified in custom_materialize.css
 
+  // Since these constants are used everywhere, we may as well make the strings
+  // short for easy comparison.
+  kPhaseProposal:             'P',   // Mid proposal
+  kPhaseProposalVote:         'PV',  // Mid proposal-vote
+  kPhaseMission:              'M',   // Mid mission
+  kPhaseSpiesFail:            'SF',  // Spies won on fails
+  kPhaseAssassination:        'A',   // Mid assassination
+  kPhaseResolveAssassination: 'RA',  // Internal "resolving" of kill
+  kPhaseAssassinated:         'SA',  // Spies won on assassination
+  kPhaseResistanceWin:        'RW',  // Resistance won
 
   // An empty function to be passed as callbacks to Meteor.Collection
   // operations that do not require blocking. (Optimization.)

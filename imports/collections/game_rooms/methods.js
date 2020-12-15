@@ -289,7 +289,7 @@ export const toggleOnProposal = new ValidatedMethod({
     if (!room.includesUserId(playerId)) {
       return { playerNotInRoom: true };
     }
-    if (existingInfo.gamePhase === "missionInProgress") {
+    if (existingInfo.gamePhase === HelperConstants.kPhaseMission) {
       return { missionAlreadyInProgress: true };
     }
 
@@ -341,7 +341,7 @@ export const finalizeProposal = new ValidatedMethod({
     if (this.userId != existingInfo.proposer) {
       return { notProposer: true};
     }
-    if (existingInfo.gamePhase === "proposalVoteInProgress") {
+    if (existingInfo.gamePhase === HelperConstants.kPhaseProposalVote) {
       return { voteAlreadyInProgress: true };
     }
 
@@ -353,7 +353,7 @@ export const finalizeProposal = new ValidatedMethod({
     }
 
     InGameInfo.update({_id: room.inGameInfoId},
-      { $set: { gamePhase: "proposalVoteInProgress" }});
+      { $set: { gamePhase: HelperConstants.kPhaseProposalVote }});
 
     return { success: true };
   },
@@ -389,9 +389,18 @@ export const voteOnProposal = new ValidatedMethod({
       return { playerNotInRoom: true };
     }
 
-    if (existingInfo.gamePhase !== "proposalVoteInProgress") {
+    if (existingInfo.gamePhase !== HelperConstants.kPhaseProposalVote) {
       return { proposalNotFinalized: true };
     }
+
+    // TODO(neemazad): Allow players to change their vote.
+    // Probably requires using "update" with "upsert".
+    // Need to determine UI to show player (which vote is currently
+    // submitted) and how to make that data available.
+    //
+    // This TODO might need to be handled in concert with the TODO
+    // hiding the value of the vote in e.g. SecretInfo and tracking
+    // the lookup-id to the vote in liveVoteTally...
 
     // TODO(neemazad): It seems like theoretically there's a race condition here
     // with checking whether the player has already voted. If the player can
@@ -452,7 +461,7 @@ export const voteOnMission = new ValidatedMethod({
       return { playerNotInRoom: true };
     }
 
-    if (existingInfo.gamePhase !== "missionInProgress") {
+    if (existingInfo.gamePhase !== HelperConstants.kPhaseMission) {
       return { missionNotFinalized: true };
     }
 
@@ -534,7 +543,7 @@ export const toggleOnAssassinationList = new ValidatedMethod({
     if (!room.includesUserId(playerId)) {
       return { playerNotInRoom: true };
     }
-    if (existingInfo.gamePhase !== "assassinationPhase") {
+    if (existingInfo.gamePhase !== HelperConstants.kPhaseAssassination) {
       return { notAssassinationPhase: true };
     }
 
@@ -582,7 +591,7 @@ export const finalizeAssassination = new ValidatedMethod({
     if (!existingInfo.isKnownAssassin(this.userId)) {
       return { notAssassin: true };
     }
-    if (existingInfo.gamePhase !== "assassinationPhase") {
+    if (existingInfo.gamePhase !== HelperConstants.kPhaseAssassination) {
       return { notAssassinationPhase: true };
     }
 
@@ -602,7 +611,7 @@ export const finalizeAssassination = new ValidatedMethod({
 
     // Let the database code handle the implementation of this logic... :)
     InGameInfo.update({_id: room.inGameInfoId},
-      { $set: { gamePhase: "resolveAssassination" }});
+      { $set: { gamePhase: HelperConstants.kPhaseResolveAssassination }});
 
     return { success: true };
   },

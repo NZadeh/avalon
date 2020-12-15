@@ -285,9 +285,9 @@ const calculateConditionalMissionUpdates = function(inGameInfo) {
   const assassinationPhase = missionsSucceeded >= 2 && thisMissionSucceeded;
 
   const newGamePhase =
-      spiesWin ? "spiesWinOnFails" :
-      (assassinationPhase ? "assassinationPhase" :
-                            "proposalInProgress");
+      spiesWin ? HelperConstants.kPhaseSpiesFail :
+      (assassinationPhase ? HelperConstants.kPhaseAssassination :
+                            HelperConstants.kPhaseProposal);
 
   return {
     succeeded: thisMissionSucceeded,
@@ -334,9 +334,9 @@ export const InGameInfoHooks = {
         });
 
         if (updates.proposalPassed) {
-          InGameInfo.update(selector, { $set: { gamePhase: "missionInProgress" } });
+          InGameInfo.update(selector, { $set: { gamePhase: HelperConstants.kPhaseMission } });
         } else if (updates.rejectedFifth) {
-          InGameInfo.update(selector, { $set: { gamePhase: "spiesWinOnFails" } });
+          InGameInfo.update(selector, { $set: { gamePhase: HelperConstants.kPhaseSpiesFail } });
         } else {
           // Proposal passes on to the next person...
           // NOTE: this is a non-idempotent operation -- we need to make sure
@@ -356,7 +356,7 @@ export const InGameInfoHooks = {
               $set: {
                 proposer: updates.nextProposerId,
                 selectedOnMission: [/*cleared*/],
-                gamePhase: "proposalInProgress",
+                gamePhase: HelperConstants.kPhaseProposal,
               },
             }
           );
@@ -387,7 +387,7 @@ export const InGameInfoHooks = {
         InGameInfo.update(
           {
             ...selector,
-            ...{ gamePhase: "missionInProgress" },
+            ...{ gamePhase: HelperConstants.kPhaseMission },
           },
           {
             $push: { missionOutcomes: missionOutcomeUpdate},
@@ -399,7 +399,7 @@ export const InGameInfoHooks = {
           }
         );
 
-        if (updates.newPhase === "proposalInProgress") {
+        if (updates.newPhase === HelperConstants.kPhaseProposal) {
           // NOTE: for this operation, we know we are updating only a single
           // InGameInfo, so we grab the first (and only) preUpdateData.
           const numMatched = InGameInfo.update(
@@ -455,17 +455,16 @@ export const InGameInfoHooks = {
       const roomId = game.gameRoomId;
       const newPhase = game.gamePhase;
 
-      if (newPhase === 'resolveAssassination' || game.isGameOverState()) {
+      if (newPhase === HelperConstants.kPhaseResolveAssassination || game.isGameOverState()) {
         // Reveal everyone's roles... (a bit janky but whatever...)
-        // TODO(neemazad): use this data in some UI? otherwise this is unused.
         HelperConstants.kAllowedRoleNames.forEach(name => {
           revealInRoom(roomId, inGameInfoId, name);
         });
       }
 
-      if (newPhase === 'assassinationPhase') {
+      if (newPhase === HelperConstants.kPhaseAssassination) {
         revealInRoom(roomId, inGameInfoId, HelperConstants.kAssassin);
-      } else if (newPhase === 'resolveAssassination') {
+      } else if (newPhase === HelperConstants.kPhaseResolveAssassination) {
         // Get a fresh copy here since we've just revealed everything.
         const selected = InGameInfo.findOne(
             { _id: inGameInfoId },
@@ -479,11 +478,11 @@ export const InGameInfoHooks = {
 
         if (targetId === merlinId) {
           InGameInfo.update({_id: inGameInfoId},
-            { $set: { gamePhase: "spiesWinInAssassination" }}
+            { $set: { gamePhase: HelperConstants.kPhaseAssassinated }}
           );
         } else {
           InGameInfo.update({_id: inGameInfoId},
-            { $set: { gamePhase: "resistanceWin" }}
+            { $set: { gamePhase: HelperConstants.kPhaseResistanceWin }}
           );
         }
       }
