@@ -158,19 +158,16 @@ Template.Template_singleGame.helpers({
     // NOTE: We *cannot* use maps for the task below, since the roles are not
     // unique. This is the cost of annotating role names with players, rather
     // than doing it the other way around.
-    const sortByRole = (a,b) => (a.role < b.role)
-                                  ? -1
-                                  : ((a.role > b.role) ? 1 : 0);
-    const rolesAndTeams = 
+    const rolesWithTeam = 
         HelperMethods.roleNamesForNPlayerGame(gameRoom.players.length)
-                     .sort(sortByRole);
+                     .sort();
 
     var roleList = [];
 
     if (inGameInfo.isProposerState()) {
       // We just need "role" fields until roles are revealed.
-      roleList = rolesAndTeams.map(
-        ({unusedRole, roleNameTeam}) => ({role: roleNameTeam})
+      roleList = rolesWithTeam.map(
+        roleNameTeam => ({role: roleNameTeam})
       );
     } else {
       // Once the proposals are done, we should have some revealed roles to
@@ -181,9 +178,9 @@ Template.Template_singleGame.helpers({
         attributed: false, // since roles are not unique, attribute 1 at a time
       }));
 
-      roleList = rolesAndTeams.map(({role, roleNameTeam}) => {
+      roleList = rolesWithTeam.map(roleNameTeam => {
         const index = rolesAndNames.findIndex(
-            elem => !elem.attributed && elem.role === role);
+            elem => !elem.attributed && elem.role === roleNameTeam);
 
         var name = undefined;
         if (index >= 0) {

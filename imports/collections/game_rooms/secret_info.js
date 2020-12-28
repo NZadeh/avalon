@@ -27,14 +27,6 @@ const secretInfoUniqueIdValidation = function() {
   ]);
 };
 
-const nameContainsAllowedRoleNames = function() {
-  const barSeparatedNames =
-    HelperConstants.kAllowedRoleNames.reduce(
-      (accumulator, curr) => `${accumulator}|${curr}`
-    );
-  return new RegExp(`(${barSeparatedNames}).*`);
-};
-
 // Deny all client-side updates since we will be using methods to manage this collection
 SecretInfo.deny({
   insert() { return true; },
@@ -54,7 +46,7 @@ SecretInfo.schema = new SimpleSchema({
   // This "role name" also includes team information.
   roleName: {
     type: String,
-    regEx: nameContainsAllowedRoleNames,
+    regEx: HelperConstants.nameContainsAllowedRoleNames,
   },
   roleInfo: Object,
   'roleInfo.knowsText': String,

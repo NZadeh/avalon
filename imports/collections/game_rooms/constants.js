@@ -7,6 +7,16 @@ const kLoyal = "Loyal Servant";
 const kOberon = "Oberon";
 const kMinion = "Minion of Mordred";
 
+const kAllowedRoleNames = [
+    kMerlin,
+    kPercival,
+    kMorgana,
+    kAssassin,
+    kLoyal,
+    kOberon,
+    kMinion,
+];
+
 export const HelperConstants = {
   // NOTE: These values are set to match `GameRooms.schema` field names.
   kRoleField: 'role',           // The key used for the object containing the fields below.
@@ -26,15 +36,7 @@ export const HelperConstants = {
   kOberon: kOberon,
   kMinion: kMinion,
 
-  kAllowedRoleNames: [
-    kMerlin,
-    kPercival,
-    kMorgana,
-    kAssassin,
-    kLoyal,
-    kOberon,
-    kMinion,
-  ],
+  kAllowedRoleNames: kAllowedRoleNames,
 
   kMinPlayers: 2,   // The minimum number of players required to start a game.
   kMaxPlayers: 10,  // The maximum number of players allowed in a game.
@@ -62,4 +64,12 @@ export const HelperConstants = {
   // Can be required to reach the "callback" parameter in some
   // Meteor.Collection function calls.
   emptyOptions: {},
+  // A Schema field validator function for database entries storing role names.
+  nameContainsAllowedRoleNames: function() {
+    const barSeparatedNames =
+      kAllowedRoleNames.reduce(
+        (accumulator, curr) => `${accumulator}|${curr}`
+      );
+    return new RegExp(`(${barSeparatedNames}).*`);
+  },
 };

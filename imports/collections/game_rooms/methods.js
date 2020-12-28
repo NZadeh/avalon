@@ -81,7 +81,7 @@ export const joinRoom = new ValidatedMethod({
       return { notLoggedOn: true };
     }
 
-    if (!!user.currentGameRoomId) {
+    if (user.currentGameRoomId && user.currentGameRoomId !== roomId) {
       return { alreadyInRoom: true };
     }
 
@@ -96,8 +96,13 @@ export const joinRoom = new ValidatedMethod({
           }
         },
     );
-    const rejoining = user.previousGameRoomIds &&
-                      user.previousGameRoomIds.includes(roomId);
+    // TODO(neemazad): Is tracking user.previousGameRoomIds redundant with
+    // looking at GameRooms.find(... player is gone and is in room ... )?
+    // And here, is it redundant with gameRoom.includesUserId?
+    // Can we remove tracking and maintenance of previousGameRoomIds?
+    const rejoining = (user.previousGameRoomIds &&
+                       user.previousGameRoomIds.includes(roomId)) ||
+                      gameRoom.includesUserId(user._id);
 
     if (rejoining) {
       // Handle the "rejoin" case first.

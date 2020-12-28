@@ -80,7 +80,7 @@ InGameInfo.schema = new SimpleSchema({
   'playersInGame.$.roleIfRevealed': {
     optional: true,
     type: String,
-    allowedValues: HelperConstants.kAllowedRoleNames,
+    regEx: HelperConstants.nameContainsAllowedRoleNames,
   },
   
   missionCounts: {
@@ -209,9 +209,9 @@ const setDifference = function(arrayA, arrayB) {
 };
 
 const assassinIdOrUndefined = function(inGameInfo) {
-  const maybeAssassin =
-      inGameInfo.playersInGame.find(
-          player => player.roleIfRevealed === HelperConstants.kAssassin);
+  const maybeAssassin = inGameInfo.playersInGame.find(
+      player =>
+          RegExp(HelperConstants.kAssassin).test(player.roleIfRevealed));
 
   if (!maybeAssassin) return undefined;
   return maybeAssassin._id;

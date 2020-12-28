@@ -42,15 +42,26 @@ const playerRejoins = function(playerId, roomId) {
   removePreviousRoomInfo(playerId, roomId);
 };
 
-const markPlayerAsRemovedFromRoom = function(playerId, roomId) {
-  setPlayerInRoom(playerId, HelperConstants.kNoRoomId);
-  if (roomId) {
+const markPlayerAsRemovedFromRoom = function(playerId, roomId, markAsPrev) {
+  // It is possible that while the room is being destroyed,
+  // a player has already left and is in another room. (Their
+  // current room is not the roomId they're being removed from.)
+  // If that's the case, we want to avoid overriding their
+  // room.
+  const removed = Meteor.users.findOne(
+      { _id: playerId },
+      { fields: {currentGameRoomId: 1} }
+  );
+  if (removed && removed.currentGameRoomId === roomId) {
+    setPlayerInRoom(playerId, HelperConstants.kNoRoomId);
+  }
+  if (markAsPrev) {
     setPlayerPrevRoom(playerId, roomId);
   }
 };
 
 const removePlayerRoomInfoForGood = function(playerId, roomId) {
-  markPlayerAsRemovedFromRoom(playerId);
+  markPlayerAsRemovedFromRoom(playerId, roomId, /*markAsPrev=*/false);
   // This room no longer is viable for a player to re-join.
   removePreviousRoomInfo(playerId, roomId);
   // Deletes if present.
@@ -59,15 +70,11 @@ const removePlayerRoomInfoForGood = function(playerId, roomId) {
 };
 
 // TODO(neemazad): Move this into SecretInfo / ServerSecrets / somewhere more generic?
-// TODO(neemazad): Maybe reveal by player ids instead of by rolename...?
 const playerIdsOfRole = function(roomId, roleName) {
   const roleCursor = SecretInfo.find(
-    // Query
-    { $and:
-      [
-        { roleName: { $regex: `${roleName}` } },
-        { uniqueId: { $regex: `${roomId}` }},
-      ]
+    { 
+      roleName: { $regex: `${roleName}` },
+      uniqueId: { $regex: `${roomId}` },
     },
     { fields: { uniqueId: 1 } },
   );
@@ -77,23 +84,54 @@ const playerIdsOfRole = function(roomId, roleName) {
   });
 }
 
-const revealInRoom = function(roomId, inGameInfoId, roleName) {
-  // Some roles (Loyal Servant) may have more than one player.
-  const roleIds = playerIdsOfRole(roomId, roleName);
-  InGameInfo.update(
-    { 
-      _id: inGameInfoId,
-      "playersInGame._id": { $in: roleIds },
-    },
-    {
-      $set: {
-        "playersInGame.$.roleIfRevealed": roleName
-      }
-    },
-    {
-      multi: true  // could be multiple of roleName in the game
-    },
+// TODO(neemazad): Move this into SecretInfo / ServerSecrets / somewhere more generic?
+const getPlayersAndRoles = function(roomId, inGameInfoId, roleNameFilter) {
+  const inGameInfo = InGameInfo.findOne(
+    { _id: inGameInfoId },
+    { fields: { playersInGame: 1 } }
   );
+  if (!inGameInfo) return;
+
+  const secretInfoIds = inGameInfo.playersInGame.map(
+      player => secretInfoUniqueId(player._id, roomId));
+
+  const maybeFilterName = function(roleNameFilter) {
+    if (!roleNameFilter || roleNameFilter.length <= 0) return {};
+    const regexArr = roleNameFilter.map(name => new RegExp(`${name}`));
+    return { roleName: { $in: regexArr } };
+  };
+
+  const roleCursor = SecretInfo.find(
+    {
+      uniqueId: { $in: secretInfoIds },
+      ...maybeFilterName(roleNameFilter),  // optional struct (unpacked)
+    },
+    { fields: { uniqueId: 1, roleName: 1 } },
+  );
+  
+  return roleCursor.map(secretInfo => ({
+    playerId: secretInfoUniqueIdToPlayerId(secretInfo.uniqueId),
+    role: secretInfo.roleName,
+  }));
+}
+
+const revealRolesInRoom = function(roomId, inGameInfoId, roleNameFilter) {
+  const playerIdsWithRole = getPlayersAndRoles(
+      roomId, inGameInfoId, roleNameFilter);
+  
+  playerIdsWithRole.forEach( ({playerId, role}) => {
+    InGameInfo.update(
+      { 
+        _id: inGameInfoId,
+        "playersInGame._id": playerId
+      },
+      {
+        $set: {
+          "playersInGame.$.roleIfRevealed": role
+        }
+      },
+    );
+  });
 };
 
 export const GameRoomHooks = {
@@ -128,7 +166,7 @@ export const GameRoomHooks = {
         },
         { $set: { "players.$.gone": true } }
       );
-      markPlayerAsRemovedFromRoom(playerId, roomId);
+      markPlayerAsRemovedFromRoom(playerId, roomId, /*markAsPrev=*/true);
 
       return false;
     }
@@ -236,7 +274,7 @@ const calculateConditionalProposalUpdates = function(inGameInfo) {
   const [approves, rejects] = tallyVotes(inGameInfo.liveVoteTally);
 
   const passed = approves > rejects;
-  const isFifth = inGameInfo.currentProposalNumber == 5;
+  const isFifth = inGameInfo.currentProposalNumber >= 5;
   return {
     proposalPassed: passed,
     rejectedFifth: (!passed && isFifth),
@@ -456,14 +494,11 @@ export const InGameInfoHooks = {
       const newPhase = game.gamePhase;
 
       if (newPhase === HelperConstants.kPhaseResolveAssassination || game.isGameOverState()) {
-        // Reveal everyone's roles... (a bit janky but whatever...)
-        HelperConstants.kAllowedRoleNames.forEach(name => {
-          revealInRoom(roomId, inGameInfoId, name);
-        });
+        revealRolesInRoom(roomId, inGameInfoId);
       }
 
       if (newPhase === HelperConstants.kPhaseAssassination) {
-        revealInRoom(roomId, inGameInfoId, HelperConstants.kAssassin);
+        revealRolesInRoom(roomId, inGameInfoId, [HelperConstants.kAssassin]);
       } else if (newPhase === HelperConstants.kPhaseResolveAssassination) {
         // Get a fresh copy here since we've just revealed everything.
         const selected = InGameInfo.findOne(
@@ -476,6 +511,8 @@ export const InGameInfoHooks = {
         const targetId = selected[0];
         const merlinId = playerIdsOfRole(roomId, HelperConstants.kMerlin)[0];
 
+        // Note that to keep the Assassination-animation after the game phase
+        // changes, we do *not* clear the selectedForAssassination list.
         if (targetId === merlinId) {
           InGameInfo.update({_id: inGameInfoId},
             { $set: { gamePhase: HelperConstants.kPhaseAssassinated }}

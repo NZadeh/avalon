@@ -46,15 +46,11 @@ Template.joinButton.events({
         e.preventDefault();
 
         const roomId = tmpl.data.roomId;
-        if (tmpl.data.playerAlreadyInside) {
-            FlowRouter.go('singleGame', {
-                _id: roomId
-            });
-            return;
-        }
 
+        const rejoining = tmpl.data.playerAlreadyInside || 
+                          tmpl.data.playerLeftButCanReturn;
         var password = '';
-        if (tmpl.data.passwordProtected) {
+        if (tmpl.data.passwordProtected && !rejoining) {
             password = prompt('Enter the room\'s password:');
             if (password === null && typeof password === 'object') {
                 return;  // Dismissed the prompt -- no password available.
@@ -68,7 +64,7 @@ Template.joinButton.events({
             }
 
             if (result.alreadyInRoom) {
-                M.toast({html: 'You\'re already in a room.', displayLength: 3000, classes: 'error-toast'});
+                M.toast({html: 'You\'re already in a different room.', displayLength: 3000, classes: 'error-toast'});
             } else if (result.alreadyStarted) {
                 M.toast({html: 'This game has already started.', displayLength: 3000, classes: 'error-toast'});
             } else if (result.isAtCapacity) {

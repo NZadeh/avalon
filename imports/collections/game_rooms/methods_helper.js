@@ -197,6 +197,7 @@ var maybeMoveMerlinToFront = function(playerIds, previousMerlinId) {
   const merlinIndex = playerIds.findIndex(
       player => player._id === previousMerlinId
   );
+  if (merlinIndex < 0 || merlinIndex >= playerIds.length) return playerIds;
   // Swap previous Merlin with front of line.
   [playerIds[0], playerIds[merlinIndex]] =
       [playerIds[merlinIndex], playerIds[0]];
@@ -307,14 +308,11 @@ export const HelperMethods = {
   },
 
   /**
-   * Returns an array of role-name objects for an `n` player game of Avalon.
+   * Returns an array of role-names for an `n` player game of Avalon.
    */
   roleNamesForNPlayerGame(n) {
     n = Math.min(n, kOrderedRolesArray.length);
-    return kOrderedRolesArray.slice(0, n).map(role => ({
-      role: role.name(),
-      roleNameTeam: role.nameTeam(),
-    }));
+    return kOrderedRolesArray.slice(0, n).map(role => role.nameTeam());
   },
 
   /**

@@ -15,6 +15,7 @@ const storePreviousMerlin = function(roomId) {
     // Projection (only need one field)
     { fields: {uniqueId: 1} },
   );
+  if (!previousMerlin) return; // Impossible in normal games, but should cover.
   const merlinId = secretInfoUniqueIdToPlayerId(previousMerlin.uniqueId);
   Meteor.users.update({_id: merlinId}, {$set: {previousMerlinRoom: roomId}});
 };
